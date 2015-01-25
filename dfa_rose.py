@@ -22,6 +22,7 @@ class DFA:
             print "out"
         return;
     
+    # Verifies whether current_state is final_state
     def in_accept_state(self):
         return self.current_state in accept_states;
     
@@ -29,6 +30,7 @@ class DFA:
         self.current_state = self.start_state;
         return;
     
+    # processes each character individualy
     def run_with_input_list(self, input_list):
         self.go_to_initial_state();
         for inp in input_list:
@@ -39,9 +41,9 @@ class DFA:
 
 # --- Main ---
 states = {'s0', 's1'}
-"""
-alphabet = {0,1,2,3,4,5,6,7,8,9}
 
+# Digit transition Function
+"""
 tf = {}
 tf[('s0', 0)] = 's1'
 tf[('s0', 1)] = 's1'
@@ -70,7 +72,9 @@ tf[('s2', 9)] = 's2'
 start_state = 's0'
 accept_states = {'s0','s2'}
 """
-alphabet = {'a','b','c','d','e'}
+alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
+            0,1,2,3,4,5,6,7,8,9,
+            ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", "<=", ">", ">=", "!=", "=", ":=", "{", "}"}
 
 tf = {}
 
