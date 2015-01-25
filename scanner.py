@@ -18,21 +18,22 @@ class Scanner:
 	def __init__(self,filename):
 		lineCount = 0
 		errorFlag = False
-		reservedWords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
+		keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
 						  "if", "begin", "then", "return", "else", "end", "EOF"]
 
 		operands = {"add": +, "sub": -, "mult": *, "div": /}
 		simbolTable = {}
+		tokenType = ["IDENTIFIER","OPERATOR","KEYWORD","STRINGLITERAL","INTLITERAL","FLOATLITERAL"]
 
 
 		with open(filename) as f:
 			lines = f.readlines() 										# Reads until EOF and returns a list of lines. 		
 		  		for l in lines:
-		  			print l
-		  			for s in line:	
-		  				if s != '/':  							   		# Not comment line
-							if s != " " and s != "\n" and s != "\t": 	# Not a white spapce, not Tab
-							    print s
+		  			for s in range(len(l)):
+		  				print l[s],l[s+1]
+		  				if l[s]+l[s+1] != '//':  					    # Not comment line
+							#if s != " " and s != "\n" and s != "\t": 	# Not a white spapce, not Tab
+							print l
 
 
 	def reportError(self, message):
@@ -44,19 +45,6 @@ class Scanner:
 
 	def getToken(self):
 		print "nothing"
-
-	"""
-	def readFile(self, path):
-		with open(filename) as f:
-	  		while True:
-			    char = f.read(1)
-			    if not char:
-			    	print "End of file"
-			    	break
-			    if char != " ":
-			    	print char
-	"""
-
 
 
 # ---- Main -----
