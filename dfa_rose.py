@@ -43,7 +43,7 @@ class DFA:
 states = {'s0', 's1'}
 
 # Digit transition Function
-"""
+"""  
 tf = {}
 tf[('s0', 0)] = 's1'
 tf[('s0', 1)] = 's1'
@@ -150,6 +150,5 @@ d = DFA(states, alphabet, tf, start_state, accept_states)
 
 inp_program = "xda2"
 print inp_program
-#print tf.keys()
 
 print d.run_with_input_list(inp_program);
