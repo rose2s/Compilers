@@ -37,7 +37,10 @@ class Scanner:
 	  	#			if l[s]+l[s+1] != '//':  					    # Not comment line
 						#if s != " " and s != "\n" and s != "\t": 	# Not a white spapce, not Tab
 		#				print l
-		inp_program = "="	
+		inp_program = "case"
+		self.run_automata(inp_program)
+
+	def run_automata(self,inp_program):
 		# run with word
 		print dfa.run_with_input_list(inp_program)
 
@@ -55,8 +58,6 @@ class Scanner:
 		        self.simbolTable[token] = inp_program
 		else:
 		    self.reportError("invalid "+inp_program)
-
-
 
 	def reportError(self, message):
 	 	print "Error: " + message
