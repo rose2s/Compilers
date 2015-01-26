@@ -29,16 +29,21 @@ class Scanner:
 
 	def getToken(self,filename,dfa):
 
-		#with open(filename) as f:
-		#lines = f.readlines() 										# Reads until EOF and returns a list of lines. 		
-	  	#	for l in lines:
-	  	#		for s in range(len(l)):
-	  	#			print l[s],l[s+1]
-	  	#			if l[s]+l[s+1] != '//':  					    # Not comment line
-						#if s != " " and s != "\n" and s != "\t": 	# Not a white spapce, not Tab
-		#				print l
-		inp_program = "case"
-		self.run_automata(inp_program)
+		with open(filename) as f:
+			lines = f.readlines() 											# Reads until EOF and returns a list of lines. 	
+			count = 0	
+			for l in lines:
+				count += 1
+				for s in range(len(l)):
+					if s+1 < len(l):
+			  			if l[s]+l[s+1] != '//':  					    		# Not comment line
+							if l[s] != " " and l[s] != "\n" and l[s] != "\t": 	# Not a white spapce, not Tab
+								print l[s]
+								self.run_automata(l[s])
+						else:
+							break
+				print "line count: ", count
+
 
 	def run_automata(self,inp_program):
 		# run with word
@@ -88,8 +93,8 @@ tf[('s4', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
 tf[('s2',('.'))] = 's3'
 tf[('s3', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
 # operator token
-tf[('s0',("!", ":"))] = 's5'
-tf[('s0',("<", ">"))] = 's6'
+tf[('s0',("!"))] = 's5'
+tf[('s0',("<", ">",':'))] = 's6'
 tf[('s5',("="))] = 's7'
 tf[('s6',("="))] = 's7'
 tf[('s0',("+", "-", "*", "/", "="))] = 's7'
