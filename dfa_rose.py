@@ -2,6 +2,8 @@ class DFA:
 
     current_state = None;
     tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "OPERATOR",'s7': "OPERATOR",'s8': "SEPARATOR"}
+    keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
+                          "if", "begin", "then", "return", "else", "end", "EOF"]
 
     def __init__(self, states, alphabet, transition_function, start_state, accept_states):
         self.states = states;
@@ -83,11 +85,18 @@ accept_states = {'s1','s2','s3','s6', 's7','s8'}
 
 d = DFA(states, alphabet, tf, start_state, accept_states)
 
-inp_program = ","
+inp_program = "<="
 print inp_program
 
 print d.run_with_input_list(inp_program)
 if d.current_state in d.tokenType.keys():
-    print inp_program + " is "+ d.tokenType[d.current_state]
+    token = d.tokenType[d.current_state]
+    if token == "IDENTIFIER":
+        if inp_program in d.keywords:
+            print inp_program + " is KEYWORD"
+        else:
+            print inp_program + " is "+ token
+    else:
+        print inp_program + " is "+ token
 else:
     print "Error"
