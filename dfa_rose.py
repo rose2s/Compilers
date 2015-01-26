@@ -1,7 +1,7 @@
 class DFA:
 
     current_state = None;
-    tokenType = {"IDENTIFIER": 's1',"INTLITERAL": 's2',"FLOATLITERAL": 's3', "OPERATOR": 's4'}
+    tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL", 's4': "OPERATOR"}
 
     def __init__(self, states, alphabet, transition_function, start_state, accept_states):
         self.states = states;
@@ -18,16 +18,17 @@ class DFA:
         inp_tuple = (self.current_state, input_value)
         print inp_tuple
 
-        for tf2 in self.transition_function:
-            if self.current_state == tf2[0]:
+        for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
+            if self.current_state == tf2[0]:   
                 if input_value in tf2[1]:
                     self.current_state = self.transition_function[tf2]
-                    print self.current_state
-                print "in"
-        
+                    break
+
+        print "trans",self.transition_function[tf2]
         if self.current_state != self.transition_function[tf2]:
             self.current_state = None
             print "out"
+        #print self.tokenType[self.current_state]
         return;
     
     # Verifies whether current_state is final_state
@@ -69,7 +70,8 @@ accept_states = {'s1','s2'}
 
 d = DFA(states, alphabet, tf, start_state, accept_states)
 
-inp_program = "111"
+inp_program = "2qesdd"
 print inp_program
 
-print d.run_with_input_list(inp_program);
+print d.run_with_input_list(inp_program)
+print inp_program + " is "+ d.tokenType[d.current_state]
