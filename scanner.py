@@ -37,7 +37,7 @@ class Scanner:
 	  	#			if l[s]+l[s+1] != '//':  					    # Not comment line
 						#if s != " " and s != "\n" and s != "\t": 	# Not a white spapce, not Tab
 		#				print l
-		inp_program = "<="	
+		inp_program = "="	
 		# run with word
 		print dfa.run_with_input_list(inp_program)
 
@@ -46,12 +46,15 @@ class Scanner:
 		    if token == "IDENTIFIER":
 		        if inp_program in self.keywords:
 		            print inp_program + " is KEYWORD"
+		            self.simbolTable["KEYWORD"] = inp_program
 		        else:
 		            print inp_program + " is "+ token
+		            self.simbolTable[token] = inp_program
 		    else:
 		        print inp_program + " is "+ token
+		        self.simbolTable[token] = inp_program
 		else:
-		    print "Error"
+		    self.reportError("invalid "+inp_program)
 
 
 
@@ -103,4 +106,5 @@ filename = "/Users/roses/Downloads/program.py"
 scanner = Scanner()
 
 scanner.getToken(filename,dfa)
+print scanner.simbolTable
 
