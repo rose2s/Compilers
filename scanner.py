@@ -31,9 +31,8 @@ class Scanner:
 
 		with open(filename) as f:
 			lines = f.readlines() 											# Reads until EOF and returns a list of lines. 	
-			count = 0	
 			for l in lines:
-				count += 1
+				self.lineCount += 1
 				for s in range(len(l)):
 					if s+1 < len(l):
 			  			if l[s]+l[s+1] != '//':  					    		# Not comment line
