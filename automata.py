@@ -1,9 +1,9 @@
 class DFA:
 
     current_state = None;
-    tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "OPERATOR",'s7': "OPERATOR",'s8': "SEPARATOR"}
-    keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
-                          "if", "begin", "then", "return", "else", "end", "EOF"]
+    #tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "OPERATOR",'s7': "OPERATOR",'s8': "SEPARATOR"}
+    #keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
+    #                      "if", "begin", "then", "return", "else", "end", "EOF"]
 
     def __init__(self, states, alphabet, transition_function, start_state, accept_states):
         self.states = states;
@@ -30,27 +30,33 @@ class DFA:
         if self.current_state != self.transition_function[tf2]:
             self.current_state = None
             print "out"
-        #print self.tokenType[self.current_state]
-        return;
+        return
     
     # Verifies whether current_state is final_state
     def in_accept_state(self):
-        return self.current_state in accept_states;
+        return self.current_state in self.accept_states
     
     def go_to_initial_state(self):
-        self.current_state = self.start_state;
-        return;
+        self.current_state = self.start_state
+        return
+
+    def getCurrent_state(self):
+        return self.current_state
+
+    def getTransition_function(self):
+        return selt.transition_function
     
     # processes each character individualy
     def run_with_input_list(self, input_list):
-        self.go_to_initial_state();
+        self.go_to_initial_state()
         for inp in input_list:
-            self.transition_to_state_with_input(inp);
-            continue;
-        return self.in_accept_state();
-    pass;
+            self.transition_to_state_with_input(inp)
+            continue
+        return self.in_accept_state()
+    pass
 
 # --- Main ---
+"""
 states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8'}
 
 alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
@@ -83,10 +89,11 @@ start_state = 's0'
 accept_states = {'s1','s2','s3','s6', 's7','s8'}
 # id = s1, int = s2, float=s4, op=s6,s7, sep=s8
 
+
 d = DFA(states, alphabet, tf, start_state, accept_states)
 
-inp_program = "<="
-print inp_program
+#inp_program = "<="
+#print inp_program
 
 print d.run_with_input_list(inp_program)
 if d.current_state in d.tokenType.keys():
@@ -100,3 +107,4 @@ if d.current_state in d.tokenType.keys():
         print inp_program + " is "+ token
 else:
     print "Error"
+"""
