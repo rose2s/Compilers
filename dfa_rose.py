@@ -49,11 +49,11 @@ class DFA:
     pass;
 
 # --- Main ---
-states = {'s0', 's1', 's2'}
+states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8'}
 
 alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
             '0','1','2','3','4','5','6','7','8','9',
-            ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", "<=", ">", ">=", "!=", "=", ":=", "{", "}"}
+            ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", ">", "!", "=", "{", "}"}
 
 tf = {}
 # identifier transition
@@ -73,17 +73,17 @@ tf[('s0',("!", ":"))] = 's5'
 tf[('s0',("<", ">"))] = 's6'
 tf[('s5',("="))] = 's7'
 tf[('s6',("="))] = 's7'
-tf[('s0',(";", ",", "+", "-", "*", "/", "="))] = 's7'
+tf[('s0',("+", "-", "*", "/", "="))] = 's7'
 # separator token
-tf[('s0',("(", ")", "{", "}"))] = 's8'
+tf[('s0',("(", ")", "{", "}",";",","))] = 's8'
 
 start_state = 's0'
 accept_states = {'s1','s2','s3','s6', 's7','s8'}
-# id = s1, int = s2, float=s4, op=s6,s7
+# id = s1, int = s2, float=s4, op=s6,s7, sep=s8
 
 d = DFA(states, alphabet, tf, start_state, accept_states)
 
-inp_program = "}"
+inp_program = ","
 print inp_program
 
 print d.run_with_input_list(inp_program)
