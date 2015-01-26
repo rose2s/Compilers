@@ -1,7 +1,7 @@
 class DFA:
 
     current_state = None;
-    tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL", 's4': "OPERATOR"}
+    tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's4': "FLOATLITERAL", 's5': "OPERATOR"}
 
     def __init__(self, states, alphabet, transition_function, start_state, accept_states):
         self.states = states;
@@ -63,15 +63,22 @@ tf[('s1', ('0','1','2','3','4','5','6','7','8','9'))] = 's1'
 # int transition
 tf[('s0', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
 tf[('s2', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
+# float transition 
+tf[('s2',('.'))] = 's3'
+tf[('s3', ('0','1','2','3','4','5','6','7','8','9'))] = 's4'
+tf[('s4', ('0','1','2','3','4','5','6','7','8','9'))] = 's4'
 
 start_state = 's0'
-accept_states = {'s1','s2'}
-# id = s1, int = s2
+accept_states = {'s1','s2','s4'}
+# id = s1, int = s2, float=s4
 
 d = DFA(states, alphabet, tf, start_state, accept_states)
 
-inp_program = "2qesdd"
+inp_program = "643.0"
 print inp_program
 
 print d.run_with_input_list(inp_program)
-print inp_program + " is "+ d.tokenType[d.current_state]
+if d.current_state in d.tokenType.keys():
+    print inp_program + " is "+ d.tokenType[d.current_state]
+else:
+    print "Error"
