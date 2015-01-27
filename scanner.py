@@ -37,38 +37,50 @@ class Scanner:
 					if s+1 < len(l):
 			  			if l[s]+l[s+1] != '//':  					    		# Not comment line
 							if l[s] != " " and l[s] != "\n" and l[s] != "\t": 	# Not a white spapce, not Tab
-								print l[s]
 								self.run_automata(l[s])
 						else:
 							break
-				print "line count: ", count
-
+				
 
 	def run_automata(self,inp_program):
 		# run with word
-		print dfa.run_with_input_list(inp_program)
+		dfa.run_with_input_list(inp_program)
 
 		if dfa.current_state in self.tokenType.keys():
 		    token = self.tokenType[dfa.current_state]
 		    if token == "IDENTIFIER":
 		        if inp_program in self.keywords:
 		            print inp_program + " is KEYWORD"
-		            self.simbolTable["KEYWORD"] = inp_program
+		            if self.simbolTable.has_key("KEYWORD"):
+		            	self.simbolTable["KEYWORD"] += inp_program 
+		            else:
+		            	self.simbolTable["KEYWORD"] = inp_program 
+
 		        else:
 		            print inp_program + " is "+ token
-		            self.simbolTable[token] = inp_program
+		            if self.simbolTable.has_key(token): 
+		            	self.simbolTable[token] += inp_program
+		            else:
+		            	self.simbolTable[token] = inp_program
 		    else:
 		        print inp_program + " is "+ token
-		        self.simbolTable[token] = inp_program
+		        if self.simbolTable.has_key(token): 
+		            self.simbolTable[token] += inp_program
+		        else:
+		            self.simbolTable[token] = inp_program
 		else:
 		    self.reportError("invalid "+inp_program)
-
+		
 	def reportError(self, message):
 	 	print "Error: " + message
 
 
 	def reportWarning(self, message):
 	 	print message
+
+	def printTokens(self):
+		for k,v in scanner.simbolTable.items():
+			print k,v
 
 
 # ---- Main -----
@@ -111,5 +123,12 @@ filename = "/Users/roses/Downloads/program.py"
 scanner = Scanner()
 
 scanner.getToken(filename,dfa)
-print scanner.simbolTable
+
+# separe token in array
+for k in scanner.simbolTable.keys():
+	scanner.simbolTable[k] = list(scanner.simbolTable[k])
+
+#scanner.printTokens()
+
+
 

@@ -15,7 +15,7 @@ class DFA:
     def transition_to_state_with_input(self, input_value):
 
         inp_tuple = (self.current_state, input_value)
-        print inp_tuple
+        #print inp_tuple
 
         for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
             if self.current_state == tf2[0]:   
@@ -23,10 +23,8 @@ class DFA:
                     self.current_state = self.transition_function[tf2]
                     break
 
-        print "trans",self.transition_function[tf2]
         if self.current_state != self.transition_function[tf2]:
             self.current_state = None
-            print "out"
         return
     
     # Verifies whether current_state is final_state
