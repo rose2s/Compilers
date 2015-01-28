@@ -56,10 +56,10 @@ class Scanner:
 				for s in range(len(l)):	
 
 					if value == 'cha': 			# letter buffer
-						if l[s] != " " and l[s] != "(":
+						if l[s] not in (" ",'(','\n','\t'):
 							word += l[s]
 							if s == len(l)-1:	
-								print word			# last one
+								#print word			# last one
 								self.run_automata(word)
 							else:
 								continue
@@ -68,7 +68,12 @@ class Scanner:
 							self.run_automata(word)
 							word = ''
 							value = ''
-							if l[s] == "(":
+							if s+1 < len(l):									# Each character of the line
+				  				if l[s]+l[s+1] == '//':
+				  					break 
+				  			if l[s] in (" ","\n","\t"):
+			  					continue
+							else:
 								self.run_automata(l[s])
 
 			  		elif value == 'num': 		# number buffer 
@@ -82,16 +87,18 @@ class Scanner:
 							self.run_automata(word)
 							word = ''
 							value = ''
-							if s == len(l)-1:				# last one
-								self.run_automata(l[s])
-
-							if l[s] in ("<",">",":","!"):
+							if s+1 < len(l):									# Each character of the line
+				  				if l[s]+l[s+1] == '//':
+				  					break 	
+				  			if l[s] in ("<",">",":","!"):
 			  					if s+1 < len(l):									# Each character of the line
 				  					if l[s+1] == '=':
 			  							value = 'op'
 			  							word += l[s]
 			  						else:
-			  							self.run_automata(l[s])			
+			  							self.run_automata(l[s])	
+			  				elif l[s] in (" ","\n","\t"):
+			  					continue	
 			  				else:
 			  					self.run_automata(l[s])
 
