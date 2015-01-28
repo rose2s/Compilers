@@ -21,32 +21,78 @@ class Scanner:
 	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
 
+	letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y']
+	numbers = ['0','1','2','3','4','5','6','7','8','9']
+
 	def __init__(self):
 		self.lineCount = 0
 		self.errorFlag = False
 		self.identifier = []
 		self.simbolTable = {}
 
+	def isLetter(self,var):
+		if var in self.letters:
+			return True
+		else:
+			return False
+
+	def isNumber(self, var):
+		if var in self.numbers:
+			return True
+		else:
+			return False
+
 	def getToken(self,filename,dfa):
+		
+		word = ""
+		value = 0  # 0 = other, 1 = letter, 2 = number
 
 		with open(filename) as f:
-			lines = f.readlines() 											# Reads until EOF and returns a list of lines. 	
+			lines = f.readlines() 							# Reads until EOF and returns a list of lines. 	
 			for l in lines:
 				self.lineCount += 1
-				for s in range(len(l)):
-					if s+1 < len(l):
-			  			if l[s]+l[s+1] != '//':  					    		# Not comment line
-							if l[s] != " " and l[s] != "\n" and l[s] != "\t": 	# Not a white spapce, not Tab
+				for s in range(len(l)):	
+					if value == 1: 			# letter buffer
+						if l[s] != " " and l[s] != "(":
+							word += l[s]
+							continue
+						else: 
+							self.run_automata(word)
+							word = ""
+							value = 0
+							if l[s] == "(":
 								self.run_automata(l[s])
-						else:
-							break
-				
+
+			  		elif value == 2: 		# number buffer 
+			  			if self.isNumber(l[s]) or l[s] == ".":
+							word += l[s]
+							continue
+						else: 
+							self.run_automata(word)
+							word = ""
+							value = 0
+			  		else:
+				  		if s+1 < len(l):						# Each character of the line
+				  			if l[s]+l[s+1] == '//':
+				  				break 							# Comment -> Skip line
+				  			elif l[s] == " " or l[s] == "\n" or l[s] == "\t": 
+				  				continue						# White space or tab - > Skip character
+				  			elif self.isLetter(l[s]):
+				  				value = 1  # letter
+				  				word += l[s]
+				  			elif self.isNumber(l[s]):
+				  				value = 2
+				  				word += l[s]
+				  			else:
+				  				self.run_automata(l[s])
+
 
 	def run_automata(self,inp_program):
 		# run with word
 		dfa.run_with_input_list(inp_program)
 
-		if dfa.current_state in self.tokenType.keys():
+		if dfa.current_state in self.tokenType.keys():   # Accept States
+
 		    token = self.tokenType[dfa.current_state]
 		    if token == "IDENTIFIER":
 		        if inp_program in self.keywords:
@@ -68,8 +114,11 @@ class Scanner:
 		            self.simbolTable[token] += inp_program
 		        else:
 		            self.simbolTable[token] = inp_program
+		    #return token
 		else:
-		    self.reportError("invalid "+inp_program)
+		    self.reportError(inp_program)
+		    #return None
+
 		
 	def reportError(self, message):
 	 	print "Error: " + message
@@ -119,7 +168,7 @@ accept_states = {'s1','s2','s3','s6', 's7','s8'}
 dfa = DFA(states, alphabet, tf, start_state, accept_states)
 
 # filename = raw_input('Type Filename:') 
-filename = "/Users/roses/Downloads/program.py"
+filename = "/Users/roses/Downloads/Repository/test_program.py"
 scanner = Scanner()
 
 scanner.getToken(filename,dfa)
@@ -129,6 +178,3 @@ for k in scanner.simbolTable.keys():
 	scanner.simbolTable[k] = list(scanner.simbolTable[k])
 
 #scanner.printTokens()
-
-
-
