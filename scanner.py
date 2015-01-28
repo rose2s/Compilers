@@ -52,10 +52,15 @@ class Scanner:
 			for l in lines:
 				self.lineCount += 1
 				for s in range(len(l)):	
+
 					if value == 1: 			# letter buffer
 						if l[s] != " " and l[s] != "(":
 							word += l[s]
-							continue
+							if s == len(l)-1:				# last one
+								self.run_automata(word)
+							else:
+								continue
+								
 						else: 
 							self.run_automata(word)
 							word = ""
@@ -66,25 +71,32 @@ class Scanner:
 			  		elif value == 2: 		# number buffer 
 			  			if self.isNumber(l[s]) or l[s] == ".":
 							word += l[s]
-							continue
+							if s == len(l)-1:				# last one
+								self.run_automata(word)
+							else:
+								continue
 						else: 
 							self.run_automata(word)
 							word = ""
 							value = 0
-			  		else:
-				  		if s+1 < len(l):						# Each character of the line
+			  		else:													# Each character of the line
+				  		if s+1 < len(l):									# Each character of the line
 				  			if l[s]+l[s+1] == '//':
-				  				break 							# Comment -> Skip line
-				  			elif l[s] == " " or l[s] == "\n" or l[s] == "\t": 
-				  				continue						# White space or tab - > Skip character
-				  			elif self.isLetter(l[s]):
-				  				value = 1  # letter
-				  				word += l[s]
-				  			elif self.isNumber(l[s]):
-				  				value = 2
-				  				word += l[s]
-				  			else:
-				  				self.run_automata(l[s])
+				  				break 										# Comment -> Skip line
+			  			if l[s] == " " or l[s] == "\n" or l[s] == "\t": 
+			  				continue										# White space or tab - > Skip character
+			  			elif self.isLetter(l[s]):
+			  				value = 1  # letter
+			  				word += l[s]
+			  				if s == len(l)-1:
+								self.run_automata(l[s]) # last word
+			  			elif self.isNumber(l[s]):
+			  				value = 2
+			  				word += l[s]
+			  				if s == len(l)-1:
+								self.run_automata(l[s]) # last number
+			  			else:
+			  				self.run_automata(l[s])
 
 
 	def run_automata(self,inp_program):
@@ -92,7 +104,7 @@ class Scanner:
 		dfa.run_with_input_list(inp_program)
 
 		if dfa.current_state in self.tokenType.keys():   # Accept States
-
+			
 		    token = self.tokenType[dfa.current_state]
 		    if token == "IDENTIFIER":
 		        if inp_program in self.keywords:
