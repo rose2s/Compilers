@@ -85,6 +85,17 @@ class Scanner:
 							if s == len(l)-1:				# last one
 								self.run_automata(l[s])
 
+							if l[s] in ("<",">",":","!"):
+			  					if s+1 < len(l):									# Each character of the line
+				  					if l[s+1] == '=':
+			  							value = 'op'
+			  							word += l[s]
+			  						else:
+			  							self.run_automata(l[s])			
+			  				else:
+			  					self.run_automata(l[s])
+
+
 					elif value == 'op': 		# number buffer 
 			  			word += l[s]
 			  			self.run_automata(word)
