@@ -70,8 +70,7 @@ class DFA:
     # processes each character individualy
     def run_with_input_list(self, input_list):
         self.go_to_initial_state()
-        print input_list
-        
+        print "palavra: ", input_list
         for inp in input_list:
             self.transition_to_state_with_input(inp)
             continue
