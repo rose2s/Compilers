@@ -17,7 +17,9 @@ from automata import DFA
 
 class Scanner:
 
-	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "OPERATOR",'s7': "OPERATOR",'s8': "SEPARATOR"}
+	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
+				 's8': "ARIT_OP",'s9': "EQ",'s10': "SEPARATOR"}
+
 	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
 
@@ -53,23 +55,24 @@ class Scanner:
 				self.lineCount += 1
 				for s in range(len(l)):	
 
-					if value == 1: 			# letter buffer
+					if value == 'cha': 			# letter buffer
 						if l[s] != " " and l[s] != "(":
 							word += l[s]
-							if s == len(l)-1:				# last one
+							if s == len(l)-1:	
+								print word			# last one
 								self.run_automata(word)
 							else:
 								continue
 								
 						else: 
 							self.run_automata(word)
-							word = ""
-							value = 0
+							word = ''
+							value = ''
 							if l[s] == "(":
 								self.run_automata(l[s])
 
-			  		elif value == 2: 		# number buffer 
-			  			if self.isNumber(l[s]) or l[s] == ".":
+			  		elif value == 'num': 		# number buffer 
+			  			if self.isNumber(l[s]) or l[s] == "." or self.isLetter(l[s]):
 							word += l[s]
 							if s == len(l)-1:				# last one
 								self.run_automata(word)
@@ -77,8 +80,19 @@ class Scanner:
 								continue
 						else: 
 							self.run_automata(word)
-							word = ""
-							value = 0
+							word = ''
+							value = ''
+							if s == len(l)-1:				# last one
+								self.run_automata(l[s])
+
+					elif value == 'op': 		# number buffer 
+			  			word += l[s]
+			  			self.run_automata(word)
+						word = ''
+						value = ''
+						if s == len(l)-1:				# last one
+								self.run_automata(word)
+
 			  		else:													# Each character of the line
 				  		if s+1 < len(l):									# Each character of the line
 				  			if l[s]+l[s+1] == '//':
@@ -86,17 +100,24 @@ class Scanner:
 			  			if l[s] == " " or l[s] == "\n" or l[s] == "\t": 
 			  				continue										# White space or tab - > Skip character
 			  			elif self.isLetter(l[s]):
-			  				value = 1  # letter
+			  				value = 'cha'  # letter
 			  				word += l[s]
-			  				if s == len(l)-1:
-								self.run_automata(l[s]) # last word
+			  				
 			  			elif self.isNumber(l[s]):
-			  				value = 2
+			  				value = 'num'
 			  				word += l[s]
-			  				if s == len(l)-1:
-								self.run_automata(l[s]) # last number
+			  				
+			  			elif l[s] in ("<",">",":","!"):
+			  					if s+1 < len(l):									# Each character of the line
+				  					if l[s+1] == '=':
+			  							value = 'op'
+			  							word += l[s]
 			  			else:
 			  				self.run_automata(l[s])
+			  				continue
+			  			
+			  			if s == len(l)-1:
+							self.run_automata(l[s]) # last number
 
 
 	def run_automata(self,inp_program):
@@ -143,41 +164,9 @@ class Scanner:
 		for k,v in scanner.simbolTable.items():
 			print k,v
 
-
 # ---- Main -----
 
-# --- Automata ---
-states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8'}
-alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
-            '0','1','2','3','4','5','6','7','8','9',
-            ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", ">", "!", "=", "{", "}"}
-tf = {}
-# identifier transition
-tf[('s0', ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y'))] = 's1'
-tf[('s1', ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y'))] = 's1'
-tf[('s1', ('0','1','2','3','4','5','6','7','8','9'))] = 's1'
-# int transition
-tf[('s0', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
-tf[('s2', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
-# float transition 
-tf[('s0',('.'))] = 's4'
-tf[('s4', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
-tf[('s2',('.'))] = 's3'
-tf[('s3', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
-# operator token
-tf[('s0',("!"))] = 's5'
-tf[('s0',("<", ">",':'))] = 's6'
-tf[('s5',("="))] = 's7'
-tf[('s6',("="))] = 's7'
-tf[('s0',("+", "-", "*", "/", "="))] = 's7'
-# separator token
-tf[('s0',("(", ")", "{", "}",";",","))] = 's8'
-
-start_state = 's0'
-accept_states = {'s1','s2','s3','s6', 's7','s8'}
-# id = s1, int = s2, float=s4, op=s6,s7, sep=s8
-
-dfa = DFA(states, alphabet, tf, start_state, accept_states)
+dfa = DFA()
 
 # filename = raw_input('Type Filename:') 
 filename = "/Users/roses/Downloads/Repository/test_program.py"
