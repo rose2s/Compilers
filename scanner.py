@@ -108,14 +108,12 @@ class Scanner:
 			  			self.run_automata(word)
 						word = ''
 						value = ''
-						if s == len(l)-1:				# last one
-								self.run_automata(word)
 
 			  		else:													# Each character of the line
 				  		if s+1 < len(l):									# Each character of the line
 				  			if l[s]+l[s+1] == '//':
 				  				break 										# Comment -> Skip line
-			  			if l[s] == " " or l[s] == "\n" or l[s] == "\t": 
+			  			if l[s] in (" ","\n","\t"): 
 			  				continue										# White space or tab - > Skip character
 			  			elif self.isLetter(l[s]):
 			  				value = 'cha'  # letter
@@ -172,8 +170,7 @@ class Scanner:
 
 		
 	def reportError(self, message):
-	 	print "Error: " + message
-
+	 	print  "\nSyntaxError: "+message+ ", in line",self.lineCount,'\n'
 
 	def reportWarning(self, message):
 	 	print message
