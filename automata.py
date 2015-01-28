@@ -4,15 +4,16 @@ class DFA:
 
     def __init__(self):
 
-        self.states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8'}
+        self.states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15'}
         self.alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
                     '0','1','2','3','4','5','6','7','8','9',
                     ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", ">", "!", "=", "{", "}"}
 
         self.start_state = 's0'
 
-        # id = s1, int = s2, float=s4, comp=s6,s7, aritm_op=s8, s9 = equal
-        self.accept_states = {'s1','s2','s3','s6', 's7','s8','s9','s10'}
+        # id = s1, int = s2, float=s4, comp=s6,s7, aritm_op=s8, s9 = equal, s10 = left_par, s11= right_par, 
+        #s12= left_bra, s13= right_bra, s14= comma, s15= semi-colon
+        self.accept_states = {'s1','s2','s3','s6', 's7','s8','s9','s10','s11','s12','s13','s14','s15'}
 
         tf = {}
         # identifier transition
@@ -35,7 +36,12 @@ class DFA:
         tf[('s0',("+", "-", "*", "/"))] = 's8'
         tf[('s0',("="))] = 's9' 
         # separator token
-        tf[('s0',("(", ")", "{", "}",";",","))] = 's10'
+        tf[('s0',("("))] = 's10'
+        tf[('s0',(")"))] = 's11' 
+        tf[('s0',("{"))] = 's12'
+        tf[('s0',("}"))] = 's13' 
+        tf[('s0',(","))] = 's14' 
+        tf[('s0',(";"))] = 's15' 
 
         self.transition_function = tf
 
@@ -70,7 +76,7 @@ class DFA:
     # processes each character individualy
     def run_with_input_list(self, input_list):
         self.go_to_initial_state()
-        print "palavra: ", input_list
+        #print "palavra: ", input_list
         for inp in input_list:
             self.transition_to_state_with_input(inp)
             continue

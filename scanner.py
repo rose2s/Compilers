@@ -10,6 +10,9 @@
 # -----    ---------  ----------  ---------------------------------
 # 1.0.0    Rose       2015-01-24  Create function
 # 1.0.0    Rose       2015-01-25  Create DFA
+# 					  2015-01-27  Fix Automata, getToken() function
+#					  2015-01-27  Fix Automata, getToken() function
+#						
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -18,7 +21,8 @@ from automata import DFA
 class Scanner:
 
 	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
-				 's8': "ARIT_OP",'s9': "EQ",'s10': "SEPARATOR"}
+				 's8': "ARIT_OP",'s9': "EQ",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_BRA", 's13': "RIG_BRA",
+				 's14': "COMMA",'s15': "SC"}
 
 	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
@@ -56,7 +60,7 @@ class Scanner:
 				for s in range(len(l)):	
 
 					if value == 'cha': 			# letter buffer
-						if l[s] not in (" ",'(','\n','\t'):
+						if self.isNumber(l[s]) or self.isLetter(l[s]):
 							word += l[s]
 							if s == len(l)-1:	
 								#print word			# last one
