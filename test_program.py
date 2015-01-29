@@ -12,3 +12,8 @@ else
 b = 2 - 2
 if 2.0 + int * 2!=
 a = {1,2,3}
+
+comer(comida):
+	while hungry >= true:
+		eat()
+		hungry = false

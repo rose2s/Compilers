@@ -12,6 +12,7 @@
 # 1.0.0    Rose       2015-01-25  Create DFA
 # 					  2015-01-27  Fix Automata, getToken() function
 #					  2015-01-27  Fix Automata, getToken() function
+#							28   Divided Separator_Token, Fix	
 #						
 #-------------------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ class Scanner:
 				for s in range(len(l)):	
 
 					if value == 'cha': 			# letter buffer
-						if self.isNumber(l[s]) or self.isLetter(l[s]):
+						if self.isNumber(l[s]) or self.isLetter(l[s]) or l[s] == '_':
 							word += l[s]
 							if s == len(l)-1:	
 								#print word			# last one
