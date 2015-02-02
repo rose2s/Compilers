@@ -40,9 +40,10 @@ class ll1():
 		return token.next()
 	
 	def goal(self,token):
-		token = self.next_token()
-		E(token)
-
+		if E(token):
+			return True
+		else:
+			return False
 
 	def E(self,token):
 		if self.T(token):
@@ -62,6 +63,7 @@ class ll1():
 	def T(self,token):
 		F(token)
 		T2(token)
+		return
 
 	def T2(self,token):
 		if token in self.first('T2'):

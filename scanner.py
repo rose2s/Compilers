@@ -18,6 +18,7 @@
 
 import os,sys
 from automata import DFA
+from List import List
 
 class Scanner:
 
@@ -36,12 +37,19 @@ class Scanner:
 		self.errorFlag = False
 		self.identifier = []
 		self.simbolTable = {}
+		self.type_table = []
+		self.value_table = []
 
 	def isLetter(self,var):
 		if var in self.letters:
 			return True
 		else:
 			return False
+	def addType_table(self,type):
+		self.type_table.append(type)
+
+	def addValue_table(self,value):
+		self.value_table.append(value)
 
 	def isNumber(self, var):
 		if var in self.numbers:
@@ -151,6 +159,9 @@ class Scanner:
 		    if token == "IDENTIFIER":
 		        if inp_program in self.keywords:
 		            print inp_program + " is KEYWORD"
+
+		            token = "KEYWORD"
+
 		            if self.simbolTable.has_key("KEYWORD"):
 		            	self.simbolTable["KEYWORD"] += inp_program 
 		            else:
@@ -162,20 +173,27 @@ class Scanner:
 		            	self.simbolTable[token] += inp_program
 		            else:
 		            	self.simbolTable[token] = inp_program
+		        
+		        firstNode.addNode(firstNode,token,inp_program)
+
 		    else:
 		        print inp_program + " is "+ token
-		        if self.simbolTable.has_key(token): 
+
+	        	if self.simbolTable.has_key(token): 
 		            self.simbolTable[token] += inp_program
 		        else:
 		            self.simbolTable[token] = inp_program
-		    #return token
+        
+	        	firstNode.addNode(firstNode,token,inp_program)
+
+		#return token
 		else:
 		    self.reportError(inp_program)
-		    #return None
+		    return 
 
 		
 	def reportError(self, message):
-	 	print  "\nSyntaxError: "+message+ ", in line",self.lineCount,'\n'
+	 	print  "\nSyntaxError: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportWarning(self, message):
 	 	print message
@@ -187,9 +205,11 @@ class Scanner:
 # ---- Main -----
 
 dfa = DFA()
+firstNode = List("KEYWORD","program")
+firstNode.setFirst(firstNode)
 
 # filename = raw_input('Type Filename:') 
-filename = "/Users/roses/Downloads/Repository/test_program.py"
+filename = "/Users/roses/Downloads/Repository/test_grammar.py"
 scanner = Scanner()
 
 scanner.getToken(filename,dfa)
@@ -199,3 +219,6 @@ for k in scanner.simbolTable.keys():
 	scanner.simbolTable[k] = list(scanner.simbolTable[k])
 
 #scanner.printTokens()
+#while firstNode.Next:
+#	print firstNode.getTokenValue()
+		
