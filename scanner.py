@@ -37,6 +37,8 @@ class Scanner:
 	def __init__(self):
 		self.lineCount = 0
 		self.errorFlag = False
+		self.simbolTable = List("KEYWORD","program")
+		self.simbolTable.setFirst(self.simbolTable)
 
 	def isLetter(self,var):
 		if var in self.letters:
@@ -50,7 +52,7 @@ class Scanner:
 		else:
 			return False
 
-	def getToken(self,filename,dfa):
+	def getToken(self,filename):
 		
 		word = ""
 		value = 0  # 0 = other, 1 = letter, 2 = number
@@ -162,7 +164,7 @@ class Scanner:
 			    #else:
 			    #	self.simbolTable[token] = inp_program 
 			    
-			    firstNode.addNode(firstNode,token,inp_program)
+			    self.simbolTable.addNode(self.simbolTable,token,inp_program)
 
 		#return token
 		else:
@@ -179,18 +181,15 @@ class Scanner:
 # ---- Main -----
 
 dfa = DFA()
-firstNode = List("KEYWORD","program")
-firstNode.setFirst(firstNode)
 
-# filename = raw_input('Type Filename:') 
-filename = "/Users/roses/Downloads/Repository/test_program.py"
-scanner = Scanner()
+#filename = raw_input('Type Filename:') 
 
-scanner.getToken(filename,dfa)
+#filename = "/Users/roses/Downloads/Repository/test_grammar.py"
+#scanner = Scanner()
+#scanner.getToken(filename)
 
 # separe token in array
 #for k in scanner.simbolTable.keys():
 #	scanner.simbolTable[k] = list(scanner.simbolTable[k])
 
-firstNode.printList(firstNode)
-		
+#scanner.simbolTable.printList(scanner.simbolTable)

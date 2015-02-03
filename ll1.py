@@ -4,6 +4,7 @@ from scanner import Scanner
 class ll1():
 	
 	stmt = "" # statement
+	current_token = None
 
 	def __init__(self):
 		self.FIRST = []
@@ -25,7 +26,6 @@ class ll1():
 		elif X == 'T2':
 			return {'*','/'," "}
 
-
 	def follow(self, X):
 
 		if X in ('E','E2'):
@@ -39,49 +39,60 @@ class ll1():
 	def next_token(self,token):
 		return token.next()
 	
-	def goal(self,token):
-		if E(token):
-			return True
-		else:
-			return False
+	def goal(self):
+		#while current_token:
+		print "now = ",self.current_token.getTokenValue()
+		if self.E(self.current_token):
+			print "You got it!"
+		#print self.current_token.getTokenValue()
+		#current_token = current_token.Next
 
 	def E(self,token):
-		if self.T(token):
-			self.E2(token)
+		#print token.getTokenValue()
+		if self.T(self.current_token):
+			self.E2(self.current_token)
+			return True
 		else:
 			return False
 
 	def E2(self,token):
-		if token in self.first('E2'):
-			print token
-			token = scan()
-			T(token)
-			E2(token)
-		elif token == " ":
-			return
+		print "E2: ",token.getTokenValue()
+		if token.getTokenValue() in self.first('E2'):
+			self.current_token = token.Next
+			print "current_token: ",self.current_token.getTokenValue()
+			self.T(self.current_token)
+			self.E2(self.current_token)
+		elif token == "$":
+			return True
 
 	def T(self,token):
-		F(token)
-		T2(token)
-		return
+		print "T: ",token.getTokenValue()
+		self.F(self.current_token)
+		self.T2(self.current_token)
+		return True
+		
 
 	def T2(self,token):
-		if token in self.first('T2'):
-			print token
-			F(token)
-			T2(token)
-		else:
-		#elif token == " ":
-			return
+		if token:
+			print "T2: ",token.getTokenValue()
+		if token.getTokenValue() in self.first('T2'):
+			print token.getTokenValue()
+			self.current_token = token.Next
+			self.F(self.current_token)
+			self.T2(self.current_token)
+		elif token == "$":
+			return True
 
 	def F(self,token):
+		print "F: ",token.getTokenValue()
 		if token == "(":
-			E()
-		elif token in scanner.numbers:
-			token = self.next_token()
+			self.E()
+		elif token.getTokenValue() in scanner.numbers:
+			self.current_token = token.Next
+			print "current_token: ", self.current_token.getTokenValue()
 			return True
-		elif token in scanner.letters: 
-			token = self.next_token()
+		elif token.getTokenValue() in scanner.letters: 
+			self.current_token = token.Next
 			return True
 		else:
 			print "Error: ID not found"
@@ -93,6 +104,7 @@ class ll1():
 
 	def program_header():
 		"program" + ID + "is"
+
 """
 	def program_body():
 		( <declaration> ; )*
@@ -131,5 +143,16 @@ integer
 """
 
 # --- Main ---
-scanner = Scanner()
 
+filename = "/Users/roses/Downloads/Repository/test_grammar.py"
+scanner = Scanner()
+scanner.getToken(filename)
+scanner.simbolTable.addNode(scanner.simbolTable,"EOF","$")
+
+scanner.simbolTable.printList(scanner.simbolTable)
+
+grammar = ll1()
+grammar.current_token = scanner.simbolTable.getFirst().Next
+
+#print grammar.current_token.getTokenValue()
+grammar.goal()
