@@ -10,10 +10,11 @@
 # -----    ---------  ----------  ---------------------------------
 # 1.0.0    Rose       2015-01-24  Create function
 # 1.0.0    Rose       2015-01-25  Create DFA
-# 					  2015-01-27  Fix Automata, getToken() function
-#					  2015-01-27  Fix Automata, getToken() function
-#							28   Divided Separator_Token, Fix	
-#						
+# 1.0.0    Rose		  2015-01-27  Fix Automata, getToken() function
+# 1.0.0    Rose	  	  2015-01-27  Fix Automata, getToken() function
+# 1.0.0    Rose		  2015-01-28  Divided Separator_Token, Fix	
+# 1.0.0    Rose       2015-02-01  Create Grammar LL(1)
+# 1.0.0    Rose		  2015-02-02  Create List
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -31,25 +32,17 @@ class Scanner:
 
 	letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y']
 	numbers = ['0','1','2','3','4','5','6','7','8','9']
+	#simbolTable = {}
 
 	def __init__(self):
 		self.lineCount = 0
 		self.errorFlag = False
-		self.identifier = []
-		self.simbolTable = {}
-		self.type_table = []
-		self.value_table = []
 
 	def isLetter(self,var):
 		if var in self.letters:
 			return True
 		else:
 			return False
-	def addType_table(self,type):
-		self.type_table.append(type)
-
-	def addValue_table(self,value):
-		self.value_table.append(value)
 
 	def isNumber(self, var):
 		if var in self.numbers:
@@ -155,36 +148,21 @@ class Scanner:
 
 		if dfa.current_state in self.tokenType.keys():   # Accept States
 			
-		    token = self.tokenType[dfa.current_state]
-		    if token == "IDENTIFIER":
-		        if inp_program in self.keywords:
-		            print inp_program + " is KEYWORD"
+			    token = self.tokenType[dfa.current_state]
 
-		            token = "KEYWORD"
+			    if token == "IDENTIFIER":
+				        if inp_program in self.keywords:
+				        	token = "KEYWORD"
 
-		            if self.simbolTable.has_key("KEYWORD"):
-		            	self.simbolTable["KEYWORD"] += inp_program 
-		            else:
-		            	self.simbolTable["KEYWORD"] = inp_program 
+			    # print inp_program + " is " + token
+					
+			    #if self.simbolTable.has_key(token):
+			    #	self.simbolTable[token] += inp_program 
 
-		        else:
-		            print inp_program + " is "+ token
-		            if self.simbolTable.has_key(token): 
-		            	self.simbolTable[token] += inp_program
-		            else:
-		            	self.simbolTable[token] = inp_program
-		        
-		        firstNode.addNode(firstNode,token,inp_program)
-
-		    else:
-		        print inp_program + " is "+ token
-
-	        	if self.simbolTable.has_key(token): 
-		            self.simbolTable[token] += inp_program
-		        else:
-		            self.simbolTable[token] = inp_program
-        
-	        	firstNode.addNode(firstNode,token,inp_program)
+			    #else:
+			    #	self.simbolTable[token] = inp_program 
+			    
+			    firstNode.addNode(firstNode,token,inp_program)
 
 		#return token
 		else:
@@ -198,10 +176,6 @@ class Scanner:
 	def reportWarning(self, message):
 	 	print message
 
-	def printTokens(self):
-		for k,v in scanner.simbolTable.items():
-			print k,v
-
 # ---- Main -----
 
 dfa = DFA()
@@ -209,16 +183,14 @@ firstNode = List("KEYWORD","program")
 firstNode.setFirst(firstNode)
 
 # filename = raw_input('Type Filename:') 
-filename = "/Users/roses/Downloads/Repository/test_grammar.py"
+filename = "/Users/roses/Downloads/Repository/test_program.py"
 scanner = Scanner()
 
 scanner.getToken(filename,dfa)
 
 # separe token in array
-for k in scanner.simbolTable.keys():
-	scanner.simbolTable[k] = list(scanner.simbolTable[k])
+#for k in scanner.simbolTable.keys():
+#	scanner.simbolTable[k] = list(scanner.simbolTable[k])
 
-#scanner.printTokens()
-#while firstNode.Next:
-#	print firstNode.getTokenValue()
+firstNode.printList(firstNode)
 		

@@ -45,6 +45,12 @@ class List:
 
         return node
 
+    def printList(self,node):
+        while (node.Next):
+            print node.getTokenValue()+ " is "+ node.getTokenType()
+            node = node.Next
+        print node.getTokenValue()+ " is "+ node.getTokenType()  # last one
+
     def addNode(self,node,Type,value):
         new = List(Type,value)
 
