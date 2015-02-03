@@ -41,7 +41,7 @@ class ll1():
 	
 	def goal(self):
 		#while current_token:
-		print "now = ",self.current_token.getTokenValue()
+		print "\nS = ",self.current_token.getTokenValue()
 		if self.E(self.current_token):
 			print "You got it!"
 		#print self.current_token.getTokenValue()
@@ -97,7 +97,7 @@ class ll1():
 		else:
 			print "Error: ID not found"
 			return False
-
+"""
 	def program():
 		program_header()
 		program_body()
@@ -105,7 +105,6 @@ class ll1():
 	def program_header():
 		"program" + ID + "is"
 
-"""
 	def program_body():
 		( <declaration> ; )*
 begin
@@ -149,7 +148,7 @@ scanner = Scanner()
 scanner.getToken(filename)
 scanner.simbolTable.addNode(scanner.simbolTable,"EOF","$")
 
-scanner.simbolTable.printList(scanner.simbolTable)
+scanner.simbolTable.printList(scanner.simbolTable.Next)
 
 grammar = ll1()
 grammar.current_token = scanner.simbolTable.getFirst().Next

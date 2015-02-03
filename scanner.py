@@ -156,7 +156,7 @@ class Scanner:
 				        if inp_program in self.keywords:
 				        	token = "KEYWORD"
 
-			    # print inp_program + " is " + token
+			    #print inp_program + " is " + token
 					
 			    #if self.simbolTable.has_key(token):
 			    #	self.simbolTable[token] += inp_program 
@@ -179,17 +179,16 @@ class Scanner:
 	 	print message
 
 # ---- Main -----
-
+# filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-#filename = raw_input('Type Filename:') 
-
-#filename = "/Users/roses/Downloads/Repository/test_grammar.py"
-#scanner = Scanner()
-#scanner.getToken(filename)
-
+"""
+filename = "/Users/roses/Downloads/Repository/test_program.py"
+scanner = Scanner()
+scanner.getToken(filename)
+"""   
 # separe token in array
 #for k in scanner.simbolTable.keys():
 #	scanner.simbolTable[k] = list(scanner.simbolTable[k])
 
-#scanner.simbolTable.printList(scanner.simbolTable)
+#scanner.simbolTable.printList(scanner.simbolTable.Next)
