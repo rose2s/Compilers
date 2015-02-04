@@ -22,6 +22,7 @@
 import os,sys
 from automata import DFA
 from List import List
+from stack import Stack
 
 class Lexical_Analyzer:
 
@@ -50,6 +51,7 @@ class Lexical_Analyzer:
 		self.errorFlag = False
 		self.tokenList = List("KEYWORD","program",0)
 		self.tokenList.setFirst(self.tokenList)
+		self.stack = Stack()
 
 	def isLetter(self,var):
 		if var in self.letters:
@@ -184,8 +186,8 @@ class Lexical_Analyzer:
 		    self.reportWarning(inp_program)
 		     
 		
-	def reportError(self, message,line):
-	 	print  "\nSyntaxError: "+message+ ", on line", line,'\n'
+	def reportError(self, expected, received, line):
+	 	print  "\nSyntaxError: "+expected+"Expected"+", "+received+" Received, on line ", line,'\n'
 
 	def reportWarning(self, message):
 	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
@@ -241,7 +243,7 @@ class Lexical_Analyzer:
 			elif token.getTokenValue() == "$":
 				return True
 			else: 
-				self.reportError("aritm_op Expected, "+str(token.getTokenValue()+" Received."),token.line)
+				self.reportError("aritm_op", token.getTokenValue(),token.line)
 				return False
 		else:
 			return False
@@ -269,11 +271,25 @@ class Lexical_Analyzer:
 		elif token.getTokenValue() == "$":
 			return True
 
+		elif token.getTokenValue() == ")":
+			if not self.stack.isEmpty():
+				self.stack.pop()
+				token = self.scanToken()
+				return True
+			else:
+				self.reportError(")",token.getTokenValue, token.line)
+				self.errorFlag = True
+				return False
+
 	def F(self,token):
 		print "F: ",token.getTokenValue()
-		if token == "(":
+		print "current token: ",analyzer.current_token.getTokenValue()
+		if token.getTokenValue() == "(":
+			self.stack.push(token.getTokenValue())
+			print "stack: ",self.stack.peek()
 			token = self.scanToken()
-			self.E() # later
+			self.E(token)
+
 		elif token.getTokenValue() in analyzer.letters:
 			token = self.scanToken()
 			return True
