@@ -2,12 +2,13 @@ class List:
     nodeCount = 0
     First = None
 
-    def __init__(self, tokenType, value):
+    def __init__(self, tokenType, value, line):
         List.nodeCount += 1
         self.Prior = None                   # Only first Node has Next == None
         self.Next = None                    # Only last  Node has Next == None
         self.Token_type = tokenType    
-        self.Token_value = value   
+        self.Token_value = value 
+        self.line = line  
 
     def getPrior(self):
         return self.Prior
@@ -51,8 +52,8 @@ class List:
             node = node.Next
         print node.getTokenValue()+ " is "+ node.getTokenType()  # last one
 
-    def addNode(self,node,Type,value):
-        new = List(Type,value)
+    def addNode(self,node,Type,value, line):
+        new = List(Type,value,line)
 
         if List.nodeCount > 0:
             last = self.getLastNode(node)

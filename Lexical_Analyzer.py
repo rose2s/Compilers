@@ -48,7 +48,7 @@ class Lexical_Analyzer:
 		self.lineCount = 0
 		self.IDtokenNum = 0
 		self.errorFlag = False
-		self.tokenList = List("KEYWORD","program")
+		self.tokenList = List("KEYWORD","program",0)
 		self.tokenList.setFirst(self.tokenList)
 
 	def isLetter(self,var):
@@ -177,18 +177,18 @@ class Lexical_Analyzer:
 				    """
 				
 			    #print inp_program + " is " + token
-			    self.tokenList.addNode(self.tokenList,token,inp_program)
+			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount)
 
 		#return token
 		else:
-		    self.reportError(inp_program)
+		    self.reportWarning(inp_program)
 		     
 		
-	def reportError(self, message):
-	 	print  "\nSyntaxError: "+message+ ", in line", self.lineCount,'\n'
+	def reportError(self, message,line):
+	 	print  "\nSyntaxError: "+message+ ", on line", line,'\n'
 
 	def reportWarning(self, message):
-	 	print message
+	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
 
 	def first(self,X):
 		if X == 'E':
@@ -222,34 +222,37 @@ class Lexical_Analyzer:
 	def goal(self,current_token):
 		if self.E(current_token):
 			print "You got it!"
-			#print analyzer.current_token.getTokenValue()
-			#current_token = current_token.Next
 
 	def E(self, token):
 		print "E: ",token.getTokenValue()
-		if self.T(token):
-			self.E2(analyzer.current_token)
+		self.T(token)
+		if self.E2(analyzer.current_token):
 			return True
-		else:
-			return False
 
 
 	def E2(self,token):
-		print "E': ",token.getTokenValue()
-		if token.getTokenValue() in self.first('E2'):
-			token = self.scanToken()
-			self.T(token)
-			self.E2(analyzer.current_token)
-		elif token == "$":
-			return True
-		else: 
+		if not self.errorFlag:
+			print "E2: ",token.getTokenValue()
+			if token.getTokenValue() in self.first('E2'):
+				token = self.scanToken()
+				self.T(token)
+				if self.E2(analyzer.current_token):
+					return True
+			elif token.getTokenValue() == "$":
+				return True
+			else: 
+				self.reportError("aritm_op Expected, "+str(token.getTokenValue()+" Received."),token.line)
+				return False
+		else:
 			return False
 
 	def T(self,token):
 		print "T: ",token.getTokenValue()
-		self.F(token)
-		self.T2(analyzer.current_token)
-		return True
+		if self.F(token):
+			self.T2(analyzer.current_token)
+		else:
+			return False
+
 
 	def T2(self,token):
 		if token:
@@ -263,20 +266,23 @@ class Lexical_Analyzer:
 			else:
 				return False
 
-		elif token == "$":
+		elif token.getTokenValue() == "$":
 			return True
 
 	def F(self,token):
 		print "F: ",token.getTokenValue()
 		if token == "(":
 			token = self.scanToken()
-			self.E()
+			self.E() # later
 		elif token.getTokenValue() in analyzer.letters:
 			token = self.scanToken()
+			return True
 		elif token.getTokenValue() in analyzer.numbers:
 			token = self.scanToken()
+			return True
 		else:
 			print "Error: ID not found"
+			self.errorFlag = True
 			return False
 
 
@@ -287,7 +293,7 @@ dfa = DFA()
 filename = "/Users/roses/Downloads/Repository/test_grammar.py"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
-analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$")
+analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
 analyzer.tokenList.printList(analyzer.tokenList.Next)
 
