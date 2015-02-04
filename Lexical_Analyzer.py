@@ -36,6 +36,14 @@ class Lexical_Analyzer:
 	numbers = ['0','1','2','3','4','5','6','7','8','9']
 	simbolTable = {}
 
+	# LL(1) grammar
+	terminals = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
+					  '0','1','2','3','4','5','6','7','8','9',
+					   "+", "-", "*", "/", "(", ")", "<", ">", "{", "}", ";"]
+	startSimbol = 'E'
+	non_terminals = ['E','E2','T','T2','F']
+	current_token = None
+
 	def __init__(self):
 		self.lineCount = 0
 		self.IDtokenNum = 0
@@ -55,7 +63,7 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def getToken(self,filename):
+	def getTokenFromFile(self,filename):
 		
 		word = ""
 		value = 0  # 0 = other, 1 = letter, 2 = number
@@ -182,13 +190,98 @@ class Lexical_Analyzer:
 	def reportWarning(self, message):
 	 	print message
 
+	def first(self,X):
+		if X == 'E':
+			return {self.getID(),'('}
+
+		elif X == 'E2':
+			return {'+','-'," "}
+
+		elif X == 'T2':
+			return {'*','/'," "}
+
+	def follow(self, X):
+
+		if X in ('E','E2'):
+			return {')'," "}
+
+		elif X in ('T','T2'):
+			return {'+','-',')',"$"}
+		elif X == 'F':
+			return {'+','-','*','/',')',"$"}
+
+	def scanToken(self):
+		analyzer.current_token = analyzer.current_token.Next
+		return analyzer.current_token
+
+	def parser(self):
+		analyzer.current_token = self.tokenList.Next
+		self.goal(analyzer.current_token)
+		
+	
+	def goal(self,current_token):
+		if self.E(current_token):
+			print "You got it!"
+			#print analyzer.current_token.getTokenValue()
+			#current_token = current_token.Next
+
+	def E(self, token):
+		print "E: ",token.getTokenValue()
+		self.T(token)
+		self.E2(analyzer.current_token)
+
+	def E2(self,token):
+		print "E': ",token.getTokenValue()
+		if token.getTokenValue() in self.first('E2'):
+			token = self.scanToken()
+			self.T(token)
+			self.E2(analyzer.current_token)
+		elif token == "$":
+			return True
+
+	def T(self,token):
+		print "T: ",token.getTokenValue()
+		self.F(token)
+		self.T2(analyzer.current_token)
+
+	def T2(self,token):
+		if token:
+			print "T': ",token.getTokenValue()
+
+		if token.getTokenValue() in self.first('T2'):
+			print token.getTokenValue()
+			token = self.scanToken()
+			self.F(token)
+			self.T2(analyzer.current_token)
+
+		elif token == "$":
+			return True
+
+	def F(self,token):
+		print "F: ",token.getTokenValue()
+		if token == "(":
+			token = self.scanToken()
+			self.E()
+		elif token.getTokenValue() in analyzer.letters:
+			token = self.scanToken()
+		elif token.getTokenValue() in analyzer.numbers:
+			token = self.scanToken()
+		else:
+			print "Error: ID not found"
+			return False
+
+
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
 filename = "/Users/roses/Downloads/Repository/test_grammar.py"
 analyzer = Lexical_Analyzer()
-analyzer.getToken(filename)
-
+analyzer.getTokenFromFile(filename)
+analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$")
+# print List
 analyzer.tokenList.printList(analyzer.tokenList.Next)
+
+analyzer.parser()
+
 #print "\nSymbol_table: ",analyzer.simbolTable
