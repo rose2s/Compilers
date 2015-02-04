@@ -16,7 +16,7 @@
 # 1.0.0    Rose       2015-02-01  Create Grammar LL(1)
 # 1.0.0    Rose		  2015-02-02  Create List
 # 1.0.0    Rose		  2015-02-03  Lista salva com todos os tokens que devem ser pegos no parser()
-# symbol_table nao está compilando mas só salva os identifiers.
+# symbol_table nao esta compilando mas so salva os identifiers.
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -186,7 +186,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/test_program.py"
+filename = "/Users/roses/Downloads/Repository/test_grammar.py"
 analyzer = Lexical_Analyzer()
 analyzer.getToken(filename)
 
