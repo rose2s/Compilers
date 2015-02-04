@@ -17,7 +17,6 @@
 # 1.0.0    Rose		  2015-02-02  Create List
 # 1.0.0    Rose		  2015-02-03  Lista salva com todos os tokens que devem ser pegos no parser()
 # symbol_table nao está compilando mas só salva os identifiers.
-
 #-------------------------------------------------------------------------------
 
 import os,sys
