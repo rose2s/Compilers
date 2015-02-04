@@ -227,8 +227,12 @@ class Lexical_Analyzer:
 
 	def E(self, token):
 		print "E: ",token.getTokenValue()
-		self.T(token)
-		self.E2(analyzer.current_token)
+		if self.T(token):
+			self.E2(analyzer.current_token)
+			return True
+		else:
+			return False
+
 
 	def E2(self,token):
 		print "E': ",token.getTokenValue()
@@ -238,11 +242,14 @@ class Lexical_Analyzer:
 			self.E2(analyzer.current_token)
 		elif token == "$":
 			return True
+		else: 
+			return False
 
 	def T(self,token):
 		print "T: ",token.getTokenValue()
 		self.F(token)
 		self.T2(analyzer.current_token)
+		return True
 
 	def T2(self,token):
 		if token:
@@ -251,8 +258,10 @@ class Lexical_Analyzer:
 		if token.getTokenValue() in self.first('T2'):
 			print token.getTokenValue()
 			token = self.scanToken()
-			self.F(token)
-			self.T2(analyzer.current_token)
+			if self.F(token):
+				self.T2(analyzer.current_token)
+			else:
+				return False
 
 		elif token == "$":
 			return True
