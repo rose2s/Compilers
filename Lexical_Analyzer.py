@@ -223,7 +223,12 @@ class Lexical_Analyzer:
 	
 	def goal(self,current_token):
 		if self.E(current_token):
-			print "You got it!"
+			if self.stack.isEmpty():
+				print "You got it!"
+			else: 
+				self.reportWarning("Missing )")
+				self.errorFlag = True
+				return False 
 
 	def E(self, token):
 		print "E: ",token.getTokenValue()
@@ -277,7 +282,7 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 				return True
 			else:
-				self.reportError(")",token.getTokenValue, token.line)
+				self.reportError(") ","(", token.line)
 				self.errorFlag = True
 				return False
 
