@@ -1,5 +1,5 @@
 program simple is
-    integer dig;
+    integer dig[400];
     global string num;
 begin
     //dig := 3;
