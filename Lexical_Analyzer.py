@@ -352,6 +352,30 @@ class Lexical_Analyzer:
 		else:
 			return False
 """ 
+
+	def statement():
+
+	  if accept("if"):
+	    x = expression()
+	    y = statement()
+	    return IfStatement(x, y)
+
+	  elif accept("return"):
+	    x = expression()
+	    return ReturnStatement(x)
+
+	  elif accept("{")
+	    xs = []
+	    while True:
+	      xs.append(statement())
+	      if not accept(";"):
+	        break
+	    expect("}")
+	    return Block(xs)
+
+	  else:
+	    error("Invalid statement!")
+
 	def program_body(self):
 		if not self.errorFlag:
 				if self.stack.isEmpty():
@@ -396,7 +420,7 @@ integer
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/test_grammar.py"
+filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.py"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)

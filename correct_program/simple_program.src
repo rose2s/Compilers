@@ -1,0 +1,8 @@
+program simple is
+    integer dig;
+    integer num;
+begin
+    //dig := 3;
+    //num := 1 + 11;
+   // num := num + dig;
+//end program
