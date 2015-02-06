@@ -81,12 +81,12 @@ class Lexical_Analyzer:
 							word += l[s]
 							if s == len(l)-1:	
 								#print word			# last one
-								self.run_automata(word)
+								self.run_automata(word.lower())
 							else:
 								continue
 								
 						else: 
-							self.run_automata(word)
+							self.run_automata(word.lower())
 							word = ''
 							value = ''
 							if s+1 < len(l):									# Each character of the line
@@ -95,17 +95,17 @@ class Lexical_Analyzer:
 				  			if l[s] in (" ","\n","\t"):
 			  					continue
 							else:
-								self.run_automata(l[s])
+								self.run_automata(l[s].lower())
 
 			  		elif value == 'num': 		# number buffer 
 			  			if self.isNumber(l[s]) or l[s] == "." or self.isLetter(l[s]):
 							word += l[s]
 							if s == len(l)-1:				# last one
-								self.run_automata(word)
+								self.run_automata(word.lower())
 							else:
 								continue
 						else: 
-							self.run_automata(word)
+							self.run_automata(word.lower())
 							word = ''
 							value = ''
 							if s+1 < len(l):									# Each character of the line
@@ -117,16 +117,16 @@ class Lexical_Analyzer:
 			  							value = 'op'
 			  							word += l[s]
 			  						else:
-			  							self.run_automata(l[s])	
+			  							self.run_automata(l[s].lower())	
 			  				elif l[s] in (" ","\n","\t"):
 			  					continue	
 			  				else:
-			  					self.run_automata(l[s])
+			  					self.run_automata(l[s].lower())
 
 
 					elif value == 'op': 		# number buffer 
 			  			word += l[s]
-			  			self.run_automata(word)
+			  			self.run_automata(word.lower())
 						word = ''
 						value = ''
 
@@ -150,11 +150,11 @@ class Lexical_Analyzer:
 			  							value = 'op'
 			  							word += l[s]
 			  			else:
-			  				self.run_automata(l[s])
+			  				self.run_automata(l[s].lower())
 			  				continue
 			  			
 			  			if s == len(l)-1:
-							self.run_automata(l[s]) # last number
+							self.run_automata(l[s].lower()) # last number
 
 
 	def run_automata(self,inp_program):
@@ -187,7 +187,7 @@ class Lexical_Analyzer:
 		     
 		
 	def reportError(self, expected, received, line):
-	 	print  "\nSyntaxError: "+expected+"Expected"+", "+received+" Received, on line ", line,'\n'
+	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
 
 	def reportWarning(self, message):
 	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
@@ -218,10 +218,10 @@ class Lexical_Analyzer:
 
 	def parser(self):
 		analyzer.current_token = self.tokenList.Next
-		self.goal(analyzer.current_token)
+		self.expression(analyzer.current_token)
 		
 	
-	def goal(self,current_token):
+	def expression(self,current_token):
 		if self.E(current_token):
 			if self.stack.isEmpty():
 				print "You got it!"
@@ -306,6 +306,91 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
+	def reset(self):
+		self.errorFlag = False
+		while self.stack.isEmpty():
+			self.stack.pop()
+
+	def program(self,token):
+		if self.program_header(token):
+			self.reset()
+			#self.program_body(analyzer.current_token)
+
+	def program_header(self,token):
+		if not self.errorFlag:
+				if self.stack.isEmpty():
+					if token.getTokenValue() == "program":
+						print token.getTokenValue()
+						self.stack.push(token.getTokenValue())
+						self.program_header(self.scanToken())
+					else:
+						self.reportError("program", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+
+				if self.stack.peek() == "program":
+					if token.getTokenType() == "IDENTIFIER":	
+						print token.getTokenValue()
+						self.stack.push(token.getTokenType())
+						self.program_header(self.scanToken())
+					else:
+						self.reportError("IDENTIFIER", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+
+				if self.stack.peek() ==  "IDENTIFIER":
+					if token.getTokenValue() == "is":
+						print token.getTokenValue()
+						self.stack.push(token.getTokenValue())
+						self.program_header(self.scanToken())
+					else:
+						self.reportError("is", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+				if self.stack.peek() == "is":
+					return True
+		else:
+			return False
+""" 
+	def program_body(self):
+		if not self.errorFlag:
+				if self.stack.isEmpty():
+					if token.getTokenValue() == "program":
+						print token.getTokenValue()
+		else:
+
+
+			
+			if ( <statement> ; )*
+end program
+
+<declaration> ::=
+[ global ] <procedure_declaration>
+| [ global ] <variable_declaration> <procedure_declaration> ::=
+<procedure_header> <procedure_body>
+<procedure_header> :: = procedure <identifier>
+( [<parameter_list>] )
+<parameter_list> ::=
+<parameter> , <parameter_list>
+| <parameter>
+<parameter> ::= <variable_declaration> (in | out)
+<procedure_body> ::=
+( <declaration> ; )*
+begin
+( <statement> ; )*
+end procedure
+<variable_declaration> ::= <type_mark> <identifier>
+[ [ <array_size> ] ]
+<type_mark> ::=
+integer
+| float
+| bool
+| string
+<array_size> ::= 
+		<number> 
+<statement> ::=
+	<assignment_statement> | <if_statement> | <loop_statement> | <return_statement> | <procedure_call>
+"""
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
@@ -318,6 +403,8 @@ analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
 analyzer.tokenList.printList(analyzer.tokenList.Next)
 
-analyzer.parser()
+analyzer.current_token = analyzer.tokenList.Next  
+
+analyzer.program(analyzer.tokenList.Next)
 
 #print "\nSymbol_table: ",analyzer.simbolTable
