@@ -1,6 +1,6 @@
 program simple is
     integer dig;
-    integer num;
+    global string num;
 begin
     //dig := 3;
     //num := 1 + 11;
