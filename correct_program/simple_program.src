@@ -1,8 +1,12 @@
 program simple is
-    integer dig[400];
-    global string num;
+    procedure sum(integer a in, integer result out, float a in)
+
 begin
     //dig := 3;
     //num := 1 + 11;
    // num := num + dig;
+   //integer dig[400];
+    //global string num;
+
+    
 //end program

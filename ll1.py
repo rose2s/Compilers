@@ -1,4 +1,3 @@
-
 from scanner import Scanner
 
 class ll1():
@@ -39,7 +38,7 @@ class ll1():
 	def next_token(self,token):
 		return token.next()
 	
-	def goal(self):
+	def expression(self):
 		#while current_token:
 		print "\nS = ",self.current_token.getTokenValue()
 		if self.E(self.current_token):
@@ -101,10 +100,8 @@ class ll1():
 	def program():
 		program_header()
 		program_body()
-
 	def program_header():
 		"program" + ID + "is"
-
 	def program_body():
 		( <declaration> ; )*
 begin
@@ -114,7 +111,6 @@ end program
 [ global ] <procedure_declaration>
 | [ global ] <variable_declaration> <procedure_declaration> ::=
 <procedure_header> <procedure_body>
-
 <procedure_header> :: = procedure <identifier>
 ( [<parameter_list>] )
 <parameter_list> ::=
@@ -135,9 +131,7 @@ integer
 | string
 <array_size> ::= 
 		<number> 
-
 <statement> ::=
-
 	<assignment_statement> | <if_statement> | <loop_statement> | <return_statement> | <procedure_call>
 """
 
@@ -154,4 +148,4 @@ grammar = ll1()
 grammar.current_token = scanner.simbolTable.getFirst().Next
 
 #print grammar.current_token.getTokenValue()
-grammar.goal()
+grammar.expression()
