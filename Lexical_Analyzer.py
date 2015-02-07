@@ -19,6 +19,9 @@
 # 1.0.0    Rose		  			  symbol_table nao esta compilando mas so salva os identifiers.
 # 1.0.0    Rose		  2015-02-05 program_header function
 # 1.0.0    Rose		  2015-02-05 var_declaration function
+# 1.0.0    Rose		  2015-02-06 var_declaration function
+# 1.0.0    Rose		  2015-02-07 procedure function function
+# 1.0.0    Rose		  2015-02-0
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -345,8 +348,16 @@ class Lexical_Analyzer:
 		else:
 			return False
 	def program_body(self,token):
+		print "\nPrgram_Body Function: ",token.getTokenValue()
 		if not self.errorFlag:
 			self.declaration(token)
+			self.statement(analyzer.current_token)
+
+			if analyzer.current_token.getTokenValue() == "end":
+				token = self.scanToken()
+				if token.getTokenValue() == "program":
+					print "\nChegamos ao final do program"
+					return True
 		else:
 			return False
 
@@ -370,7 +381,8 @@ class Lexical_Analyzer:
 			self.declaration(analyzer.current_token)
 		
 		elif token.getTokenValue() == "begin":
-			print "Let the game begins!"
+			#print "Let the game begins!"
+			return True
 
 		else: 
 			self.reportErrorMsg("Unexpected type in Declaration",token.line)
@@ -439,7 +451,7 @@ class Lexical_Analyzer:
 	def procedure_declaration(self,token):
 		print "procedure declaration"
 		self.procedure_header(token)
-		#self.procedure_body(token)
+		self.procedure_body(analyzer.current_token)
 
 	def procedure_header(self,token):
 		print "Procedure_header function: ",token.getTokenValue()
@@ -461,7 +473,22 @@ class Lexical_Analyzer:
 						return True
 
 	def procedure_body(self,token):
-		pass
+		print "PROCEDURE_BODY FUNCTION:",token.getTokenValue()
+		if not self.errorFlag:
+			self.declaration(token)
+		else:
+			return False
+		self.statement(analyzer.current_token)
+		if analyzer.current_token.getTokenValue() == "end":
+			token = self.scanToken()
+			if token.getTokenValue() == "procedure":
+				print "end procedure"
+				token = self.scanToken()
+				return True
+
+	def statement(self,token): # terminar
+		token = self.scanToken()
+		return True
 
 	def reportError(self, expected, received, line):
 	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
@@ -471,6 +498,7 @@ class Lexical_Analyzer:
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", on line ", line,'\n'
+
 
 """ 
 
@@ -533,7 +561,7 @@ dfa = DFA()
 filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
-analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
+#analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
 #analyzer.tokenList.printList(analyzer.tokenList.Next)
 
