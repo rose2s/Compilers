@@ -490,6 +490,19 @@ class Lexical_Analyzer:
 		token = self.scanToken()
 		return True
 
+	def assignment_statement(self,token):
+		pass
+	def if_statement(self,token):
+		pass
+
+	def loop_statement(self,token):
+		pass
+
+	def return_statement(self,token):
+		pass
+	def procedure_call(self,token):
+		pass
+
 	def reportError(self, expected, received, line):
 	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
 
@@ -501,7 +514,6 @@ class Lexical_Analyzer:
 
 
 """ 
-
 	def statement():
 
 	  if accept("if"):
@@ -524,34 +536,6 @@ class Lexical_Analyzer:
 
 	  else:
 	    error("Invalid statement!")
-
-
-<declaration> ::=
-[ global ] <procedure_declaration>
-| [ global ] <variable_declaration> <procedure_declaration> ::=
-<procedure_header> <procedure_body>
-<procedure_header> :: = procedure <identifier>
-( [<parameter_list>] )
-<parameter_list> ::=
-<parameter> , <parameter_list>
-| <parameter>
-<parameter> ::= <variable_declaration> (in | out)
-<procedure_body> ::=
-( <declaration> ; )*
-begin
-( <statement> ; )*
-end procedure
-<variable_declaration> ::= <type_mark> <identifier>
-[ [ <array_size> ] ]
-<type_mark> ::=
-integer
-| float
-| bool
-| string
-<array_size> ::= 
-		<number> 
-<statement> ::=
-	<assignment_statement> | <if_statement> | <loop_statement> | <return_statement> | <procedure_call>
 """
 
 # ---- Main -----
