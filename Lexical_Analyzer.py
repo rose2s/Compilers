@@ -16,7 +16,9 @@
 # 1.0.0    Rose       2015-02-01  Create Grammar LL(1)
 # 1.0.0    Rose		  2015-02-02  Create List
 # 1.0.0    Rose		  2015-02-03  Lista salva com todos os tokens que devem ser pegos no parser()
-# symbol_table nao esta compilando mas so salva os identifiers.
+# 1.0.0    Rose		  			  symbol_table nao esta compilando mas so salva os identifiers.
+# 1.0.0    Rose		  2015-02-05 program_header function
+# 1.0.0    Rose		  2015-02-05 var_declaration function
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -27,8 +29,8 @@ from stack import Stack
 class Lexical_Analyzer:
 
 	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
-				 's8': "ARIT_OP",'s9': "EQ",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_BRA", 's13': "RIG_BRA",
-				 's14': "COMMA",'s15': "SC"}
+				 's8': "ARIT_OP",'s9': "EQ",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
+				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA"}
 
 	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
@@ -185,12 +187,6 @@ class Lexical_Analyzer:
 		else:
 		    self.reportWarning(inp_program)
 		     
-		
-	def reportError(self, expected, received, line):
-	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
-
-	def reportWarning(self, message):
-	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
 
 	def first(self,X):
 		if X == 'E':
@@ -295,10 +291,10 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 			self.E(token)
 
-		elif token.getTokenValue() in analyzer.letters:
+		elif token.getTokenType() == ("IDENTIFIER"):
 			token = self.scanToken()
 			return True
-		elif token.getTokenValue() in analyzer.numbers:
+		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
 			token = self.scanToken()
 			return True
 		else:
@@ -314,13 +310,12 @@ class Lexical_Analyzer:
 	def program(self,token):
 		if self.program_header(token):
 			self.reset()
-			#self.program_body(analyzer.current_token)
+			self.program_body(analyzer.current_token)
 
 	def program_header(self,token):
 		if not self.errorFlag:
 				if self.stack.isEmpty():
 					if token.getTokenValue() == "program":
-						print token.getTokenValue()
 						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
 					else:
@@ -330,7 +325,6 @@ class Lexical_Analyzer:
 
 				if self.stack.peek() == "program":
 					if token.getTokenType() == "IDENTIFIER":	
-						print token.getTokenValue()
 						self.stack.push(token.getTokenType())
 						self.program_header(self.scanToken())
 					else:
@@ -340,7 +334,6 @@ class Lexical_Analyzer:
 
 				if self.stack.peek() ==  "IDENTIFIER":
 					if token.getTokenValue() == "is":
-						print token.getTokenValue()
 						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
 					else:
@@ -351,6 +344,134 @@ class Lexical_Analyzer:
 					return True
 		else:
 			return False
+	def program_body(self,token):
+		if not self.errorFlag:
+			self.declaration(token)
+		else:
+			return False
+
+	def type_mark(self,t):
+		if t in ("integer", "float", "bool", "string"):
+			return True
+		else:
+			return False
+
+	def declaration(self,token):
+		print "Declaration Function:", token.getTokenValue() 
+		if token.getTokenValue() == "global":
+			token = self.scanToken()
+
+		if self.type_mark(token.getTokenValue()):
+			self.variable_declaration(token)
+			self.declaration(analyzer.current_token)
+
+		elif token.getTokenValue() == "procedure":
+			self.procedure_declaration(token)
+			self.declaration(analyzer.current_token)
+		
+		elif token.getTokenValue() == "begin":
+			print "Let the game begins!"
+
+		else: 
+			self.reportErrorMsg("Unexpected type in Declaration",token.line)
+			return False
+		
+		#self.program_body()	
+	
+	def variable_declaration(self, token, parameter= False): # if parameter -> is parameter
+		
+		print "variable_declaration:",token.getTokenValue()
+
+		if self.type_mark(token.getTokenValue()):  # if token in type_mark
+			token = self.scanToken()
+
+			if token.getTokenType() == "IDENTIFIER":
+				token = self.scanToken()
+
+				if token.getTokenValue() == ";" and not parameter:
+					token = self.scanToken()
+					return True
+
+				elif parameter:
+					if token.getTokenValue() in ("in","out"):
+						print token.getTokenValue()
+						token = self.scanToken()
+						return True
+					else:
+						self.reportError("in/out", token.getTokenValue(),token.line)
+						return False
+
+				# arrays
+				elif token.getTokenValue() == "[":
+					token = self.scanToken()
+
+					if token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
+						token = self.scanToken()
+
+						if token.getTokenValue() == "]":
+							token = self.scanToken()
+
+							if token.getTokenValue() == ";":
+								token = self.scanToken()
+								return True
+							else: 
+								self.reportError(";", token.getTokenValue(),token.line)
+								return False
+						else: 
+							self.reportError("]", token.getTokenValue(),token.line)
+							return False
+					else: 
+						self.reportError("array Size", token.getTokenValue(),token.line)
+						return False
+				else: 
+					self.reportErrorMsg("Undentified character", token.line)
+					return False
+
+			else: 
+				self.reportError("Identifier Type", token.getTokenType(),token.line)
+				return False
+
+		else: 
+			self.reportError("Type Mark", token.getTokenType(),token.line)
+			return False
+		# falta fazer array
+
+	def procedure_declaration(self,token):
+		print "procedure declaration"
+		self.procedure_header(token)
+		#self.procedure_body(token)
+
+	def procedure_header(self,token):
+		print "Procedure_header function: ",token.getTokenValue()
+		if token.getTokenValue() == "procedure":
+			token = self.scanToken()
+			if token.getTokenType() == "IDENTIFIER":
+				token = self.scanToken()	
+				if token.getTokenValue() == "(":
+					token = self.scanToken()
+					self.variable_declaration(token,True)
+					
+					while analyzer.current_token.getTokenValue() == ",":
+						token = self.scanToken()	
+						self.variable_declaration(analyzer.current_token, True)
+				
+					if analyzer.current_token.getTokenValue() == ")":
+						token = self.scanToken()
+						print "parametros ok"
+						return True
+
+	def procedure_body(self,token):
+		pass
+
+	def reportError(self, expected, received, line):
+	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
+
+	def reportWarning(self, message):
+	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
+
+	def reportErrorMsg(self, message, line):
+	 	print message,", on line ", line,'\n'
+
 """ 
 
 	def statement():
@@ -376,17 +497,6 @@ class Lexical_Analyzer:
 	  else:
 	    error("Invalid statement!")
 
-	def program_body(self):
-		if not self.errorFlag:
-				if self.stack.isEmpty():
-					if token.getTokenValue() == "program":
-						print token.getTokenValue()
-		else:
-
-
-			
-			if ( <statement> ; )*
-end program
 
 <declaration> ::=
 [ global ] <procedure_declaration>
@@ -420,12 +530,12 @@ integer
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.py"
+filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
-analyzer.tokenList.printList(analyzer.tokenList.Next)
+#analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 
