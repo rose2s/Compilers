@@ -82,8 +82,8 @@ class Lexical_Analyzer:
 				for s in range(len(l)):	
 
 					if value == 'cha': 			# letter buffer
-						if self.isNumber(l[s]) or self.isLetter(l[s]) or l[s] == '_':
-							word += l[s]
+						if self.isNumber(l[s]) or self.isLetter(l[s].lower()) or l[s] == '_':
+							word += l[s].lower()
 							if s == len(l)-1:	
 								#print word			# last one
 								self.run_automata(word.lower())
@@ -141,9 +141,9 @@ class Lexical_Analyzer:
 				  				break 										# Comment -> Skip line
 			  			if l[s] in (" ","\n","\t"): 
 			  				continue										# White space or tab - > Skip character
-			  			elif self.isLetter(l[s]):
+			  			elif self.isLetter(l[s].lower()):
 			  				value = 'cha'  # letter
-			  				word += l[s]
+			  				word += l[s].lower()
 			  				
 			  			elif self.isNumber(l[s]):
 			  				value = 'num'
@@ -155,11 +155,11 @@ class Lexical_Analyzer:
 			  							value = 'op'
 			  							word += l[s]
 			  			else:
-			  				self.run_automata(l[s].lower())
+			  				self.run_automata(l[s])
 			  				continue
 			  			
 			  			if s == len(l)-1:
-							self.run_automata(l[s].lower()) # last number
+							self.run_automata(l[s]) # last number
 
 
 	def run_automata(self,inp_program):
@@ -584,7 +584,7 @@ analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
-#analyzer.tokenList.printList(analyzer.tokenList.Next)
+analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 
