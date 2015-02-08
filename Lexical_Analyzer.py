@@ -347,8 +347,9 @@ class Lexical_Analyzer:
 					return True
 		else:
 			return False
+
 	def program_body(self,token):
-		print "\nPrgram_Body Function: ",token.getTokenValue()
+		print "\nPrgram_Body Function: ", token.getTokenValue()
 		if not self.errorFlag:
 			self.declaration(token)
 			self.statement(analyzer.current_token)
@@ -368,27 +369,29 @@ class Lexical_Analyzer:
 			return False
 
 	def declaration(self,token):
-		print "Declaration Function:", token.getTokenValue() 
-		if token.getTokenValue() == "global":
-			token = self.scanToken()
+		if not self.errorFlag:
+			print "Declaration Function:", token.getTokenValue() 
+			if token.getTokenValue() == "global":
+				token = self.scanToken()
 
-		if self.type_mark(token.getTokenValue()):
-			self.variable_declaration(token)
-			self.declaration(analyzer.current_token)
+			if self.type_mark(token.getTokenValue()):
+				self.variable_declaration(token)
+				self.declaration(analyzer.current_token)
 
-		elif token.getTokenValue() == "procedure":
-			self.procedure_declaration(token)
-			self.declaration(analyzer.current_token)
-		
-		elif token.getTokenValue() == "begin":
-			#print "Let the game begins!"
-			return True
+			elif token.getTokenValue() == "procedure":
+				self.procedure_declaration(token)
+				self.declaration(analyzer.current_token)
+			
+			elif token.getTokenValue() == "begin":
+				#print "Let the game begins!"
+				return True
 
-		else: 
-			self.reportErrorMsg("Unexpected type in Declaration",token.line)
+			else: 
+				self.reportErrorMsg("Unexpected type in Declaration",token.line)
+				return False
+		else:
 			return False
-		
-		#self.program_body()	
+
 	
 	def variable_declaration(self, token, parameter= False): # if parameter -> is parameter
 		
@@ -449,7 +452,7 @@ class Lexical_Analyzer:
 		# falta fazer array
 
 	def procedure_declaration(self,token):
-		print "procedure declaration"
+		print "\nProcedure declaration: ",token.getTokenValue()
 		self.procedure_header(token)
 		self.procedure_body(analyzer.current_token)
 
@@ -461,16 +464,41 @@ class Lexical_Analyzer:
 				token = self.scanToken()	
 				if token.getTokenValue() == "(":
 					token = self.scanToken()
-					self.variable_declaration(token,True)
+					if self.type_mark(token.getTokenValue()):
+						self.variable_declaration(token,True)
 					
-					while analyzer.current_token.getTokenValue() == ",":
-						token = self.scanToken()	
-						self.variable_declaration(analyzer.current_token, True)
-				
-					if analyzer.current_token.getTokenValue() == ")":
+						while analyzer.current_token.getTokenValue() == ",":
+							token = self.scanToken()	
+							self.variable_declaration(analyzer.current_token, True)
+
+						if analyzer.current_token.getTokenValue() == ")":
+							token = self.scanToken()
+							print "parametros ok"
+							return True
+
+						else: 
+							self.reportErrorMsg("Missing ) in the porcedure", token.line)
+							self.errorFlag = True
+							return False
+						
+					elif analyzer.current_token.getTokenValue() == ")":
 						token = self.scanToken()
-						print "parametros ok"
+						print "Function w/o parameters"
 						return True
+
+					else: 
+						self.reportErrorMsg("Missing ) in the porcedure", token.line)
+						self.errorFlag = True
+						return False
+
+				else:
+					self.reportError("(", token.getTokenValue(), token.line)
+					self.errorFlag = True
+					return False
+			else:
+				self.reportError("Function Name", token.getTokenValue(), token.line)
+				self.errorFlag = True
+				return False
 
 	def procedure_body(self,token):
 		print "PROCEDURE_BODY FUNCTION:",token.getTokenValue()
@@ -478,6 +506,7 @@ class Lexical_Analyzer:
 			self.declaration(token)
 		else:
 			return False
+
 		self.statement(analyzer.current_token)
 		if analyzer.current_token.getTokenValue() == "end":
 			token = self.scanToken()
@@ -485,6 +514,14 @@ class Lexical_Analyzer:
 				print "end procedure"
 				token = self.scanToken()
 				return True
+			else:
+				self.reportError("procedure", token.getTokenValue(), token.line)
+				self.errorFlag = True
+				return False
+		else:
+			self.reportError("end", token.getTokenValue(), token.line)
+			self.errorFlag = True
+			return False
 
 	def statement(self,token): # terminar
 		token = self.scanToken()
