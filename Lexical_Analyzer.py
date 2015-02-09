@@ -241,7 +241,7 @@ class Lexical_Analyzer:
 				self.T(token,sign)
 				if self.E2(analyzer.current_token,sign):
 					return True
-			elif token.getTokenValue() == sign:
+			elif token.getTokenValue() in sign:
 				print "sign", sign
 				return True
 			else: 
@@ -270,7 +270,7 @@ class Lexical_Analyzer:
 			else:
 				return False
 
-		elif token.getTokenValue() == sign:
+		elif token.getTokenValue() in sign:
 			print "sign:",sign
 			return True
 
@@ -583,7 +583,11 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 				if token.getTokenValue() != ")":
-					self.expression(token,")")
+					self.expression(token,[",",")"])
+
+					while analyzer.current_token.getTokenValue() == ",":
+						token = self.scanToken()	
+						self.expression(token,[",",")"])
 
 				if analyzer.current_token.getTokenValue() == ")":
 					token = self.scanToken()
