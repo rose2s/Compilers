@@ -116,7 +116,7 @@ class Lexical_Analyzer:
 							if s+1 < len(l):									# Each character of the line
 				  				if l[s]+l[s+1] == '//':
 				  					break 	
-				  			if l[s] in ("<",">",":","!"):
+				  			if l[s] in ("<",">",":","!","="):
 			  					if s+1 < len(l):									# Each character of the line
 				  					if l[s+1] == '=':
 			  							value = 'op'
@@ -149,7 +149,7 @@ class Lexical_Analyzer:
 			  				value = 'num'
 			  				word += l[s]
 			  				
-			  			elif l[s] in ("<",">",":","!"):
+			  			elif l[s] in ("<",">",":","!","="):
 			  					if s+1 < len(l):									# Each character of the line
 				  					if l[s+1] == '=':
 			  							value = 'op'
@@ -551,26 +551,31 @@ class Lexical_Analyzer:
 		elif token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
 				print "after assignment_statement", analyzer.current_token.getTokenValue()
-				self.statement(analyzer.current_token)
-			else: return False
+				if self.statement(analyzer.current_token):
+					return True
+			else: 
+				return False
 
 		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 			if self.procedure_call(token):
 				print "after procedure_call", analyzer.current_token.getTokenValue()
-				self.statement(analyzer.current_token)
+				if self.statement(analyzer.current_token):
+					return True
 			else:
 				return False
 
 		elif token.getTokenValue() == "return":
 			if self.return_statement(token):
-				self.statement(analyzer.current_token)
+				if self.statement(analyzer.current_token):
+					return True
 			else:
 				return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
 			if self.loop_statement(token):
 				print "after FOR loop", analyzer.current_token.getTokenValue()
-				self.statement(analyzer.current_token)
+				if self.statement(analyzer.current_token):
+					return True
 			else:
 				return False
 		
@@ -737,7 +742,7 @@ analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
-#analyzer.tokenList.printList(analyzer.tokenList.Next)
+analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 
