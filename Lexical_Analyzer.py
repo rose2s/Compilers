@@ -531,7 +531,12 @@ class Lexical_Analyzer:
 
 		elif token.Next.getTokenValue() in (":=","["):
 			self.assignment_statement(token)
-			print "after statetment", analyzer.current_token.getTokenValue()
+			print "after assignment_statement", analyzer.current_token.getTokenValue()
+			self.statement(analyzer.current_token)
+
+		elif token.Next.getTokenValue() == "(":
+			self.procedure_call(token)
+			print "after procedure_call", analyzer.current_token.getTokenValue()
 			self.statement(analyzer.current_token)
 		
 	def assignment_statement(self,token):
@@ -570,6 +575,37 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
+	def procedure_call(self,token):
+		print "\nProcedure Call Function"
+		if token.getTokenType() == "IDENTIFIER":
+			token = self.scanToken()
+			
+			if token.getTokenValue() == "(":
+				token = self.scanToken()
+				if self.expression(token,")"):
+
+					if analyzer.current_token.getTokenValue() == ")":
+						token = self.scanToken()
+						if token.getTokenValue() == ";":
+								return True
+						else:
+							self.reportError(";", token.getTokenValue(), token.line)
+							self.errorFlag = True
+							return False
+					else:
+						self.reportErrorMsg("Missing ) of procedure_call", token.line)
+						self.errorFlag = True
+						return False
+			else:
+				self.reportErrorMsg("Missing ( of procedure_call", token.line)
+				self.errorFlag = True
+				return False
+		else:
+			self.reportError("Identifier", token.getTokenType(), token.line)
+			self.errorFlag = True
+			return False
+		
+
 	def if_statement(self,token):
 		pass
 
@@ -577,8 +613,6 @@ class Lexical_Analyzer:
 		pass
 
 	def return_statement(self,token):
-		pass
-	def procedure_call(self,token):
 		pass
 
 	def reportError(self, expected, received, line):
