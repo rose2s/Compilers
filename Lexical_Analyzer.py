@@ -668,7 +668,23 @@ class Lexical_Analyzer:
 						if self.relation_op(analyzer.current_token.getTokenValue()):
 							token = self.scanToken()
 							if self.expression(token, ")"):
-								return True
+								if self.statement(token):
+									if analyzer.current_token.getTokenValue() == "end":
+										token = self.scanToken()
+										if token.getTokenValue() == "for":
+											return True
+										else:
+											self.reportError("for", token.getTokenValue(), token.line)
+											self.errorFlag = True
+											return False
+									else:
+										self.reportError("end", token.getTokenValue(), token.line)
+										self.errorFlag = True
+										return False
+								else:
+									self.reportErrorMsg("Wrong Statement", token.line)
+									self.errorFlag = True
+									return False
 							else:
 								self.reportErrorMsg("Missing ) of LOOP", token.line)
 								self.errorFlag = True
