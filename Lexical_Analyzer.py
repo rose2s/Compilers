@@ -364,7 +364,7 @@ class Lexical_Analyzer:
 					return True
 		else:
 			return False
-			
+
 	def type_mark(self,t):
 		if t in ("integer", "float", "bool", "string"):
 			return True
@@ -528,15 +528,38 @@ class Lexical_Analyzer:
 	def statement(self,token): # terminar
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
-		while token.getTokenValue() != "end":
-		#while analyzer.current_token.Next.getTokenValue() != "end":
-			self.expression(analyzer.current_token)
-			print "after expression", analyzer.current_token.getTokenValue()
-			token = self.scanToken()
+		print "token:",token.getTokenValue()
+		print "token next:",token.Next.getTokenValue()
+		if token.getTokenValue() == "end":
+			return True
+
+		while analyzer.current_token.getTokenValue() != "end":
+			if token.Next.getTokenValue() == ":=":
+				self.assignment_statement(token)
+				token = self.scanToken()
+		print "acabou statements"
 		return True
 
 	def assignment_statement(self,token):
-		pass
+		print "\nAssignment statement"
+		if token.getTokenType() == "IDENTIFIER":
+			token = self.scanToken()
+			if token.getTokenValue() == ":=":
+				token = self.scanToken()
+				if self.expression(token):
+					if analyzer.current_token.getTokenValue() == ";":
+						return True
+			else:
+				self.reportError(":=", token.getTokenValue(), token.line)
+				self.errorFlag = True
+				return False
+		else:
+			self.reportError("Identifier", token.getTokenType(), token.line)
+			self.errorFlag = True
+			return False
+
+
+
 	def if_statement(self,token):
 		pass
 
