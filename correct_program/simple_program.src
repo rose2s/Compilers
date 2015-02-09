@@ -13,8 +13,12 @@ begin
 	// statement
 	b[2] := 2;
 	a := 2+1;
-	for (i := 1; i < 5
-	//sum(a,2-1,c);
+	for (i := 1; i == 5)
+		i := i + 1;
+		sum(a,2-1,c);
+	end for
+
+	sum(a,2-1,c);
 
 
 end program
