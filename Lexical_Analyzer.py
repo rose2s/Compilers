@@ -357,7 +357,7 @@ class Lexical_Analyzer:
 			if analyzer.current_token.getTokenValue() == "end":
 				token = self.scanToken()
 				if token.getTokenValue() == "program":
-					print "\nChegamos ao final do program"
+					print "\nEND PROGRAM"
 					return True
 		else:
 			return False
@@ -526,6 +526,7 @@ class Lexical_Analyzer:
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
+		
 		if token.getTokenValue() == "end":
 			return True
 
@@ -537,6 +538,10 @@ class Lexical_Analyzer:
 		elif token.Next.getTokenValue() == "(":
 			self.procedure_call(token)
 			print "after procedure_call", analyzer.current_token.getTokenValue()
+			self.statement(analyzer.current_token)
+
+		elif token.getTokenValue() == "return":
+			self.return_statement(token)
 			self.statement(analyzer.current_token)
 		
 	def assignment_statement(self,token):
@@ -618,7 +623,8 @@ class Lexical_Analyzer:
 		pass
 
 	def return_statement(self,token):
-		pass
+		if token.getTokenValue() == "return":
+			return True
 
 	def reportError(self, expected, received, line):
 	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
