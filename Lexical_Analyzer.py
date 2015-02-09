@@ -214,15 +214,10 @@ class Lexical_Analyzer:
 	def scanToken(self):
 		analyzer.current_token = analyzer.current_token.Next
 		return analyzer.current_token
-
-	def parser(self):
-		analyzer.current_token = self.tokenList.Next
-		self.expression(analyzer.current_token)
 		
-	
-	def expression(self,current_token):
+	def expression(self,current_token, sign = ";"):
 		print self.stack.items
-		if self.E(current_token):
+		if self.E(current_token, sign):
 			if self.stack.isEmpty():
 				print "You got it!"
 				return True
@@ -231,22 +226,23 @@ class Lexical_Analyzer:
 				self.errorFlag = True
 				return False 
 
-	def E(self, token):
+	def E(self, token, sign):
 		print "E: ",token.getTokenValue()
-		self.T(token)
-		if self.E2(analyzer.current_token):
+		self.T(token,sign)
+		if self.E2(analyzer.current_token, sign):
 			return True
 
 
-	def E2(self,token):
+	def E2(self,token, sign):
 		if not self.errorFlag:
 			print "E2: ",token.getTokenValue()
 			if token.getTokenValue() in self.first('E2'):
 				token = self.scanToken()
-				self.T(token)
-				if self.E2(analyzer.current_token):
+				self.T(token,sign)
+				if self.E2(analyzer.current_token,sign):
 					return True
-			elif token.getTokenValue() == ";":
+			elif token.getTokenValue() == sign:
+				print "sign", sign
 				return True
 			else: 
 				self.reportError("aritm_op", token.getTokenValue(),token.line)
@@ -254,27 +250,28 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def T(self,token):
+	def T(self,token,sign):
 		print "T: ",token.getTokenValue()
-		if self.F(token):
-			self.T2(analyzer.current_token)
+		if self.F(token,sign):
+			self.T2(analyzer.current_token,sign)
 		else:
 			return False
 
 
-	def T2(self,token):
+	def T2(self,token, sign):
 		if token:
 			print "T': ",token.getTokenValue()
 
 		if token.getTokenValue() in self.first('T2'):
 			print token.getTokenValue()
 			token = self.scanToken()
-			if self.F(token):
-				self.T2(analyzer.current_token)
+			if self.F(token,sign):
+				self.T2(analyzer.current_token,sign)
 			else:
 				return False
 
-		elif token.getTokenValue() == ";":
+		elif token.getTokenValue() == sign:
+			print "sign:",sign
 			return True
 
 		elif token.getTokenValue() == ")":
@@ -287,14 +284,14 @@ class Lexical_Analyzer:
 				self.errorFlag = True
 				return False
 
-	def F(self,token):
+	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
 		print "current token: ",analyzer.current_token.getTokenValue()
 		if token.getTokenValue() == "(":
 			self.stack.push(token.getTokenValue())
 			print "stack: ",self.stack.peek()
 			token = self.scanToken()
-			self.E(token)
+			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
 			token = self.scanToken()
@@ -529,36 +526,49 @@ class Lexical_Analyzer:
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
-		print "token next:",token.Next.getTokenValue()
 		if token.getTokenValue() == "end":
 			return True
 
-		while analyzer.current_token.getTokenValue() != "end":
-			if token.Next.getTokenValue() == ":=":
-				self.assignment_statement(token)
-				token = self.scanToken()
-		print "acabou statements"
-		return True
-
+		elif token.Next.getTokenValue() in (":=","["):
+			self.assignment_statement(token)
+			print "after statetment", analyzer.current_token.getTokenValue()
+			self.statement(analyzer.current_token)
+		
 	def assignment_statement(self,token):
 		print "\nAssignment statement"
 		if token.getTokenType() == "IDENTIFIER":
 			token = self.scanToken()
+
 			if token.getTokenValue() == ":=":
 				token = self.scanToken()
-				if self.expression(token):
+				if self.expression(token,";"):
 					if analyzer.current_token.getTokenValue() == ";":
 						return True
-			else:
-				self.reportError(":=", token.getTokenValue(), token.line)
-				self.errorFlag = True
-				return False
+
+			elif token.getTokenValue() == "[":
+				token = self.scanToken()
+				if self.expression(token,"]"):
+					if analyzer.current_token.getTokenValue() == "]":
+						print "consegui array"
+						token = self.scanToken()
+
+					if token.getTokenValue() == ":=":
+						token = self.scanToken()
+						if self.expression(token,";"):
+							if analyzer.current_token.getTokenValue() == ";":
+								return True
+					else:
+						self.reportError(":=", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+				else:
+					self.reportErrorMsg("Invalid Expression", token.line)
+					self.errorFlag = True
+					return False
 		else:
 			self.reportError("Identifier", token.getTokenType(), token.line)
 			self.errorFlag = True
 			return False
-
-
 
 	def if_statement(self,token):
 		pass
