@@ -582,20 +582,21 @@ class Lexical_Analyzer:
 			
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
-				if self.expression(token,")"):
+				if token.getTokenValue() != ")":
+					self.expression(token,")")
 
-					if analyzer.current_token.getTokenValue() == ")":
-						token = self.scanToken()
-						if token.getTokenValue() == ";":
-								return True
-						else:
-							self.reportError(";", token.getTokenValue(), token.line)
-							self.errorFlag = True
-							return False
+				if analyzer.current_token.getTokenValue() == ")":
+					token = self.scanToken()
+					if token.getTokenValue() == ";":
+							return True
 					else:
-						self.reportErrorMsg("Missing ) of procedure_call", token.line)
+						self.reportError(";", token.getTokenValue(), token.line)
 						self.errorFlag = True
 						return False
+				else:
+					self.reportErrorMsg("Missing ) of procedure_call", token.line)
+					self.errorFlag = True
+					return False
 			else:
 				self.reportErrorMsg("Missing ( of procedure_call", token.line)
 				self.errorFlag = True
