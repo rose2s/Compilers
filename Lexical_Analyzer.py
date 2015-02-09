@@ -221,9 +221,11 @@ class Lexical_Analyzer:
 		
 	
 	def expression(self,current_token):
+		print self.stack.items
 		if self.E(current_token):
 			if self.stack.isEmpty():
 				print "You got it!"
+				return True
 			else: 
 				self.reportWarning("Missing )")
 				self.errorFlag = True
@@ -244,7 +246,7 @@ class Lexical_Analyzer:
 				self.T(token)
 				if self.E2(analyzer.current_token):
 					return True
-			elif token.getTokenValue() == "$":
+			elif token.getTokenValue() == ";":
 				return True
 			else: 
 				self.reportError("aritm_op", token.getTokenValue(),token.line)
@@ -272,7 +274,7 @@ class Lexical_Analyzer:
 			else:
 				return False
 
-		elif token.getTokenValue() == "$":
+		elif token.getTokenValue() == ";":
 			return True
 
 		elif token.getTokenValue() == ")":
@@ -307,7 +309,7 @@ class Lexical_Analyzer:
 
 	def reset(self):
 		self.errorFlag = False
-		while self.stack.isEmpty():
+		while not self.stack.isEmpty():
 			self.stack.pop()
 
 	def program(self,token):
@@ -316,6 +318,7 @@ class Lexical_Analyzer:
 			self.program_body(analyzer.current_token)
 
 	def program_header(self,token):
+		print "\nProgram_header function"
 		if not self.errorFlag:
 				if self.stack.isEmpty():
 					if token.getTokenValue() == "program":
@@ -352,8 +355,8 @@ class Lexical_Analyzer:
 		print "\nPrgram_Body Function: ", token.getTokenValue()
 		if not self.errorFlag:
 			self.declaration(token)
+			print "\nStart Program!"
 			self.statement(analyzer.current_token)
-
 			if analyzer.current_token.getTokenValue() == "end":
 				token = self.scanToken()
 				if token.getTokenValue() == "program":
@@ -361,7 +364,7 @@ class Lexical_Analyzer:
 					return True
 		else:
 			return False
-
+			
 	def type_mark(self,t):
 		if t in ("integer", "float", "bool", "string"):
 			return True
@@ -383,7 +386,6 @@ class Lexical_Analyzer:
 				self.declaration(analyzer.current_token)
 			
 			elif token.getTokenValue() == "begin":
-				#print "Let the game begins!"
 				return True
 
 			else: 
@@ -524,7 +526,13 @@ class Lexical_Analyzer:
 			return False
 
 	def statement(self,token): # terminar
+		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
+		while token.getTokenValue() != "end":
+		#while analyzer.current_token.Next.getTokenValue() != "end":
+			self.expression(analyzer.current_token)
+			print "after expression", analyzer.current_token.getTokenValue()
+			token = self.scanToken()
 		return True
 
 	def assignment_statement(self,token):
