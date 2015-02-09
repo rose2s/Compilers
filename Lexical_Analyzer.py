@@ -154,6 +154,8 @@ class Lexical_Analyzer:
 				  					if l[s+1] == '=':
 			  							value = 'op'
 			  							word += l[s]
+				  					else:
+				  						self.run_automata(l[s])
 			  			else:
 			  				self.run_automata(l[s])
 			  				continue
@@ -304,6 +306,16 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
+	def relation_op(self, relation):
+	 	l = [">=","==","<=","<",">","!="]
+	 	if not relation:
+	 		return l
+	 	elif relation in l:
+	 		print "relational op: ",relation
+	 		return True
+	 	else:
+	 		return False
+
 	def reset(self):
 		self.errorFlag = False
 		while not self.stack.isEmpty():
@@ -353,12 +365,14 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			self.declaration(token)
 			print "\nStart Program!"
-			self.statement(analyzer.current_token)
-			if analyzer.current_token.getTokenValue() == "end":
-				token = self.scanToken()
-				if token.getTokenValue() == "program":
-					print "\nEND PROGRAM"
-					return True
+			if self.statement(analyzer.current_token):
+				if analyzer.current_token.getTokenValue() == "end":
+					token = self.scanToken()
+					if token.getTokenValue() == "program":
+						print "\nEND PROGRAM"
+						return True
+			else:
+				return False
 		else:
 			return False
 
@@ -506,21 +520,25 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-		self.statement(analyzer.current_token)
-		if analyzer.current_token.getTokenValue() == "end":
-			token = self.scanToken()
-			if token.getTokenValue() == "procedure":
-				print "end procedure"
+		if self.statement(analyzer.current_token):
+
+			if analyzer.current_token.getTokenValue() == "end":
 				token = self.scanToken()
-				return True
+				if token.getTokenValue() == "procedure":
+					print "end procedure"
+					token = self.scanToken()
+					return True
+				else:
+					self.reportError("procedure", token.getTokenValue(), token.line)
+					self.errorFlag = True
+					return False
 			else:
-				self.reportError("procedure", token.getTokenValue(), token.line)
+				self.reportError("end", token.getTokenValue(), token.line)
 				self.errorFlag = True
 				return False
 		else:
-			self.reportError("end", token.getTokenValue(), token.line)
-			self.errorFlag = True
 			return False
+
 
 	def statement(self,token): # terminar
 		print "Statement Function:", token.getTokenValue()
@@ -531,18 +549,30 @@ class Lexical_Analyzer:
 			return True
 
 		elif token.Next.getTokenValue() in (":=","["):
-			self.assignment_statement(token)
-			print "after assignment_statement", analyzer.current_token.getTokenValue()
-			self.statement(analyzer.current_token)
+			if self.assignment_statement(token):
+				print "after assignment_statement", analyzer.current_token.getTokenValue()
+				self.statement(analyzer.current_token)
+			else: return False
 
-		elif token.Next.getTokenValue() == "(":
-			self.procedure_call(token)
-			print "after procedure_call", analyzer.current_token.getTokenValue()
-			self.statement(analyzer.current_token)
+		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
+			if self.procedure_call(token):
+				print "after procedure_call", analyzer.current_token.getTokenValue()
+				self.statement(analyzer.current_token)
+			else:
+				return False
 
 		elif token.getTokenValue() == "return":
-			self.return_statement(token)
-			self.statement(analyzer.current_token)
+			if self.return_statement(token):
+				self.statement(analyzer.current_token)
+			else:
+				return False
+
+		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
+			if self.loop_statement(token):
+				print "after FOR loop", analyzer.current_token.getTokenValue()
+				self.statement(analyzer.current_token)
+			else:
+				return False
 		
 	def assignment_statement(self,token):
 		print "\nAssignment statement"
@@ -620,7 +650,44 @@ class Lexical_Analyzer:
 		pass
 
 	def loop_statement(self,token):
-		pass
+		print "\nLoop Statement Function"
+		if token.getTokenValue() == "for":
+			token = self.scanToken()
+			if token.getTokenValue() == "(":
+				token = self.scanToken()
+				self.assignment_statement(token)
+				print "after assignment_statement: ",analyzer.current_token.getTokenValue()
+				if analyzer.current_token.getTokenValue() == ";":
+					token = self.scanToken()
+					if self.expression(token,self.relation_op(False)):
+						if self.relation_op(analyzer.current_token.getTokenValue()):
+							token = self.scanToken()
+							if self.expression(token, ")"):
+								return True
+							else:
+								self.reportErrorMsg("Missing ) of LOOP", token.line)
+								self.errorFlag = True
+								return False
+						else:
+							self.reportError("Relational OP", token.getTokenValue(), token.line)
+							self.errorFlag = True
+							return False
+					else:
+						self.reportErrorMsg("Wrong Expression", token.line)
+						self.errorFlag = True
+						return False
+				else:
+					self.reportError(";", token.getTokenValue(), token.line)
+					self.errorFlag = True
+					return False
+			else:
+				self.reportErrorMsg("Missing ( of LOOP", token.line)
+				self.errorFlag = True
+				return False
+		else:
+			self.reportError("for", token.getTokenValue(), token.line)
+			self.errorFlag = True
+			return False
 
 	def return_statement(self,token):
 		if token.getTokenValue() == "return":
@@ -670,7 +737,7 @@ analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
-analyzer.tokenList.printList(analyzer.tokenList.Next)
+#analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 

@@ -1,12 +1,20 @@
-program simple is
-    procedure sum(integer a in, integer result out, float a in)
+program Simple is
+
+	integer dig[400];
+    global string Num;
+    procedure sum(integer a in, float a in)
+    	integer A;
+		begin
+    	end procedure
+
+    global string b;
 
 begin
-    //dig := 3;
-    //num := 1 + 11;
-   // num := num + dig;
-   //integer dig[400];
-    //global string num;
+	// statement
+	b[2] := 2;
+	a := 2+1;
+	for (i := 1; i < 5
+	//sum(a,2-1,c);
 
-    
-//end program
+
+end program
