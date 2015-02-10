@@ -542,15 +542,16 @@ class Lexical_Analyzer:
 			return False
 
 
-	def statement(self,token): # terminar
+	def statement(self,token, if_stat = False): # if_stat: then should execute at least one statement
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
 		
-		if token.getTokenValue() == "end":
-			return True
+		if not if_stat:
+			if token.getTokenValue() == "end":
+				return True
 
-		elif token.Next.getTokenValue() in (":=","["):
+		if token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
 				print "after assignment_statement", analyzer.current_token.getTokenValue()
 				if self.statement(analyzer.current_token):
@@ -588,6 +589,10 @@ class Lexical_Analyzer:
 					return True
 			else:
 				return False
+
+		else:
+			self.reportErrorMsg("Missing a statement",token.line)
+			return False
 
 
 	def assignment_statement(self,token):
@@ -730,7 +735,7 @@ class Lexical_Analyzer:
 						if self.expression(token, ")"):
 							token = self.scanToken()
 							if token.getTokenValue() == "then":
-								if self.statement(token):
+								if self.statement(token, True):
 									if analyzer.current_token.getTokenValue() == "end":
 										token = self.scanToken()
 										if token.getTokenValue() == "if":
