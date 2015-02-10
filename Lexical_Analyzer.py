@@ -211,9 +211,10 @@ class Lexical_Analyzer:
 			return {')'," "}
 
 		elif X in ('T','T2'):
-			return {'+','-',')',"$"}
+			return {'+','-',')'}
+
 		elif X == 'F':
-			return {'+','-','*','/',')',"$"}
+			return {'+','-','*','/',')'}
 
 	def scanToken(self):
 		analyzer.current_token = analyzer.current_token.Next
@@ -222,6 +223,7 @@ class Lexical_Analyzer:
 	def expression(self,current_token, sign = ";"):
 		print self.stack.items
 		if self.E(current_token, sign):
+
 			if self.stack.isEmpty():
 				print "You got it!"
 				return True
@@ -240,11 +242,14 @@ class Lexical_Analyzer:
 	def E2(self,token, sign):
 		if not self.errorFlag:
 			print "E2: ",token.getTokenValue()
+
 			if token.getTokenValue() in self.first('E2'):
 				token = self.scanToken()
 				self.T(token,sign)
+
 				if self.E2(analyzer.current_token,sign):
 					return True
+
 			elif token.getTokenValue() in sign:
 				print "sign", sign
 				return True
@@ -256,6 +261,7 @@ class Lexical_Analyzer:
 
 	def T(self,token,sign):
 		print "T: ",token.getTokenValue()
+
 		if self.F(token,sign):
 			self.T2(analyzer.current_token,sign)
 		else:
@@ -269,6 +275,7 @@ class Lexical_Analyzer:
 		if token.getTokenValue() in self.first('T2'):
 			print token.getTokenValue()
 			token = self.scanToken()
+
 			if self.F(token,sign):
 				self.T2(analyzer.current_token,sign)
 			else:
@@ -291,6 +298,7 @@ class Lexical_Analyzer:
 	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
 		print "current token: ",analyzer.current_token.getTokenValue()
+
 		if token.getTokenValue() == "(":
 			self.stack.push(token.getTokenValue())
 			print "stack: ",self.stack.peek()
@@ -300,6 +308,7 @@ class Lexical_Analyzer:
 		elif token.getTokenType() == ("IDENTIFIER"):
 			token = self.scanToken()
 			return True
+
 		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
 			token = self.scanToken()
 			return True
@@ -331,7 +340,9 @@ class Lexical_Analyzer:
 	def program_header(self,token):
 		print "\nProgram_header function"
 		if not self.errorFlag:
+
 				if self.stack.isEmpty():
+
 					if token.getTokenValue() == "program":
 						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
@@ -341,6 +352,7 @@ class Lexical_Analyzer:
 						return False
 
 				if self.stack.peek() == "program":
+
 					if token.getTokenType() == "IDENTIFIER":	
 						self.stack.push(token.getTokenType())
 						self.program_header(self.scanToken())
@@ -350,6 +362,7 @@ class Lexical_Analyzer:
 						return False
 
 				if self.stack.peek() ==  "IDENTIFIER":
+
 					if token.getTokenValue() == "is":
 						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
@@ -357,6 +370,7 @@ class Lexical_Analyzer:
 						self.reportError("is", token.getTokenValue(), token.line)
 						self.errorFlag = True
 						return False
+
 				if self.stack.peek() == "is":
 					return True
 		else:
@@ -367,9 +381,12 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			self.declaration(token)
 			print "\nStart Program!"
+
 			if self.statement(analyzer.current_token):
+
 				if analyzer.current_token.getTokenValue() == "end":
 					token = self.scanToken()
+
 					if token.getTokenValue() == "program":
 						print "\nEND PROGRAM"
 						return True
@@ -475,10 +492,13 @@ class Lexical_Analyzer:
 		print "Procedure_header function: ",token.getTokenValue()
 		if token.getTokenValue() == "procedure":
 			token = self.scanToken()
+
 			if token.getTokenType() == "IDENTIFIER":
 				token = self.scanToken()	
+
 				if token.getTokenValue() == "(":
 					token = self.scanToken()
+
 					if self.type_mark(token.getTokenValue()):
 						self.variable_declaration(token,True)
 					
@@ -554,6 +574,7 @@ class Lexical_Analyzer:
 		if token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
 				print "after assignment_statement", analyzer.current_token.getTokenValue()
+
 				if self.statement(analyzer.current_token):
 					return True
 			else: 
@@ -562,6 +583,7 @@ class Lexical_Analyzer:
 		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 			if self.procedure_call(token):
 				print "after procedure_call", analyzer.current_token.getTokenValue()
+
 				if self.statement(analyzer.current_token):
 					return True
 			else:
@@ -569,22 +591,27 @@ class Lexical_Analyzer:
 
 		elif token.getTokenValue() == "return":
 			if self.return_statement(token):
+
 				if self.statement(analyzer.current_token):
 					return True
 			else:
 				return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
+
 			if self.loop_statement(token):
 				print "after FOR loop", analyzer.current_token.getTokenValue()
+
 				if self.statement(analyzer.current_token):
 					return True
 			else:
 				return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
+
 			if self.if_statement(token):
 				print "after IF Statement", analyzer.current_token.getTokenValue()
+
 				if self.statement(analyzer.current_token):
 					return True
 			else:
@@ -602,22 +629,40 @@ class Lexical_Analyzer:
 
 			if token.getTokenValue() == ":=":
 				token = self.scanToken()
+
 				if self.expression(token,";"):
+
 					if analyzer.current_token.getTokenValue() == ";":
 						return True
+					else:
+						self.reportError(";", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+				else:
+					self.reportErrorMsg("Wrong Expression in assignment_statement", token.line)
+					self.errorFlag = True
+					return False
 
 			elif token.getTokenValue() == "[":
 				token = self.scanToken()
+
 				if self.expression(token,"]"):
+
 					if analyzer.current_token.getTokenValue() == "]":
-						print "consegui array"
+						print "Array"
 						token = self.scanToken()
 
 					if token.getTokenValue() == ":=":
 						token = self.scanToken()
+
 						if self.expression(token,";"):
+
 							if analyzer.current_token.getTokenValue() == ";":
 								return True
+							else:
+								self.reportError(";", token.getTokenValue(), token.line)
+								self.errorFlag = True
+								return False
 					else:
 						self.reportError(":=", token.getTokenValue(), token.line)
 						self.errorFlag = True
@@ -638,6 +683,7 @@ class Lexical_Analyzer:
 			
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
+
 				if token.getTokenValue() != ")":
 					self.expression(token,[",",")"])
 
@@ -647,6 +693,7 @@ class Lexical_Analyzer:
 
 				if analyzer.current_token.getTokenValue() == ")":
 					token = self.scanToken()
+
 					if token.getTokenValue() == ";":
 							return True
 					else:
@@ -670,19 +717,26 @@ class Lexical_Analyzer:
 		print "\nLoop Statement Function"
 		if token.getTokenValue() == "for":
 			token = self.scanToken()
+
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 				self.assignment_statement(token)
-				print "after assignment_statement: ",analyzer.current_token.getTokenValue()
+
 				if analyzer.current_token.getTokenValue() == ";":
 					token = self.scanToken()
+
 					if self.expression(token,self.relation_op(False)):
+
 						if self.relation_op(analyzer.current_token.getTokenValue()):
 							token = self.scanToken()
+
 							if self.expression(token, ")"):
+
 								if self.statement(token):
+
 									if analyzer.current_token.getTokenValue() == "end":
 										token = self.scanToken()
+
 										if token.getTokenValue() == "for":
 											return True
 										else:
@@ -727,23 +781,65 @@ class Lexical_Analyzer:
 		print "\nIf Statement Function"
 		if token.getTokenValue() == "if":
 			token = self.scanToken()
+
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
+
 				if self.expression(token,self.relation_op(False)):
+
 					if self.relation_op(analyzer.current_token.getTokenValue()):
 						token = self.scanToken()
+
 						if self.expression(token, ")"):
 							token = self.scanToken()
+
 							if token.getTokenValue() == "then":
+
 								if self.statement(token, True):
+
 									if analyzer.current_token.getTokenValue() == "end":
 										token = self.scanToken()
+
 										if token.getTokenValue() == "if":
 											return True
+										else:
+											self.reportError("if", token.getTokenValue(), token.line)
+											self.errorFlag = True
+											return False
+									else:
+										self.reportError("end", token.getTokenValue(), token.line)
+										self.errorFlag = True
+										return False
+								else:
+									self.reportErrorMsg("Wrong Statement", token.line)
+									self.errorFlag = True
+									return False
+							else:
+								self.reportError("then", token.getTokenValue(), token.line)
+								self.errorFlag = True
+								return False
+						else:
+							self.reportErrorMsg("Missing ) of IF statement", token.line)
+							self.errorFlag = True
+							return False
+					else:
+						self.reportError("Relational OP", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+				else:
+					self.reportErrorMsg("Wrong Expression", token.line)
+					self.errorFlag = True
+					return False
+			else:
+				self.reportErrorMsg("Missing ( of IF statement", token.line)
+				self.errorFlag = True
+				return False
+		else:
+			self.reportError("if", token.getTokenValue(), token.line)
+			self.errorFlag = True
+			return False
 		
-		#if ( <expression> ) then ( <statement> ; )+
 		# [ else ( <statement> ; )+ ]
-		#end if
 
 	def return_statement(self,token):
 		if token.getTokenValue() == "return":
