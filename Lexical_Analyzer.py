@@ -21,7 +21,9 @@
 # 1.0.0    Rose		  2015-02-05 var_declaration function
 # 1.0.0    Rose		  2015-02-06 var_declaration function
 # 1.0.0    Rose		  2015-02-07 procedure function function
-# 1.0.0    Rose		  2015-02-0
+# 1.0.0    Rose		  2015-02-08  proceure_call function
+# 1.0.0    Rose		  2015-02-09 loop statement
+# 1.0.0    Rose		  2015-02-09 if statement
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -578,7 +580,16 @@ class Lexical_Analyzer:
 					return True
 			else:
 				return False
-		
+
+		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
+			if self.if_statement(token):
+				print "after IF Statement", analyzer.current_token.getTokenValue()
+				if self.statement(analyzer.current_token):
+					return True
+			else:
+				return False
+
+
 	def assignment_statement(self,token):
 		print "\nAssignment statement"
 		if token.getTokenType() == "IDENTIFIER":
@@ -649,10 +660,6 @@ class Lexical_Analyzer:
 			self.reportError("Identifier", token.getTokenType(), token.line)
 			self.errorFlag = True
 			return False
-		
-
-	def if_statement(self,token):
-		pass
 
 	def loop_statement(self,token):
 		print "\nLoop Statement Function"
@@ -710,6 +717,29 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
+
+	def if_statement(self,token):
+		print "\nIf Statement Function"
+		if token.getTokenValue() == "if":
+			token = self.scanToken()
+			if token.getTokenValue() == "(":
+				token = self.scanToken()
+				if self.expression(token,self.relation_op(False)):
+					if self.relation_op(analyzer.current_token.getTokenValue()):
+						token = self.scanToken()
+						if self.expression(token, ")"):
+							token = self.scanToken()
+							if token.getTokenValue() == "then":
+								if self.statement(token):
+									if analyzer.current_token.getTokenValue() == "end":
+										token = self.scanToken()
+										if token.getTokenValue() == "if":
+											return True
+		
+		#if ( <expression> ) then ( <statement> ; )+
+		# [ else ( <statement> ; )+ ]
+		#end if
+
 	def return_statement(self,token):
 		if token.getTokenValue() == "return":
 			return True
@@ -722,32 +752,6 @@ class Lexical_Analyzer:
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", on line ", line,'\n'
-
-
-""" 
-	def statement():
-
-	  if accept("if"):
-	    x = expression()
-	    y = statement()
-	    return IfStatement(x, y)
-
-	  elif accept("return"):
-	    x = expression()
-	    return ReturnStatement(x)
-
-	  elif accept("{")
-	    xs = []
-	    while True:
-	      xs.append(statement())
-	      if not accept(";"):
-	        break
-	    expect("}")
-	    return Block(xs)
-
-	  else:
-	    error("Invalid statement!")
-"""
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
