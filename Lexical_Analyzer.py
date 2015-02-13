@@ -272,6 +272,15 @@ class Lexical_Analyzer:
 		if token:
 			print "T': ",token.getTokenValue()
 
+		if token.getTokenValue() == ")":
+			if not self.stack.isEmpty():
+				self.stack.pop()
+				token = self.scanToken()
+			else:
+				self.reportError(") ","(", token.line)
+				self.errorFlag = True
+				return False
+
 		if token.getTokenValue() in self.first('T2'):
 			print token.getTokenValue()
 			token = self.scanToken()
@@ -284,16 +293,6 @@ class Lexical_Analyzer:
 		elif token.getTokenValue() in sign:
 			print "sign:",sign
 			return True
-
-		elif token.getTokenValue() == ")":
-			if not self.stack.isEmpty():
-				self.stack.pop()
-				token = self.scanToken()
-				return True
-			else:
-				self.reportError(") ","(", token.line)
-				self.errorFlag = True
-				return False
 
 	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
@@ -858,7 +857,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/exp.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)

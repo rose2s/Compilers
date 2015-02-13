@@ -1,0 +1,11 @@
+program Expression is
+
+	integer a;
+    bool t;
+
+begin
+	// statement
+	a := 2;
+	b := 5 + (2-1) + 1;
+
+end program
