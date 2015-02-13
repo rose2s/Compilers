@@ -305,7 +305,15 @@ class Lexical_Analyzer:
 
 		elif token.getTokenType() == ("IDENTIFIER"):
 			token = self.scanToken()
-			return True
+			if token.getTokenValue() == "[":
+				if self.destination(token):
+					return True
+				else:
+					self.reportErrorMsg("Error in destination", analyzer.current_token.line)
+					self.errorFlag = True
+					return False
+			else:
+				return True
 
 		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
 			token = self.scanToken()
@@ -563,7 +571,6 @@ class Lexical_Analyzer:
 				return False
 		else:
 			return False
-
 
 	def statement(self,token, if_stat = False): # if_stat: then should execute at least one statement
 		print "Statement Function:", token.getTokenValue()
