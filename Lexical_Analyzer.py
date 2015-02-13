@@ -243,7 +243,7 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			print "E2: ",token.getTokenValue()
 
-			if token.getTokenValue() in self.first('E2'):
+			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
 				token = self.scanToken()
 				self.T(token,sign)
 
@@ -272,7 +272,11 @@ class Lexical_Analyzer:
 		if token:
 			print "T': ",token.getTokenValue()
 
-		if token.getTokenValue() == ")":
+		if token.getTokenValue() in sign and self.stack.isEmpty():
+			print "sign:",sign
+			return True
+
+		elif token.getTokenValue() == ")":
 			if not self.stack.isEmpty():
 				self.stack.pop()
 				token = self.scanToken()
@@ -289,10 +293,6 @@ class Lexical_Analyzer:
 				self.T2(analyzer.current_token,sign)
 			else:
 				return False
-
-		elif token.getTokenValue() in sign:
-			print "sign:",sign
-			return True
 
 	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
@@ -724,42 +724,29 @@ class Lexical_Analyzer:
 				if analyzer.current_token.getTokenValue() == ";":
 					token = self.scanToken()
 
-					if self.expression(token,self.relation_op(False)):
+					if self.expression(token, ")"):
 
-						if self.relation_op(analyzer.current_token.getTokenValue()):
-							token = self.scanToken()
+						if self.statement(token):
 
-							if self.expression(token, ")"):
+							if analyzer.current_token.getTokenValue() == "end":
+								token = self.scanToken()
 
-								if self.statement(token):
-
-									if analyzer.current_token.getTokenValue() == "end":
-										token = self.scanToken()
-
-										if token.getTokenValue() == "for":
-											return True
-										else:
-											self.reportError("for", token.getTokenValue(), token.line)
-											self.errorFlag = True
-											return False
-									else:
-										self.reportError("end", token.getTokenValue(), token.line)
-										self.errorFlag = True
-										return False
+								if token.getTokenValue() == "for":
+									return True
 								else:
-									self.reportErrorMsg("Wrong Statement", token.line)
+									self.reportErrorMsg("Missing 'for' of 'End For", token.line)
 									self.errorFlag = True
 									return False
 							else:
-								self.reportErrorMsg("Missing ) of LOOP", token.line)
+								self.reportError("end", token.getTokenValue(), token.line)
 								self.errorFlag = True
 								return False
 						else:
-							self.reportError("Relational OP", token.getTokenValue(), token.line)
+							self.reportErrorMsg("Wrong Statement", token.line)
 							self.errorFlag = True
 							return False
 					else:
-						self.reportErrorMsg("Wrong Expression", token.line)
+						self.reportErrorMsg("Missing ) of LOOP", token.line)
 						self.errorFlag = True
 						return False
 				else:
@@ -784,49 +771,36 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 
-				if self.expression(token,self.relation_op(False)):
+				if self.expression(token, ")"):
+					token = self.scanToken()
 
-					if self.relation_op(analyzer.current_token.getTokenValue()):
-						token = self.scanToken()
+					if token.getTokenValue() == "then":
 
-						if self.expression(token, ")"):
-							token = self.scanToken()
+						if self.statement(token, True):
 
-							if token.getTokenValue() == "then":
+							if analyzer.current_token.getTokenValue() == "end":
+								token = self.scanToken()
 
-								if self.statement(token, True):
-
-									if analyzer.current_token.getTokenValue() == "end":
-										token = self.scanToken()
-
-										if token.getTokenValue() == "if":
-											return True
-										else:
-											self.reportError("if", token.getTokenValue(), token.line)
-											self.errorFlag = True
-											return False
-									else:
-										self.reportError("end", token.getTokenValue(), token.line)
-										self.errorFlag = True
-										return False
+								if token.getTokenValue() == "if":
+									return True
 								else:
-									self.reportErrorMsg("Wrong Statement", token.line)
+									self.reportError("if", token.getTokenValue(), token.line)
 									self.errorFlag = True
 									return False
 							else:
-								self.reportError("then", token.getTokenValue(), token.line)
+								self.reportError("end", token.getTokenValue(), token.line)
 								self.errorFlag = True
 								return False
 						else:
-							self.reportErrorMsg("Missing ) of IF statement", token.line)
+							self.reportErrorMsg("Wrong Statement", token.line)
 							self.errorFlag = True
 							return False
 					else:
-						self.reportError("Relational OP", token.getTokenValue(), token.line)
+						self.reportError("then", token.getTokenValue(), token.line)
 						self.errorFlag = True
 						return False
 				else:
-					self.reportErrorMsg("Wrong Expression", token.line)
+					self.reportErrorMsg("Missing ) of IF statement", token.line)
 					self.errorFlag = True
 					return False
 			else:
