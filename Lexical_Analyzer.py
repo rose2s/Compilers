@@ -296,7 +296,6 @@ class Lexical_Analyzer:
 
 	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
-		print "current token: ",analyzer.current_token.getTokenValue()
 
 		if token.getTokenValue() == "(":
 			self.stack.push(token.getTokenValue())
@@ -311,6 +310,11 @@ class Lexical_Analyzer:
 		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
 			token = self.scanToken()
 			return True
+
+		elif token.getTokenType() in ("true","false"):
+			token = self.scanToken()
+			return True
+
 		else:
 			print "Error: ID not found"
 			self.errorFlag = True
@@ -626,7 +630,11 @@ class Lexical_Analyzer:
 		if token.getTokenType() == "IDENTIFIER":
 			token = self.scanToken()
 
-			if token.getTokenValue() == ":=":
+			if token.getTokenValue() == "[":
+				if self.destination(token):
+					print "ok destination",analyzer.current_token.getTokenValue()
+
+			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
 
 				if self.expression(token,";"):
@@ -641,39 +649,29 @@ class Lexical_Analyzer:
 					self.reportErrorMsg("Wrong Expression in assignment_statement", token.line)
 					self.errorFlag = True
 					return False
+			else:
+				self.reportError(":=", token.getTokenValue(), token.line)
+				self.errorFlag = True
+				return False
 
-			elif token.getTokenValue() == "[":
-				token = self.scanToken()
-
-				if self.expression(token,"]"):
-
-					if analyzer.current_token.getTokenValue() == "]":
-						print "Array"
-						token = self.scanToken()
-
-					if token.getTokenValue() == ":=":
-						token = self.scanToken()
-
-						if self.expression(token,";"):
-
-							if analyzer.current_token.getTokenValue() == ";":
-								return True
-							else:
-								self.reportError(";", token.getTokenValue(), token.line)
-								self.errorFlag = True
-								return False
-					else:
-						self.reportError(":=", token.getTokenValue(), token.line)
-						self.errorFlag = True
-						return False
-				else:
-					self.reportErrorMsg("Invalid Expression", token.line)
-					self.errorFlag = True
-					return False
 		else:
 			self.reportError("Identifier", token.getTokenType(), token.line)
 			self.errorFlag = True
 			return False
+
+	def destination(self,token):  # return :=
+		print "\nDestination Function"
+		if token.getTokenValue() == "[":
+			token = self.scanToken()
+
+			if self.expression(token,"]"):
+				if analyzer.current_token.getTokenValue() == "]":
+					token = self.scanToken()
+					return True
+			else:
+				self.reportErrorMsg("Invalid Expression", token.line)
+				self.errorFlag = True
+				return False
 
 	def procedure_call(self,token):
 		print "\nProcedure Call Function"
@@ -831,12 +829,12 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/exp.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
 # print List
-analyzer.tokenList.printList(analyzer.tokenList.Next)
+#analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 
