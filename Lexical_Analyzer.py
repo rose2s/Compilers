@@ -34,8 +34,8 @@ from stack import Stack
 class Lexical_Analyzer:
 
 	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
-				 's8': "ARIT_OP",'s9': "EQ",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
-				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA"}
+				 's8': "ARIT_OP",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
+				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA",'s18': "STRING"}
 
 	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
@@ -130,6 +130,30 @@ class Lexical_Analyzer:
 			  				else:
 			  					self.run_automata(l[s].lower())
 
+			  		elif value == 'str': 			# string buffer
+						if l[s] != '\"':
+							word += l[s]
+							if s == len(l)-1:	
+								#print word			# last one
+								self.run_automata(word.lower())
+							else:
+								continue
+								
+						else: 
+							word += l[s]
+							self.run_automata(word.lower())
+							word = ''
+							value = ''
+							if l[s] != '\"':
+								if s+1 < len(l):									# Each character of the line
+					  				if l[s]+l[s+1] == '//':
+					  					break 
+					  			if l[s] in (" ","\n","\t"):
+				  					continue
+								else:
+									self.run_automata(l[s].lower())
+							else:
+								continue
 
 					elif value == 'op': 		# number buffer 
 			  			word += l[s]
@@ -158,6 +182,12 @@ class Lexical_Analyzer:
 			  							word += l[s]
 				  					else:
 				  						self.run_automata(l[s])
+
+				  		elif l[s] == "\"":
+			  				value = 'str'  # string
+			  				word += l[s].lower()
+
+
 			  			else:
 			  				self.run_automata(l[s])
 			  				continue
@@ -187,7 +217,7 @@ class Lexical_Analyzer:
 				    	print inp_program + " is " + token + " repeated"
 				    """
 				
-			    #print inp_program + " is " + token
+			    print inp_program + " is " + token
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount)
 
 		#return token
@@ -316,6 +346,10 @@ class Lexical_Analyzer:
 				return True
 
 		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
+			token = self.scanToken()
+			return True
+
+		elif token.getTokenType() in ("STRING"):
 			token = self.scanToken()
 			return True
 
