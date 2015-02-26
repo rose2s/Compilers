@@ -24,6 +24,7 @@
 # 1.0.0    Rose		  2015-02-08  proceure_call function
 # 1.0.0    Rose		  2015-02-09 loop statement
 # 1.0.0    Rose		  2015-02-09 if statement
+# 1.0.0    Rose		  2015-02-24 else 
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -56,8 +57,10 @@ class Lexical_Analyzer:
 		self.lineCount = 0
 		self.IDtokenNum = 0
 		self.errorFlag = False
+		self.IFlag = False
 		self.tokenList = List("KEYWORD","program",0)
 		self.tokenList.setFirst(self.tokenList)
+		self.EXPstack = Stack()
 		self.stack = Stack()
 
 	def isLetter(self,var):
@@ -251,10 +254,10 @@ class Lexical_Analyzer:
 		return analyzer.current_token
 		
 	def expression(self,current_token, sign = ";"):
-		print self.stack.items
+		print self.EXPstack.items
 		if self.E(current_token, sign):
 
-			if self.stack.isEmpty():
+			if self.EXPstack.isEmpty():
 				print "You got it!"
 				return True
 			else: 
@@ -302,13 +305,13 @@ class Lexical_Analyzer:
 		if token:
 			print "T': ",token.getTokenValue()
 
-		if token.getTokenValue() in sign and self.stack.isEmpty():
+		if token.getTokenValue() in sign and self.EXPstack.isEmpty():
 			print "sign:",sign
 			return True
 
 		elif token.getTokenValue() == ")":
-			if not self.stack.isEmpty():
-				self.stack.pop()
+			if not self.EXPstack.isEmpty():
+				self.EXPstack.pop()
 				token = self.scanToken()
 			else:
 				self.reportError(") ","(", token.line)
@@ -328,8 +331,8 @@ class Lexical_Analyzer:
 		print "F: ",token.getTokenValue()
 
 		if token.getTokenValue() == "(":
-			self.stack.push(token.getTokenValue())
-			print "stack: ",self.stack.peek()
+			self.EXPstack.push(token.getTokenValue())
+			print "stack: ",self.EXPstack.peek()
 			token = self.scanToken()
 			self.E(token,sign)
 
@@ -374,8 +377,8 @@ class Lexical_Analyzer:
 
 	def reset(self):
 		self.errorFlag = False
-		while not self.stack.isEmpty():
-			self.stack.pop()
+		while not self.EXPstack.isEmpty():
+			self.EXPstack.pop()
 
 	def program(self,token):
 		if self.program_header(token):
@@ -606,14 +609,18 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def statement(self,token, if_stat = False): # if_stat: then should execute at least one statement
+	def statement(self,token, if_stat = False): 
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
 		
-		if not if_stat:
+		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
 				return True
+
+			if self.IFlag:
+				if token.getTokenValue() == "else":
+					return True
 
 		if token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
@@ -805,6 +812,8 @@ class Lexical_Analyzer:
 	def if_statement(self,token):
 		print "\nIf Statement Function"
 		if token.getTokenValue() == "if":
+			self.stack.push(token.getTokenValue())
+			self.IFlag = True   					# accept else after expressions
 			token = self.scanToken()
 
 			if token.getTokenValue() == "(":
@@ -817,7 +826,25 @@ class Lexical_Analyzer:
 
 						if self.statement(token, True):
 
-							if analyzer.current_token.getTokenValue() == "end":
+							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
+								if self.stack.peek() == "if":
+									self.stack.pop()
+									self.IFlag = False
+
+									if self.statement(token, True):  # execute at least once
+										pass
+
+									else:
+										self.reportErrorMsg("Wrong Statement", token.line)
+										self.errorFlag = True
+										return False
+
+								else:
+									self.reportErrorMsg("Missing IF statement", token.line)
+									self.errorFlag = True
+									return False
+
+							if analyzer.current_token.getTokenValue() == "end": # IF without ELSE
 								token = self.scanToken()
 
 								if token.getTokenValue() == "if":
