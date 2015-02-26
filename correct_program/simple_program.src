@@ -15,6 +15,7 @@ begin
 	b := "rose";
 
 	if (a > 2) then
+		a := 2;
 	else
 		if (a > 2) then
 			a := b + 1;

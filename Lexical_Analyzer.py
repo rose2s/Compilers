@@ -812,7 +812,6 @@ class Lexical_Analyzer:
 	def if_statement(self,token):
 		print "\nIf Statement Function"
 		if token.getTokenValue() == "if":
-			self.stack.push(token.getTokenValue())
 			self.IFlag = True   					# accept else after expressions
 			token = self.scanToken()
 
@@ -827,20 +826,13 @@ class Lexical_Analyzer:
 						if self.statement(token, True):
 
 							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
-								if self.stack.peek() == "if":
-									self.stack.pop()
-									self.IFlag = False
+								self.IFlag = False
 
-									if self.statement(token, True):  # execute at least once
-										pass
-
-									else:
-										self.reportErrorMsg("Wrong Statement", token.line)
-										self.errorFlag = True
-										return False
+								if self.statement(token, True):  # execute at least once
+									pass
 
 								else:
-									self.reportErrorMsg("Missing IF statement", token.line)
+									self.reportErrorMsg("Wrong Statement", token.line)
 									self.errorFlag = True
 									return False
 
