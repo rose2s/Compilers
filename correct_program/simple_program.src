@@ -25,10 +25,10 @@ begin
 				s := 0;
 			end if
 		else
-			s := 0;
+			T := 0;
 		end if
 	else
-		d := 9;
+	d := 9;
 	end if
 
 end program

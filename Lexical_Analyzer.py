@@ -376,8 +376,8 @@ class Lexical_Analyzer:
 
 	def reset(self):
 		self.errorFlag = False
-		while not self.EXPstack.isEmpty():
-			self.EXPstack.pop()
+		while not self.stack.isEmpty():
+			self.stack.pop()
 
 	def program(self,token):
 		if self.program_header(token):
@@ -613,12 +613,17 @@ class Lexical_Analyzer:
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
 		
+		print "\nIF_STAT FLAG",if_stat
+		print "\nIF_FLAG",self.IFlag
+		print "\nPILHA",self.stack.items
+		print "\nPILHA size",self.stack.size()
+
 		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
 				return True
 
 			if self.IFlag:
-				if token.getTokenValue() == "else":
+				if token.getTokenValue() == "else" and self.stack.size() > 0:
 					return True
 
 		if token.Next.getTokenValue() in (":=","["):
@@ -824,15 +829,15 @@ class Lexical_Analyzer:
 					if token.getTokenValue() == "then":
 
 						if self.statement(token, True):
-							print "qual eh o token?", analyzer.current_token.getTokenValue()
 							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
+
 								if self.stack.peek() == "if":
 
 									if self.statement(token, True):  # execute at least once
 										pass
 
 									else:
-										self.reportErrorMsg("Wrong Statement", token.line)
+										#self.reportErrorMsg("Wrong Statement", token.line)
 										self.errorFlag = True
 										return False
 
