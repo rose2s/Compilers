@@ -215,7 +215,6 @@ class Lexical_Analyzer:
 			    		print inp_program + " is " + token
 			    		self.simbolTable[inp_program] = self.IDtokenNum
 			    		self.IDtokenNum+= 1 
-
 				    else: # already exists
 				    	print inp_program + " is " + token + " repeated"
 				    """
@@ -810,8 +809,9 @@ class Lexical_Analyzer:
 
 
 	def if_statement(self,token):
-		print "\nIf Statement Function"
+		print "\nIF Statement Function"
 		if token.getTokenValue() == "if":
+			self.stack.push(token.getTokenValue())
 			self.IFlag = True   					# accept else after expressions
 			token = self.scanToken()
 
@@ -824,15 +824,20 @@ class Lexical_Analyzer:
 					if token.getTokenValue() == "then":
 
 						if self.statement(token, True):
-
+							print "qual eh o token?", analyzer.current_token.getTokenValue()
 							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
-								self.IFlag = False
+								if self.stack.peek() == "if":
 
-								if self.statement(token, True):  # execute at least once
-									pass
+									if self.statement(token, True):  # execute at least once
+										pass
+
+									else:
+										self.reportErrorMsg("Wrong Statement", token.line)
+										self.errorFlag = True
+										return False
 
 								else:
-									self.reportErrorMsg("Wrong Statement", token.line)
+									self.reportErrorMsg("Missing IF statement", token.line)
 									self.errorFlag = True
 									return False
 
@@ -840,6 +845,9 @@ class Lexical_Analyzer:
 								token = self.scanToken()
 
 								if token.getTokenValue() == "if":
+									self.stack.pop()
+									if token.Next.getTokenValue() == "end":  # If last Else
+										self.IFlag = False
 									return True
 								else:
 									self.reportError("if", token.getTokenValue(), token.line)

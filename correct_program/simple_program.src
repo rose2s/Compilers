@@ -15,12 +15,20 @@ begin
 	b := "rose";
 
 	if (a > 2) then
-		a := 2;
-	else
+		rose := 2;
 		if (a > 2) then
-			a := b + 1;
-			c := 2 + 1;
+			arc := 2;
+
+			if (a > 2) then
+				arc := 2;
+			else
+				s := 0;
+			end if
+		else
+			s := 0;
 		end if
+	else
+		d := 9;
 	end if
 
 end program
