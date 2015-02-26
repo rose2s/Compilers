@@ -2,12 +2,23 @@ program Simple is
 
 	integer dig[400];
     global string Num;
+
     procedure sum(integer a in, float a in)
     	integer A;
 		begin
-    	end procedure
+			if(true) then
+				jake := jake + 1;
+			else
+				zach := zach + RYAN[2];
+		end if
+	end procedure
 
-    global string b;
+	procedure for_proc()
+		begin
+			for(i := 0; i < zach)
+				ryan := zach + i;
+			end for
+		end procedure
 
 begin
 	// statement

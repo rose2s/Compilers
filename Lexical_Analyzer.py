@@ -38,7 +38,7 @@ class Lexical_Analyzer:
 				 's8': "ARIT_OP",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
 				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA",'s18': "STRING"}
 
-	keywords  = ["string", "case", "int", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
+	keywords  = ["string", "case", "integer", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
 
 	letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y']
@@ -460,14 +460,22 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 
 			if self.type_mark(token.getTokenValue()):
-				self.variable_declaration(token)
-				self.declaration(analyzer.current_token)
-				return True
+				if self.variable_declaration(token):
+					if self.declaration(analyzer.current_token):
+						return True
+					else:
+						return False
+				else:
+					return False
 
 			elif token.getTokenValue() == "procedure":
-				self.procedure_declaration(token)
-				self.declaration(analyzer.current_token)
-				return True
+				if self.procedure_declaration(token):
+					if self.declaration(analyzer.current_token):
+						return True
+					else:
+						return False
+				else:
+					return False
 			
 			elif token.getTokenValue() == "begin":  # Stop condition
 				return True
@@ -480,21 +488,20 @@ class Lexical_Analyzer:
 			return False
 
 	
-	def variable_declaration(self, token, parameter= False): # if parameter -> is parameter
+	def variable_declaration(self, token, parameter = False): # if parameter -> is parameter
 		
-		print "variable_declaration:",token.getTokenValue()
-
+		print "Variable_declaration Funtion:",token.getTokenValue()
 		if self.type_mark(token.getTokenValue()):  # if token in type_mark
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
 				token = self.scanToken()
-
+				
 				if token.getTokenValue() == ";" and not parameter:
 					token = self.scanToken()
 					return True
-
-				elif parameter:
+				
+				elif parameter and token.getTokenValue() != "[": # parameter and not array
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
@@ -513,9 +520,18 @@ class Lexical_Analyzer:
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
 
-							if token.getTokenValue() == ";":
+							if token.getTokenValue() == ";" and not parameter:
 								token = self.scanToken()
 								return True
+
+							elif parameter:
+								if token.getTokenValue() in ("in","out"):
+									print token.getTokenValue()
+									token = self.scanToken()
+									return True
+								else:
+									self.reportError("in/out", token.getTokenValue(),token.line)
+									return False
 							else: 
 								self.reportError(";", token.getTokenValue(),token.line)
 								return False
@@ -540,8 +556,13 @@ class Lexical_Analyzer:
 
 	def procedure_declaration(self,token):
 		print "\nProcedure declaration: ",token.getTokenValue()
-		self.procedure_header(token)
-		self.procedure_body(analyzer.current_token)
+		if self.procedure_header(token):
+			if self.procedure_body(analyzer.current_token):
+			 return True
+			else:
+				return False
+		else:
+			return False
 
 	def procedure_header(self,token):
 		print "Procedure_header function: ",token.getTokenValue()
@@ -563,11 +584,10 @@ class Lexical_Analyzer:
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
-							print "parametros ok"
 							return True
 
 						else: 
-							self.reportErrorMsg("Missing ) in the porcedure", token.line)
+							self.reportErrorMsg("Missing ) in the procedure", token.line)
 							self.errorFlag = True
 							return False
 						
@@ -577,7 +597,7 @@ class Lexical_Analyzer:
 						return True
 
 					else: 
-						self.reportErrorMsg("Missing ) in the porcedure", token.line)
+						self.reportError("Identifier Type", token.getTokenValue(),token.line)
 						self.errorFlag = True
 						return False
 
@@ -593,7 +613,11 @@ class Lexical_Analyzer:
 	def procedure_body(self,token):
 		print "PROCEDURE_BODY FUNCTION:",token.getTokenValue()
 		if not self.errorFlag:
-			self.declaration(token)
+			if self.declaration(token):
+				pass
+			else:
+				self.errorFlag = True
+				return False
 		else:
 			return False
 
@@ -910,7 +934,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/fromJake.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/test_program_array.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
