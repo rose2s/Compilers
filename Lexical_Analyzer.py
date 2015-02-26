@@ -426,19 +426,24 @@ class Lexical_Analyzer:
 	def program_body(self,token):
 		print "\nPrgram_Body Function: ", token.getTokenValue()
 		if not self.errorFlag:
-			self.declaration(token)
-			print "\nStart Program!"
+			if self.declaration(token):
+				print "\nStart Program!"
 
-			if self.statement(analyzer.current_token):
+				if self.statement(analyzer.current_token):
 
-				if analyzer.current_token.getTokenValue() == "end":
-					token = self.scanToken()
+					if analyzer.current_token.getTokenValue() == "end":
+						token = self.scanToken()
 
-					if token.getTokenValue() == "program":
-						print "\nEND PROGRAM"
-						return True
-			else:
+						if token.getTokenValue() == "program":
+							print "\nEND PROGRAM"
+							return True
+				else:
+					return False
+			else: 
+				self.reportErrorMsg("Wrong Declaration",analyzer.current_token.line)
+				self.errorFlag = True
 				return False
+
 		else:
 			return False
 
@@ -457,16 +462,19 @@ class Lexical_Analyzer:
 			if self.type_mark(token.getTokenValue()):
 				self.variable_declaration(token)
 				self.declaration(analyzer.current_token)
+				return True
 
 			elif token.getTokenValue() == "procedure":
 				self.procedure_declaration(token)
 				self.declaration(analyzer.current_token)
+				return True
 			
-			elif token.getTokenValue() == "begin":
+			elif token.getTokenValue() == "begin":  # Stop condition
 				return True
 
 			else: 
 				self.reportErrorMsg("Unexpected type in Declaration",token.line)
+				self.errorFlag = True
 				return False
 		else:
 			return False
@@ -613,10 +621,10 @@ class Lexical_Analyzer:
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
 		
-		print "\nIF_STAT FLAG",if_stat
-		print "\nIF_FLAG",self.IFlag
-		print "\nPILHA",self.stack.items
-		print "\nPILHA size",self.stack.size()
+		#print "\nIF_STAT FLAG",if_stat
+		#print "\nIF_FLAG",self.IFlag
+		#print "\nPILHA",self.stack.items
+		#print "\nPILHA size",self.stack.size()
 
 		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
@@ -902,7 +910,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/fromJake.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 #analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)

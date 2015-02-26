@@ -6,16 +6,18 @@ PROGRAM JAKE IS
 	procedure if_proc()
 		integer declaration;
 		begin
-			if(true) then jake := jake + 1;
-			else zach := zach + RYAN[2];
-		end if;
-	end procedure;
+			if(true) then
+				jake := jake + 1;
+			else
+				zach := zach + RYAN[2];
+		end if
+	end procedure
 
 	procedure for_proc()
 		begin
-			for(integer i := 0; i < zach)
+			for(i := 0; i < zach)
 				ryan := zach + i;
-			end for;
+			end for
 		end procedure
 
 	begin
