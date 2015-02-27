@@ -25,6 +25,7 @@
 # 1.0.0    Rose		  2015-02-09 loop statement
 # 1.0.0    Rose		  2015-02-09 if statement
 # 1.0.0    Rose		  2015-02-24 else 
+# 1.0.0    Rose		  2015-02-26 Fix bug on Parser
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -34,6 +35,7 @@ from stack import Stack
 
 class Lexical_Analyzer:
 
+	# Token types used for automata
 	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
 				 's8': "ARIT_OP",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
 				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA",'s18': "STRING"}
@@ -41,8 +43,6 @@ class Lexical_Analyzer:
 	keywords  = ["string", "case", "integer", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
 
-	letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y']
-	numbers = ['0','1','2','3','4','5','6','7','8','9']
 	simbolTable = {}
 
 	# LL(1) grammar
@@ -54,162 +54,169 @@ class Lexical_Analyzer:
 	current_token = None
 
 	def __init__(self):
-		self.lineCount = 0
-		self.IDtokenNum = 0
-		self.errorFlag = False
-		self.IFlag = False
-		self.tokenList = List("KEYWORD","program",0)
+		self.lineCount = 0    								# Show the error
+		self.IDtokenNum = 0   								# ID for Symbol table
+		self.errorFlag = False                        		# Flag for errors     
+		self.IFlag = False      							# Flag for IF statement
+		self.tokenList = List("KEYWORD","program",0)		# Token List
 		self.tokenList.setFirst(self.tokenList)
-		self.EXPstack = Stack()
-		self.stack = Stack()
+		self.EXPstack = Stack()								# Stack used for expressions
+		self.stack = Stack()								# Stack used for parser
 
+	# Verifies if a variable is Letter
 	def isLetter(self,var):
-		if var in self.letters:
+		if var in ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y'):
 			return True
 		else:
 			return False
 
+	# Verifies if a variable is Number
 	def isNumber(self, var):
-		if var in self.numbers:
+		if var in ('0','1','2','3','4','5','6','7','8','9'):
 			return True
 		else:
 			return False
 
+	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
 		
 		word = ""
-		value = 0  # 0 = other, 1 = letter, 2 = number
+		value = 0  											   # 0 = other, 1 = letter, 2 = number
 
 		with open(filename) as f:
-			lines = f.readlines() 							# Reads until EOF and returns a list of lines. 	
-			for l in lines:
+			lines = f.readlines() 							   # Reads until EOF and returns a list of lines. 	
+			for l in lines:									   # Loop each line
 				self.lineCount += 1
-				for s in range(len(l)):	
+				for s in range(len(l)):						   # Loop each character
 
-					if value == 'cha': 			# letter buffer
-						if self.isNumber(l[s]) or self.isLetter(l[s].lower()) or l[s] == '_':
+					# Letter Buffer
+					if value == 'cha': 						
+						if self.isNumber(l[s]) or self.isLetter(l[s].lower()) or l[s] == '_': 
 							word += l[s].lower()
-							if s == len(l)-1:	
-								#print word			# last one
-								self.run_automata(word.lower())
+							if s == len(l)-1:				    # If it is last character of the line		
+								self.run_automata(word.lower()) # Runs automata
 							else:
-								continue
+								continue  					    # Increments Letter Buffer
 								
 						else: 
-							self.run_automata(word.lower())
-							word = ''
+							self.run_automata(word.lower())     # Runs automata
+							word = ''							# Resets buffer
 							value = ''
-							if s+1 < len(l):									# Each character of the line
-				  				if l[s]+l[s+1] == '//':
-				  					break 
-				  			if l[s] in (" ","\n","\t"):
+							if s+1 < len(l):					# If it is NOT last character of the line		
+				  				if l[s]+l[s+1] == '//':			# If Comments then skip line
+				  					break 						
+				  			if l[s] in (" ","\n","\t"):			# Skips whitespace, tab, newline
 			  					continue
 							else:
-								self.run_automata(l[s].lower())
+								self.run_automata(l[s].lower()) # Runs automata with the character
 
-			  		elif value == 'num': 		# number buffer 
+			  		# Number Buffer 
+			  		elif value == 'num': 		
 			  			if self.isNumber(l[s]) or l[s] == "." or self.isLetter(l[s]):
 							word += l[s]
-							if s == len(l)-1:				# last one
-								self.run_automata(word.lower())
+							if s == len(l)-1:				    # If it is last character of the line		
+								self.run_automata(word.lower()) # Runs automata
 							else:
-								continue
+								continue						# Increments Number Buffer
 						else: 
-							self.run_automata(word.lower())
-							word = ''
+							self.run_automata(word.lower())     # Runs automata
+							word = ''							# Resets buffer
 							value = ''
-							if s+1 < len(l):									# Each character of the line
-				  				if l[s]+l[s+1] == '//':
+							if s+1 < len(l):					# If it is NOT last character of the line
+				  				if l[s]+l[s+1] == '//':			# If Comments then skip line
 				  					break 	
-				  			if l[s] in ("<",">",":","!","="):
-			  					if s+1 < len(l):									# Each character of the line
+				  			if l[s] in ("<",">",":","!","="):   # If Double operator then get the next character
+			  					if s+1 < len(l):								
 				  					if l[s+1] == '=':
 			  							value = 'op'
 			  							word += l[s]
 			  						else:
 			  							self.run_automata(l[s].lower())	
-			  				elif l[s] in (" ","\n","\t"):
+
+			  				elif l[s] in (" ","\n","\t"):           # Skips whitespace, tab, newline
 			  					continue	
 			  				else:
-			  					self.run_automata(l[s].lower())
+			  					self.run_automata(l[s].lower())     # Runs automata with the character
 
-			  		elif value == 'str': 			# string buffer
-						if l[s] != '\"':
-							word += l[s]
-							if s == len(l)-1:	
-								#print word			# last one
-								self.run_automata(word.lower())
+			  		# String Buffer
+			  		elif value == 'str': 			
+						if l[s] != '\"': 						    # If NOT quotes
+							word += l[s]						 
+							if s == len(l)-1:					    # If it is last character of the line
+								self.run_automata(word.lower())     # Runs automata
 							else:
-								continue
+								continue						    # Increments String Buffer	
 								
 						else: 
-							word += l[s]
-							self.run_automata(word.lower())
-							word = ''
+							word += l[s] 				
+							self.run_automata(word.lower())		    # Runs automata to validate String
+							word = ''							    # Resets Buffer
 							value = ''
 							if l[s] != '\"':
-								if s+1 < len(l):									# Each character of the line
-					  				if l[s]+l[s+1] == '//':
+								if s+1 < len(l):				    # If it is NOT last character of the line
+					  				if l[s]+l[s+1] == '//':    	    # If Comments then skip line
 					  					break 
-					  			if l[s] in (" ","\n","\t"):
+					  			if l[s] in (" ","\n","\t"):     	# Skips whitespace, tab, newline
 				  					continue
 								else:
-									self.run_automata(l[s].lower())
+									self.run_automata(l[s].lower()) # Runs automata with the character
 							else:
 								continue
 
-					elif value == 'op': 		# number buffer 
-			  			word += l[s]
-			  			self.run_automata(word.lower())
-						word = ''
+					# Operator Buffer
+					elif value == 'op': 		
+			  			word += l[s]								
+			  			self.run_automata(word.lower())             # Runs automata to validate operator
+						word = '' 									# Resets buffer
 						value = ''
 
-			  		else:													# Each character of the line
-				  		if s+1 < len(l):									# Each character of the line
-				  			if l[s]+l[s+1] == '//':
-				  				break 										# Comment -> Skip line
-			  			if l[s] in (" ","\n","\t"): 
-			  				continue										# White space or tab - > Skip character
-			  			elif self.isLetter(l[s].lower()):
-			  				value = 'cha'  # letter
+			  		else:											
+				  		if s+1 < len(l):							# If it is NOT last character of the line
+				  			if l[s]+l[s+1] == '//':					# If Comments then skip line
+				  				break 								
+			  			if l[s] in (" ","\n","\t"):    				# Skips whitespace, tab, newline 
+			  				continue	
+
+			  			elif self.isLetter(l[s].lower()):           # If letter then flag to letter buffer
+			  				value = 'cha'  							
 			  				word += l[s].lower()
 			  				
-			  			elif self.isNumber(l[s]):
+			  			elif self.isNumber(l[s]):					# If digit then flag to number buffer
 			  				value = 'num'
 			  				word += l[s]
 			  				
-			  			elif l[s] in ("<",">",":","!","="):
-			  					if s+1 < len(l):									# Each character of the line
-				  					if l[s+1] == '=':
+			  			elif l[s] in ("<",">",":","!","="):			# If operator then flag to operator buffer
+			  					if s+1 < len(l):									
+				  					if l[s+1] == '=':				# Double operator
 			  							value = 'op'
 			  							word += l[s]
 				  					else:
-				  						self.run_automata(l[s])
+				  						self.run_automata(l[s])     # Single operator
 
-				  		elif l[s] == "\"":
-			  				value = 'str'  # string
+				  		elif l[s] == "\"":  						# If quotes then flag to string buffer
+			  				value = 'str'  
 			  				word += l[s].lower()
-
 
 			  			else:
 			  				self.run_automata(l[s])
 			  				continue
 			  			
-			  			if s == len(l)-1:
-							self.run_automata(l[s]) # last number
+			  			if s == len(l)-1:    						# If it is last character of the line
+							self.run_automata(l[s]) 				# Runs character
 
+	# Runs automata and sets tokens
+	def run_automata(self,inp_program): 							# inp_program = word
 
-	def run_automata(self,inp_program):
-		# run with word
-		dfa.run_with_input_list(inp_program)
+		dfa.run_with_input_list(inp_program)   						# Runs automata
 
-		if dfa.current_state in self.tokenType.keys():   # Accept States
+		if dfa.current_state in self.tokenType.keys():   			# If current_state in Accept States
 			
-			    token = self.tokenType[dfa.current_state]
+			    token = self.tokenType[dfa.current_state]           # Sets token type
 
 			    if token == "IDENTIFIER":
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
+
 			        """
 				    if not self.simbolTable.has_key(inp_program):
 			    		print inp_program + " is " + token
@@ -220,11 +227,10 @@ class Lexical_Analyzer:
 				    """
 				
 			    print inp_program + " is " + token
-			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount)
+			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
-		#return token
-		else:
-		    self.reportWarning(inp_program)
+		else:									
+		    self.reportWarning(inp_program)   		# If current_state NOT in Accept States
 		     
 
 	def first(self,X):
@@ -248,16 +254,16 @@ class Lexical_Analyzer:
 		elif X == 'F':
 			return {'+','-','*','/',')'}
 
+	# Scans next token
 	def scanToken(self):
 		analyzer.current_token = analyzer.current_token.Next
 		return analyzer.current_token
 		
-	def expression(self,current_token, sign = ";"):
-		print self.EXPstack.items
-		if self.E(current_token, sign):
+	# Validates Expression
+	def expression(self, current_token, sign = ";"):     			# Returns True if token == sign	
+		if self.E(current_token, sign):								
 
-			if self.EXPstack.isEmpty():
-				print "You got it!"
+			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				return True
 			else: 
 				self.reportWarning("Missing )")
@@ -282,7 +288,7 @@ class Lexical_Analyzer:
 				if self.E2(analyzer.current_token,sign):
 					return True
 
-			elif token.getTokenValue() in sign:
+			elif token.getTokenValue() in sign:  				     # Stop Condition of the Recursion
 				print "sign", sign
 				return True
 			else: 
@@ -304,7 +310,7 @@ class Lexical_Analyzer:
 		if token:
 			print "T': ",token.getTokenValue()
 
-		if token.getTokenValue() in sign and self.EXPstack.isEmpty():
+		if token.getTokenValue() in sign and self.EXPstack.isEmpty():   # Stop Condition of the Recursion
 			print "sign:",sign
 			return True
 
@@ -330,14 +336,14 @@ class Lexical_Analyzer:
 		print "F: ",token.getTokenValue()
 
 		if token.getTokenValue() == "(":
-			self.EXPstack.push(token.getTokenValue())
+			self.EXPstack.push(token.getTokenValue())   		   # push Parenthesis
 			print "stack: ",self.EXPstack.peek()
 			token = self.scanToken()
 			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
 			token = self.scanToken()
-			if token.getTokenValue() == "[":
+			if token.getTokenValue() == "[":                	   # If array
 				if self.destination(token):
 					return True
 				else:
@@ -347,7 +353,7 @@ class Lexical_Analyzer:
 			else:
 				return True
 
-		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
+		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):  # If Array size
 			token = self.scanToken()
 			return True
 
@@ -364,7 +370,9 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
-	def relation_op(self, relation):
+	# If NOT relation then return list of relational operator
+	# If relation then verify if variavel is a relational operator
+	def relation_op(self, relation = False):
 	 	l = [">=","==","<=","<",">","!="]
 	 	if not relation:
 	 		return l
@@ -374,18 +382,20 @@ class Lexical_Analyzer:
 	 	else:
 	 		return False
 
+	# Resets errorFlag, stack
 	def reset(self):
 		self.errorFlag = False
 		while not self.stack.isEmpty():
 			self.stack.pop()
 
+	# Starts to scan the program
 	def program(self,token):
 		if self.program_header(token):
 			self.reset()
 			self.program_body(analyzer.current_token)
 
 	def program_header(self,token):
-		print "\nProgram_header function"
+		print "\nProgram_header Function"
 		if not self.errorFlag:
 
 				if self.stack.isEmpty():
@@ -427,7 +437,7 @@ class Lexical_Analyzer:
 		print "\nPrgram_Body Function: ", token.getTokenValue()
 		if not self.errorFlag:
 			if self.declaration(token):
-				print "\nStart Program!"
+				print "\nStart Main Program!"
 
 				if self.statement(analyzer.current_token):
 
@@ -435,7 +445,7 @@ class Lexical_Analyzer:
 						token = self.scanToken()
 
 						if token.getTokenValue() == "program":
-							print "\nEND PROGRAM"
+							print "\nCORRECT PROGRAM"
 							return True
 				else:
 					return False
@@ -447,6 +457,7 @@ class Lexical_Analyzer:
 		else:
 			return False
 
+	# Checks type mark
 	def type_mark(self,t):
 		if t in ("integer", "float", "bool", "string"):
 			return True
@@ -487,21 +498,22 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	
-	def variable_declaration(self, token, parameter = False): # if parameter -> is parameter
+	# If Parameter then it is parameter declaration
+	def variable_declaration(self, token, parameter = False): 
 		
 		print "Variable_declaration Funtion:",token.getTokenValue()
-		if self.type_mark(token.getTokenValue()):  # if token in type_mark
+
+		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
 				token = self.scanToken()
 				
-				if token.getTokenValue() == ";" and not parameter:
+				if token.getTokenValue() == ";" and not parameter:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					return True
 				
-				elif parameter and token.getTokenValue() != "[": # parameter and not array
+				elif parameter and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
@@ -510,7 +522,7 @@ class Lexical_Analyzer:
 						self.reportError("in/out", token.getTokenValue(),token.line)
 						return False
 
-				# arrays
+				# Array Variables
 				elif token.getTokenValue() == "[":
 					token = self.scanToken()
 
@@ -519,12 +531,12 @@ class Lexical_Analyzer:
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
-
-							if token.getTokenValue() == ";" and not parameter:
+ 
+							if token.getTokenValue() == ";" and not parameter:   # var is array and NOT var parameter
 								token = self.scanToken()
 								return True
 
-							elif parameter:
+							elif parameter: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
 									print token.getTokenValue()
 									token = self.scanToken()
@@ -552,10 +564,10 @@ class Lexical_Analyzer:
 		else: 
 			self.reportError("Type Mark", token.getTokenType(),token.line)
 			return False
-		# falta fazer array
+
 
 	def procedure_declaration(self,token):
-		print "\nProcedure declaration: ",token.getTokenValue()
+		print "\nProcedure Declaration Function: ",token.getTokenValue()
 		if self.procedure_header(token):
 			if self.procedure_body(analyzer.current_token):
 			 return True
@@ -565,7 +577,7 @@ class Lexical_Analyzer:
 			return False
 
 	def procedure_header(self,token):
-		print "Procedure_header function: ",token.getTokenValue()
+		print "Procedure_header Function: ",token.getTokenValue()
 		if token.getTokenValue() == "procedure":
 			token = self.scanToken()
 
@@ -611,7 +623,7 @@ class Lexical_Analyzer:
 				return False
 
 	def procedure_body(self,token):
-		print "PROCEDURE_BODY FUNCTION:",token.getTokenValue()
+		print "Procedure_Body Function:",token.getTokenValue()
 		if not self.errorFlag:
 			if self.declaration(token):
 				pass
@@ -640,15 +652,11 @@ class Lexical_Analyzer:
 		else:
 			return False
 
+	# If if_stat then "else is a sign for expressions"
 	def statement(self,token, if_stat = False): 
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
-		
-		#print "\nIF_STAT FLAG",if_stat
-		#print "\nIF_FLAG",self.IFlag
-		#print "\nPILHA",self.stack.items
-		#print "\nPILHA size",self.stack.size()
 
 		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
@@ -660,7 +668,7 @@ class Lexical_Analyzer:
 
 		if token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
-				print "after assignment_statement", analyzer.current_token.getTokenValue()
+				#print "after assignment_statement", analyzer.current_token.getTokenValue()
 
 				if self.statement(analyzer.current_token):
 					return True
@@ -669,7 +677,7 @@ class Lexical_Analyzer:
 
 		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 			if self.procedure_call(token):
-				print "after procedure_call", analyzer.current_token.getTokenValue()
+				#print "after procedure_call", analyzer.current_token.getTokenValue()
 
 				if self.statement(analyzer.current_token):
 					return True
@@ -710,13 +718,13 @@ class Lexical_Analyzer:
 
 
 	def assignment_statement(self,token):
-		print "\nAssignment statement"
+		print "\nAssignment Statement Function"
 		if token.getTokenType() == "IDENTIFIER":
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":
 				if self.destination(token):
-					print "ok destination",analyzer.current_token.getTokenValue()
+					#print "ok destination",analyzer.current_token.getTokenValue()
 
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
@@ -743,7 +751,7 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
-	def destination(self,token):  # return :=
+	def destination(self,token): 
 		print "\nDestination Function"
 		if token.getTokenValue() == "[":
 			token = self.scanToken()
@@ -869,7 +877,6 @@ class Lexical_Analyzer:
 										pass
 
 									else:
-										#self.reportErrorMsg("Wrong Statement", token.line)
 										self.errorFlag = True
 										return False
 
@@ -914,8 +921,6 @@ class Lexical_Analyzer:
 			self.reportError("if", token.getTokenValue(), token.line)
 			self.errorFlag = True
 			return False
-		
-		# [ else ( <statement> ; )+ ]
 
 	def return_statement(self,token):
 		if token.getTokenValue() == "return":
