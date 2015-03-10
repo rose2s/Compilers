@@ -26,6 +26,7 @@
 # 1.0.0    Rose		  2015-02-09 if statement
 # 1.0.0    Rose		  2015-02-24 else 
 # 1.0.0    Rose		  2015-02-26 Fix bug on Parser
+# 1.0.0    Rose		  2015-03-09 Simple table Management
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -43,7 +44,7 @@ class Lexical_Analyzer:
 	keywords  = ["string", "case", "integer", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF"]
 
-	simbolTable = {}
+	symbolTable = {}
 
 	# LL(1) grammar
 	terminals = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
@@ -216,15 +217,6 @@ class Lexical_Analyzer:
 			    if token == "IDENTIFIER":
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
-
-			        """
-				    if not self.simbolTable.has_key(inp_program):
-			    		print inp_program + " is " + token
-			    		self.simbolTable[inp_program] = self.IDtokenNum
-			    		self.IDtokenNum+= 1 
-				    else: # already exists
-				    	print inp_program + " is " + token + " repeated"
-				    """
 				
 			    print inp_program + " is " + token
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
@@ -504,19 +496,23 @@ class Lexical_Analyzer:
 		print "Variable_declaration Funtion:",token.getTokenValue()
 
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
+			Type = token.getTokenValue()								# temp var to symbol table
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
+				name = token.getTokenValue()							 # temp var to symbol table
 				token = self.scanToken()
 				
 				if token.getTokenValue() == ";" and not parameter:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
+					self.addSymbolTable(name,Type)
 					return True
 				
 				elif parameter and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
+						self.addSymbolTable(name,Type)
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -534,12 +530,14 @@ class Lexical_Analyzer:
  
 							if token.getTokenValue() == ";" and not parameter:   # var is array and NOT var parameter
 								token = self.scanToken()
+								self.addSymbolTable(name,Type)
 								return True
 
 							elif parameter: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
 									print token.getTokenValue()
 									token = self.scanToken()
+									self.addSymbolTable(name,Type)
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
@@ -724,6 +722,7 @@ class Lexical_Analyzer:
 
 			if token.getTokenValue() == "[":
 				if self.destination(token):
+					pass
 					#print "ok destination",analyzer.current_token.getTokenValue()
 
 			if analyzer.current_token.getTokenValue() == ":=":
@@ -935,6 +934,11 @@ class Lexical_Analyzer:
 	def reportErrorMsg(self, message, line):
 	 	print message,", on line ", line,'\n'
 
+	def addSymbolTable(self, name, Type, Value = None):
+		
+		self.symbolTable[name] = [Type, Value]
+				  
+
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
@@ -950,4 +954,4 @@ analyzer.current_token = analyzer.tokenList.Next
 
 analyzer.program(analyzer.tokenList.Next)
 
-#print "\nSymbol_table: ",analyzer.simbolTable
+print "\nSymbol_table: ",analyzer.symbolTable
