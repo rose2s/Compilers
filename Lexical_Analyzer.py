@@ -748,6 +748,11 @@ class Lexical_Analyzer:
 			varType = self.lookatST(var)
 			print "Var type:", varType,"\n"
 
+			if not varType:
+				self.reportErrorMsg("Variable "+ var +" was not Undeclared!", token.line)
+				self.errorFlag = True
+				return False
+
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":
@@ -991,8 +996,6 @@ class Lexical_Analyzer:
 		for v in self.symbolTable[analyzer.current_scope]:
 			if v[0] == var: 	  # var name
 				return v[1]
-	
-		print "Undeclared variable!"
 		return False
 
 # ---- Main -----
