@@ -727,6 +727,10 @@ class Lexical_Analyzer:
 	def assignment_statement(self,token):
 		print "\nAssignment Statement Function"
 		if token.getTokenType() == "IDENTIFIER":
+			var = token.getTokenValue()
+			varType = self.lookatST(var)
+			print "Var type:", varType,"\n"
+
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":
@@ -955,16 +959,15 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
-	def lookatST(self, var, Type):
+	# return var type if var in ST
+	# return False if undeclared var
+	def lookatST(self, var):
 		for v in self.symbolTable[analyzer.current_scope]:
 			if v[0] == var: 	  # var name
-				#print v[0]
-				if v[1] == Type:  # var type
-					print "var found"
-					return True
-				else:
-					print "Undeclared variable!"
-					return False
+				return v[1]
+	
+		print "Undeclared variable!"
+		return False
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
@@ -979,5 +982,3 @@ analyzer.current_token = analyzer.tokenList.Next
 analyzer.program(analyzer.tokenList.Next)
 
 print "\n",analyzer.printST()
-
-analyzer.lookatST("num","integer")
