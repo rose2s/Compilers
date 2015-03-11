@@ -27,6 +27,7 @@
 # 1.0.0    Rose		  2015-02-24 else 
 # 1.0.0    Rose		  2015-02-26 Fix bug on Parser
 # 1.0.0    Rose		  2015-03-09 Simple table Management
+# 1.0.0    Rose		  2015-03-11 Simple table Management with scopes
 #-------------------------------------------------------------------------------
 
 import os,sys
