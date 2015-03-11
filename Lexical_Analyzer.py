@@ -461,6 +461,7 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			print "Declaration Function:", token.getTokenValue() 
 			if token.getTokenValue() == "global":
+				scope = "global"
 				token = self.scanToken()
 
 			if self.type_mark(token.getTokenValue()):
