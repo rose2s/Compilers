@@ -33,7 +33,6 @@ import os,sys
 from automata import DFA
 from List import List
 from stack import Stack
-from symbolTable import symbolTable
 
 class Lexical_Analyzer:
 
@@ -64,7 +63,6 @@ class Lexical_Analyzer:
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
-		#self.symbolTable = symbolTable()
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
