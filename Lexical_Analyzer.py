@@ -491,7 +491,7 @@ class Lexical_Analyzer:
 			return False
 
 	# If Parameter then it is parameter declaration
-	def variable_declaration(self, token, procedure = False): 
+	def variable_declaration(self, token, parameterList = False): 
 
 		size = 0
 		scope = "global"
@@ -505,16 +505,16 @@ class Lexical_Analyzer:
 				name = token.getTokenValue()							 # temp var to symbol table
 				token = self.scanToken()
 				
-				if token.getTokenValue() == ";" and not procedure:				# var is NOT array and NOT var parameter
+				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
 					return True
 				
-				elif procedure and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
+				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
-						scope = procedure
+						scope = parameterList
 						self.addSymbolTable(scope, name, Type, size)
 						return True
 					else:
@@ -532,16 +532,16 @@ class Lexical_Analyzer:
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
  
-							if token.getTokenValue() == ";" and not procedure:   # var is array and NOT var parameter
+							if token.getTokenValue() == ";" and not parameterList:   # var is array and NOT var parameter
 								token = self.scanToken()
 								self.addSymbolTable(scope, name, Type, size)
 								return True
 
-							elif procedure: 									 # var is array and is var parameter
+							elif parameterList: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
 									print token.getTokenValue()
 									token = self.scanToken()
-									scope = procedure
+									scope = parameterList
 									self.addSymbolTable(scope, name, Type, size)
 									return True
 								else:
