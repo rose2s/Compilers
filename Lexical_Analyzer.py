@@ -749,7 +749,7 @@ class Lexical_Analyzer:
 			print "Var type:", varType,"\n"
 
 			if not varType:
-				self.reportErrorMsg("Variable "+ var +" was not Undeclared!", token.line)
+				self.reportErrorMsg("NameError: name '" + var + "' is not defined", token.line)
 				self.errorFlag = True
 				return False
 
@@ -969,13 +969,13 @@ class Lexical_Analyzer:
 			return True
 
 	def reportError(self, expected, received, line):
-	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, on line ", line,'\n'
+	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, in line ", line,'\n'
 
 	def reportWarning(self, message):
-	 	print  "\nScanner Error: "+message+ ", on line", self.lineCount,'\n'
+	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportErrorMsg(self, message, line):
-	 	print message,", on line ", line,'\n'
+	 	print message,", in line ", line,'\n'
 
 	def addSymbolTable(self, scope, name, Type, size, Value = None):
 		
