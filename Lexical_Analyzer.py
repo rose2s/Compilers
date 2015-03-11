@@ -946,7 +946,7 @@ class Lexical_Analyzer:
 		if not self.symbolTable.has_key(scope):
 			self.symbolTable[scope] = [(name,Type, size, Value)]
 		else: # already exists
-			self.symbolTable[scope].append([(name,Type, size, Value)])
+			self.symbolTable[scope].append((name,Type, size, Value))
 
 	def printST(self):
 		for k in self.symbolTable.keys():
@@ -958,7 +958,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/fromJake.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
