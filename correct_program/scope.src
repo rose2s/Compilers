@@ -1,0 +1,11 @@
+program Simple is
+
+	integer num;
+    string word;
+    bool b;
+
+begin
+	num := 5+1;
+	word := "oi";
+	b := True;
+end program
