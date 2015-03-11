@@ -38,12 +38,12 @@ from stack import Stack
 class Lexical_Analyzer:
 
 	# Token types used for automata
-	tokenType = {'s1': "IDENTIFIER",'s2': "INTLITERAL", 's3': "FLOATLITERAL",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
+	tokenType = {'s1': "IDENTIFIER",'s2': "INTEGER", 's3': "FLOAT",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
 				 's8': "ARIT_OP",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
 				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA",'s18': "STRING"}
 
 	keywords  = ["string", "case", "integer", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
-                          "if", "begin", "then", "return", "else", "end", "EOF"]
+                          "if", "begin", "then", "return", "else", "end", "EOF", "true","false"]
 
 	symbolTable = {}
 
@@ -254,11 +254,14 @@ class Lexical_Analyzer:
 		return analyzer.current_token
 		
 	# Validates Expression
+	# Return ExpType if expression is correct
 	def expression(self, current_token, sign = ";"):     			# Returns True if token == sign	
-		if self.E(current_token, sign):								
+		expType = self.E(current_token, sign)
+		print expType, " in Expression"
+		if expType:								
 
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
-				return True
+				return expType
 			else: 
 				self.reportWarning("Missing )")
 				self.errorFlag = True
@@ -266,9 +269,11 @@ class Lexical_Analyzer:
 
 	def E(self, token, sign):
 		print "E: ",token.getTokenValue()
-		self.T(token,sign)
+		expType = self.T(token,sign)
+		print expType, " in E"
+
 		if self.E2(analyzer.current_token, sign):
-			return True
+			return expType
 
 
 	def E2(self,token, sign):
@@ -294,8 +299,11 @@ class Lexical_Analyzer:
 	def T(self,token,sign):
 		print "T: ",token.getTokenValue()
 
-		if self.F(token,sign):
-			self.T2(analyzer.current_token,sign)
+		expType = self.F(token,sign)
+		print expType, " in T"
+		if expType:
+			if self.T2(analyzer.current_token,sign):
+				return expType
 		else:
 			return False
 
@@ -328,6 +336,7 @@ class Lexical_Analyzer:
 
 	def F(self,token,sign):
 		print "F: ",token.getTokenValue()
+		print token.getTokenType()
 
 		if token.getTokenValue() == "(":
 			self.EXPstack.push(token.getTokenValue())   		   # push Parenthesis
@@ -347,17 +356,23 @@ class Lexical_Analyzer:
 			else:
 				return True
 
-		elif token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):  # If Array size
+		elif token.getTokenType() in ("INTEGER, FLOAT"):  
+			expType = token.getTokenType() 
+			print expType, " in F"
 			token = self.scanToken()
-			return True
+			return expType.lower()
 
 		elif token.getTokenType() in ("STRING"):
+			expType = token.getTokenType() 
+			print expType, " in F"
 			token = self.scanToken()
-			return True
+			return expType.lower()
 
-		elif token.getTokenType() in ("true","false"):
+		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false"):
+			expType = "bool"
+			print expType, " in F"
 			token = self.scanToken()
-			return True
+			return expType
 
 		else:
 			print "Error: ID not found"
@@ -526,7 +541,7 @@ class Lexical_Analyzer:
 				elif token.getTokenValue() == "[":
 					token = self.scanToken()
 
-					if token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
+					if token.getTokenType() in ("INTEGER, FLOAT"):
 						size = token.getTokenValue()
 						token = self.scanToken()
 
@@ -726,6 +741,8 @@ class Lexical_Analyzer:
 
 	def assignment_statement(self,token):
 		print "\nAssignment Statement Function"
+		print token.getTokenValue()
+		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
 			var = token.getTokenValue()
 			varType = self.lookatST(var)
@@ -741,10 +758,18 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 
 				expType = self.expression(token,";")
+				print expType, " in assignment_statement"
+
 				if expType:
 
 					if analyzer.current_token.getTokenValue() == ";":
-						return True
+						if varType == expType:
+							print "Type checking okay"
+							return True
+						else:
+							print "Type unmacthed!"
+							self.errorFlag = True
+							return False
 					else:
 						self.reportError(";", token.getTokenValue(), token.line)
 						self.errorFlag = True
