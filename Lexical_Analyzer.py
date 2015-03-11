@@ -33,6 +33,7 @@ import os,sys
 from automata import DFA
 from List import List
 from stack import Stack
+from symbolTable import symbolTable
 
 class Lexical_Analyzer:
 
@@ -63,6 +64,7 @@ class Lexical_Analyzer:
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
+		#self.symbolTable = symbolTable()
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -950,15 +952,14 @@ class Lexical_Analyzer:
 	def printST(self):
 		for k in self.symbolTable.keys():
 			print "\nScope:",k
-			for i in range(len(self.symbolTable)):
-				print self.symbolTable[k][i]
-
+			for i in range(len(self.symbolTable[k])):
+				print i, self.symbolTable[k][i]
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/test_program_array.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
