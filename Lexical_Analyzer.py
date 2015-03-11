@@ -740,7 +740,8 @@ class Lexical_Analyzer:
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
 
-				if self.expression(token,";"):
+				expType = self.expression(token,";")
+				if expType:
 
 					if analyzer.current_token.getTokenValue() == ";":
 						return True
