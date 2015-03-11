@@ -2,9 +2,12 @@ program Simple is
 
 	integer dig[400];
     global string Num;
+    float test;
+    bool t[3];
 
     procedure sum(integer a in, float a in)
-    	integer A;
+    	integer xxx;
+    	float d[45];
 		begin
 			if(true) then
 				jake := jake + 1;
@@ -14,6 +17,9 @@ program Simple is
 	end procedure
 
 	procedure for_proc()
+		bool verdadeiro;
+		integer s;
+		string rose;
 		begin
 			for(i := 0; i < zach)
 				ryan := zach + i;
