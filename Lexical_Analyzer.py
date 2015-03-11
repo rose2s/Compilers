@@ -54,6 +54,7 @@ class Lexical_Analyzer:
 	startSimbol = 'E'
 	non_terminals = ['E','E2','T','T2','F']
 	current_token = None
+	current_scope = "global"
 
 	def __init__(self):
 		self.lineCount = 0    								# Show the error
@@ -677,8 +678,6 @@ class Lexical_Analyzer:
 
 		if token.Next.getTokenValue() in (":=","["):
 			if self.assignment_statement(token):
-				#print "after assignment_statement", analyzer.current_token.getTokenValue()
-
 				if self.statement(analyzer.current_token):
 					return True
 			else: 
@@ -686,7 +685,6 @@ class Lexical_Analyzer:
 
 		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 			if self.procedure_call(token):
-				#print "after procedure_call", analyzer.current_token.getTokenValue()
 
 				if self.statement(analyzer.current_token):
 					return True
@@ -734,7 +732,6 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == "[":
 				if self.destination(token):
 					pass
-					#print "ok destination",analyzer.current_token.getTokenValue()
 
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
@@ -958,11 +955,22 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
+	def lookatST(self, var, Type):
+		for v in self.symbolTable[analyzer.current_scope]:
+			if v[0] == var: 	  # var name
+				#print v[0]
+				if v[1] == Type:  # var type
+					print "var found"
+					return True
+				else:
+					print "Undeclared variable!"
+					return False
+
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/scope.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
@@ -971,3 +979,5 @@ analyzer.current_token = analyzer.tokenList.Next
 analyzer.program(analyzer.tokenList.Next)
 
 print "\n",analyzer.printST()
+
+analyzer.lookatST("num","integer")
