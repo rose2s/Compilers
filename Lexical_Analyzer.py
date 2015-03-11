@@ -33,6 +33,7 @@ import os,sys
 from automata import DFA
 from List import List
 from stack import Stack
+from symbolTable import symbolTable
 
 class Lexical_Analyzer:
 
@@ -63,6 +64,7 @@ class Lexical_Analyzer:
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
+		#self.symbolTable = symbolTable()
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -491,8 +493,10 @@ class Lexical_Analyzer:
 			return False
 
 	# If Parameter then it is parameter declaration
-	def variable_declaration(self, token, parameter = False): 
-		
+	def variable_declaration(self, token, procedure = False): 
+
+		size = 0
+		scope = "global"
 		print "Variable_declaration Funtion:",token.getTokenValue()
 
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
@@ -503,16 +507,17 @@ class Lexical_Analyzer:
 				name = token.getTokenValue()							 # temp var to symbol table
 				token = self.scanToken()
 				
-				if token.getTokenValue() == ";" and not parameter:				# var is NOT array and NOT var parameter
+				if token.getTokenValue() == ";" and not procedure:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
-					self.addSymbolTable(name,Type)
+					self.addSymbolTable(scope, name, Type, size)
 					return True
 				
-				elif parameter and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
+				elif procedure and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
-						self.addSymbolTable(name,Type)
+						scope = procedure
+						self.addSymbolTable(scope, name, Type, size)
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -523,21 +528,23 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 
 					if token.getTokenType() in ("INTLITERAL,FLOATLITERAL"):
+						size = token.getTokenValue()
 						token = self.scanToken()
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
  
-							if token.getTokenValue() == ";" and not parameter:   # var is array and NOT var parameter
+							if token.getTokenValue() == ";" and not procedure:   # var is array and NOT var parameter
 								token = self.scanToken()
-								self.addSymbolTable(name,Type)
+								self.addSymbolTable(scope, name, Type, size)
 								return True
 
-							elif parameter: 									 # var is array and is var parameter
+							elif procedure: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
 									print token.getTokenValue()
 									token = self.scanToken()
-									self.addSymbolTable(name,Type)
+									scope = procedure
+									self.addSymbolTable(scope, name, Type, size)
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
@@ -580,17 +587,18 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
+				procedureName = token.getTokenValue()  			# 
 				token = self.scanToken()	
 
 				if token.getTokenValue() == "(":
 					token = self.scanToken()
 
 					if self.type_mark(token.getTokenValue()):
-						self.variable_declaration(token,True)
+						self.variable_declaration(token, procedureName)
 					
 						while analyzer.current_token.getTokenValue() == ",":
 							token = self.scanToken()	
-							self.variable_declaration(analyzer.current_token, True)
+							self.variable_declaration(analyzer.current_token, procedureName)
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
@@ -934,10 +942,19 @@ class Lexical_Analyzer:
 	def reportErrorMsg(self, message, line):
 	 	print message,", on line ", line,'\n'
 
-	def addSymbolTable(self, name, Type, Value = None):
+	def addSymbolTable(self, scope, name, Type, size, Value = None):
 		
-		self.symbolTable[name] = [Type, Value]
-				  
+		if not self.symbolTable.has_key(scope):
+			self.symbolTable[scope] = [(name,Type, size, Value)]
+		else: # already exists
+			self.symbolTable[scope].append([(name,Type, size, Value)])
+
+	def printST(self):
+		for k in self.symbolTable.keys():
+			print "\nScope:",k
+			for i in range(len(self.symbolTable)):
+				print self.symbolTable[k][i]
+
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
@@ -946,12 +963,9 @@ dfa = DFA()
 filename = "/Users/roses/Downloads/Repository/correct_program/test_program_array.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
-#analyzer.tokenList.addNode(analyzer.tokenList,"EOF","$",analyzer.lineCount)
-# print List
-#analyzer.tokenList.printList(analyzer.tokenList.Next)
 
 analyzer.current_token = analyzer.tokenList.Next  
 
 analyzer.program(analyzer.tokenList.Next)
 
-print "\nSymbol_table: ",analyzer.symbolTable
+print "\n",analyzer.printST()
