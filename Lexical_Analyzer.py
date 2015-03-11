@@ -473,8 +473,8 @@ class Lexical_Analyzer:
 					return False
 
 			elif token.getTokenValue() == "procedure":
-				if self.procedure_declaration(token):
-					if self.declaration(analyzer.current_token):
+				if self.procedure_declaration(token, scope):
+					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
 						return False
@@ -568,8 +568,11 @@ class Lexical_Analyzer:
 			return False
 
 
-	def procedure_declaration(self, token):
+	def procedure_declaration(self, token, scope = "global"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
+
+		self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0)
+
 		scope = token.Next.getTokenValue()  # Procedure Name
 
 		if self.procedure_header(token):
@@ -958,7 +961,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/correct_program/fromJake.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/simple_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
