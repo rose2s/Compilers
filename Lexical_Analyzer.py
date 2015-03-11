@@ -456,15 +456,15 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def declaration(self,token):
+	def declaration(self,token, scope = "global"):
 		if not self.errorFlag:
 			print "Declaration Function:", token.getTokenValue() 
 			if token.getTokenValue() == "global":
 				token = self.scanToken()
 
 			if self.type_mark(token.getTokenValue()):
-				if self.variable_declaration(token):
-					if self.declaration(analyzer.current_token):
+				if self.variable_declaration(token, scope):
+					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
 						return False
@@ -491,10 +491,9 @@ class Lexical_Analyzer:
 			return False
 
 	# If Parameter then it is parameter declaration
-	def variable_declaration(self, token, parameterList = False): 
+	def variable_declaration(self, token, scope = "global", parameterList = False): 
 
 		size = 0
-		scope = "global"
 		print "Variable_declaration Funtion:",token.getTokenValue()
 
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
@@ -514,7 +513,6 @@ class Lexical_Analyzer:
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
-						scope = parameterList
 						self.addSymbolTable(scope, name, Type, size)
 						return True
 					else:
@@ -541,7 +539,7 @@ class Lexical_Analyzer:
 								if token.getTokenValue() in ("in","out"):
 									print token.getTokenValue()
 									token = self.scanToken()
-									scope = parameterList
+
 									self.addSymbolTable(scope, name, Type, size)
 									return True
 								else:
@@ -569,10 +567,12 @@ class Lexical_Analyzer:
 			return False
 
 
-	def procedure_declaration(self,token):
+	def procedure_declaration(self, token):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
+		scope = token.Next.getTokenValue()  # Procedure Name
+
 		if self.procedure_header(token):
-			if self.procedure_body(analyzer.current_token):
+			if self.procedure_body(analyzer.current_token, scope):
 			 return True
 			else:
 				return False
@@ -585,18 +585,18 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
-				procedureName = token.getTokenValue()  			# 
+				scope = token.getTokenValue()  			# 
 				token = self.scanToken()	
 
 				if token.getTokenValue() == "(":
 					token = self.scanToken()
 
 					if self.type_mark(token.getTokenValue()):
-						self.variable_declaration(token, procedureName)
+						self.variable_declaration(token, scope, True)
 					
 						while analyzer.current_token.getTokenValue() == ",":
 							token = self.scanToken()	
-							self.variable_declaration(analyzer.current_token, procedureName)
+							self.variable_declaration(analyzer.current_token, scope, True)
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
@@ -626,10 +626,10 @@ class Lexical_Analyzer:
 				self.errorFlag = True
 				return False
 
-	def procedure_body(self,token):
+	def procedure_body(self,token, scope):
 		print "Procedure_Body Function:",token.getTokenValue()
 		if not self.errorFlag:
-			if self.declaration(token):
+			if self.declaration(token, scope):
 				pass
 			else:
 				self.errorFlag = True
