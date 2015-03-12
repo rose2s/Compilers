@@ -520,6 +520,15 @@ class Lexical_Analyzer:
 
 			if token.getTokenType() == "IDENTIFIER":
 				name = token.getTokenValue()							 # temp var to symbol table
+
+			# check redeclaration of variables
+			#	varType = self.lookatST(name)
+			#	if varType:
+			#		self.reportErrorMsg("Error: redeclaration of "+name, token.line)
+			#		return False
+
+			# ---
+
 				token = self.scanToken()
 				
 				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
@@ -588,12 +597,12 @@ class Lexical_Analyzer:
 	def procedure_declaration(self, token, scope = "global"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
 
-		self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0)
+		self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0)  # add procedure and his scope into to ST
 
-		scope = token.Next.getTokenValue()  # Procedure Name
+		new_scope = token.Next.getTokenValue()  # Procedure Name
 
 		if self.procedure_header(token):
-			if self.procedure_body(analyzer.current_token, scope):
+			if self.procedure_body(analyzer.current_token, new_scope):
 			 return True
 			else:
 				return False
@@ -621,7 +630,7 @@ class Lexical_Analyzer:
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
-							return True
+							return scope
 
 						else: 
 							self.reportErrorMsg("Missing ) in the procedure", token.line)
@@ -658,7 +667,7 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-		if self.statement(analyzer.current_token):
+		if self.statement(analyzer.current_token, scope):
 
 			if analyzer.current_token.getTokenValue() == "end":
 				token = self.scanToken()
@@ -678,7 +687,8 @@ class Lexical_Analyzer:
 			return False
 
 	# If if_stat then "else is a sign for expressions"
-	def statement(self,token, if_stat = False): 
+	# If proc_scope then it is a statement within procedure
+	def statement(self,token, if_stat = False, proc_scope = False): 
 		print "Statement Function:", token.getTokenValue()
 		token = self.scanToken()
 		print "token:",token.getTokenValue()
@@ -692,44 +702,44 @@ class Lexical_Analyzer:
 					return True
 
 		if token.Next.getTokenValue() in (":=","["):
-			if self.assignment_statement(token):
-				if self.statement(analyzer.current_token):
+			if self.assignment_statement(token, proc_scope):
+				if self.statement(analyzer.current_token, proc_scope):
 					return True
 			else: 
 				return False
 
 		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
-			if self.procedure_call(token):
+			if self.procedure_call(token, proc_scope):
 
-				if self.statement(analyzer.current_token):
+				if self.statement(analyzer.current_token, proc_scope):
 					return True
 			else:
 				return False
 
 		elif token.getTokenValue() == "return":
-			if self.return_statement(token):
+			if self.return_statement(token, proc_scope):
 
-				if self.statement(analyzer.current_token):
+				if self.statement(analyzer.current_token, proc_scope):
 					return True
 			else:
 				return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
 
-			if self.loop_statement(token):
+			if self.loop_statement(token, proc_scope):
 				print "after FOR loop", analyzer.current_token.getTokenValue()
 
-				if self.statement(analyzer.current_token):
+				if self.statement(analyzer.current_token, proc_scope):
 					return True
 			else:
 				return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
 
-			if self.if_statement(token):
+			if self.if_statement(token, proc_scope):
 				print "after IF Statement", analyzer.current_token.getTokenValue()
 
-				if self.statement(analyzer.current_token):
+				if self.statement(analyzer.current_token, proc_scope):
 					return True
 			else:
 				return False
@@ -738,8 +748,8 @@ class Lexical_Analyzer:
 			self.reportErrorMsg("Missing a statement",token.line)
 			return False
 
-
-	def assignment_statement(self,token):
+	# If proc_scope then it is assigment within procedure
+	def assignment_statement(self,token, proc_scope = False):
 		print "\nAssignment Statement Function"
 		print token.getTokenValue()
 		print token.getTokenType()
@@ -807,7 +817,8 @@ class Lexical_Analyzer:
 				self.errorFlag = True
 				return False
 
-	def procedure_call(self,token):
+	# If proc_scope then procedure_call is within procedure
+	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
 		if token.getTokenType() == "IDENTIFIER":
 			token = self.scanToken()
@@ -844,7 +855,8 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
-	def loop_statement(self,token):
+	# If proc_scope then loop is within procedure
+	def loop_statement(self,token, proc_scope = False):
 		print "\nLoop Statement Function"
 		if token.getTokenValue() == "for":
 			token = self.scanToken()
@@ -895,7 +907,8 @@ class Lexical_Analyzer:
 			return False
 
 
-	def if_statement(self,token):
+	# If proc_scope then IF is within procedure
+	def if_statement(self,token, proc_scope = False):
 		print "\nIF Statement Function"
 		if token.getTokenValue() == "if":
 			self.stack.push(token.getTokenValue())
@@ -964,7 +977,8 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
-	def return_statement(self,token):
+	# If proc_scope then Return is within procedure
+	def return_statement(self,token, proc_scope = False):
 		if token.getTokenValue() == "return":
 			return True
 
@@ -992,7 +1006,7 @@ class Lexical_Analyzer:
 
 	# return var type if var in ST
 	# return False if undeclared var
-	def lookatST(self, var):
+	def lookatST(self, var): # , scope = "global"):
 		for v in self.symbolTable[analyzer.current_scope]:
 			if v[0] == var: 	  # var name
 				return v[1]
