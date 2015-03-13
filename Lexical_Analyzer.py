@@ -345,16 +345,17 @@ class Lexical_Analyzer:
 			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
+			expType = token.getTokenType() 
 			token = self.scanToken()
 			if token.getTokenValue() == "[":                	   # If array
 				if self.destination(token):
-					return True
+					return expType.lower()
 				else:
 					self.reportErrorMsg("Error in destination", analyzer.current_token.line)
 					self.errorFlag = True
 					return False
 			else:
-				return True
+				return expType.lower()
 
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
 			expType = token.getTokenType() 
@@ -781,7 +782,8 @@ class Lexical_Analyzer:
 				if expType:
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if varType == expType:
+						if self.typeChecking(varType,expType):
+						#if varType == expType:
 							print "Type checking okay"
 							return True
 						else:
@@ -1009,26 +1011,56 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
-	def typechecking(self, type1, type2):
-		if type1 == "integer":
-			if type2 in ("integer"):
-				return "integer"
-			elif type2 == "float":
+	def typeChecking(self, type1, type2):
+		if type1 == type2 and type2 == "integer":  
+			return "integer"
+
+		elif type1 == "float":
+			if type2 in ("float","integer"):
 				return "float"
-		elif type1 == "IDENTIFIER":
-			if type2 in ("string", "IDENTIFIER"):
+
+		elif type1.lower() in ("string", "identifier"):
+			if type2 in ("string", "identifier"):
 				return "string"
-		elif type1 == "bool":
-			if type2 == "bool":
-				return "bool"
+
+		elif type1 == type2 and type2 == "bool":
+			return "bool"
+
 		else:
 			print "Unmacthed types"
 			return False
 
+	def typeCheckingExp(self, type1, type2):
+		#if signal in ("+","-","*","/"):
+			if type1 == "integer":
+				if type2 == "integer":
+					return "integer"
+
+				elif type2 == "float":
+					return "float"
+
+			elif type1 == "float":
+				if type2 in ("float","integer"):
+					return "float"
+
+			elif type1 in ("string", "identifier"):
+				if type2 in ("string", "identifier"):
+					return "string"
+
+			elif type1 == "bool":
+				if type2 == "bool":
+					return "bool"
+
+			else:
+				print "Unmacthed types"
+				return False
+
+		# make relational expressions
+		#elif sign in ("<", ">", "<=", ">="):
 
 	# return var type if var in ST
 	# return False if undeclared var
-	def lookatST(self, var, scope): # , scope = "global"):
+	def lookatST(self, var, scope): 
 		if not scope:
 			scope = "global"
 		for v in self.symbolTable[scope]:
