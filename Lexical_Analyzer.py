@@ -1009,6 +1009,23 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
+	def typechecking(self, type1, type2):
+		if type1 == "integer":
+			if type2 in ("integer"):
+				return "integer"
+			elif type2 == "float":
+				return "float"
+		elif type1 == "IDENTIFIER":
+			if type2 in ("string", "IDENTIFIER"):
+				return "string"
+		elif type1 == "bool":
+			if type2 == "bool":
+				return "bool"
+		else:
+			print "Unmacthed types"
+			return False
+
+
 	# return var type if var in ST
 	# return False if undeclared var
 	def lookatST(self, var, scope): # , scope = "global"):
