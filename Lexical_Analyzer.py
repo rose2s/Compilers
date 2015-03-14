@@ -64,6 +64,7 @@ class Lexical_Analyzer:
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
+		self.checkExp = []
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -794,8 +795,8 @@ class Lexical_Analyzer:
 				if expType:
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.typeChecking(varType,expType):
-						#if varType == expType:
+						if self.assigTypeChecking(varType,expType): # check type checking
+		
 							print "Type checking okay"
 							return True
 						else:
@@ -1023,7 +1024,7 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
-	def typeChecking(self, type1, type2):
+	def assigTypeChecking(self, type1, type2):
 		if type1 == type2 and type2 == "integer":  
 			return "integer"
 
@@ -1042,8 +1043,8 @@ class Lexical_Analyzer:
 			print "Unmacthed types"
 			return False
 
-	def typeCheckingExp(self, type1, type2):
-		#if signal in ("+","-","*","/"):
+	def typeCheckingExp(self, type1, signal, type2):
+		if signal in ("+","-","*","/"):
 			if type1 == "integer":
 				if type2 == "integer":
 					return "integer"
