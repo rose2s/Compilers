@@ -497,7 +497,13 @@ class Lexical_Analyzer:
 					return False
 
 			elif token.getTokenValue() == "procedure":
-				if self.procedure_declaration(token, scope):
+
+				if global_scope:
+					proc = self.procedure_declaration(token, global_scope)
+				else:
+					proc = self.procedure_declaration(token, scope)
+
+				if proc:
 					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
@@ -1076,7 +1082,7 @@ class Lexical_Analyzer:
 		for v in self.symbolTable["global"]:
 			if v[0] == var: 	  # var name
 				return v[1]
-				
+
 		return False
 
 # ---- Main -----
