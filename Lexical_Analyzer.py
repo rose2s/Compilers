@@ -54,7 +54,6 @@ class Lexical_Analyzer:
 	startSimbol = 'E'
 	non_terminals = ['E','E2','T','T2','F']
 	current_token = None
-	#current_scope = "global"
 
 	def __init__(self):
 		self.lineCount = 0    								# Show the error
@@ -474,15 +473,22 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def declaration(self,token, scope = "global"):
+	def declaration(self,token, scope = "main"):
+		global_scope = False
+
 		if not self.errorFlag:
 			print "Declaration Function:", token.getTokenValue() 
 			if token.getTokenValue() == "global":
-				scope = "global"
+				global_scope = "global"
 				token = self.scanToken()
 
 			if self.type_mark(token.getTokenValue()):
-				if self.variable_declaration(token, scope):
+				if global_scope:
+					var = self.variable_declaration(token, global_scope)
+				else:
+					var = self.variable_declaration(token, scope)
+
+				if var:
 					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
@@ -510,7 +516,7 @@ class Lexical_Analyzer:
 			return False
 
 	# If Parameter then it is parameter declaration
-	def variable_declaration(self, token, scope = "global", parameterList = False): 
+	def variable_declaration(self, token, scope = "main", parameterList = False): 
 
 		size = 0
 		print "Variable_declaration Funtion:",token.getTokenValue()
@@ -595,7 +601,7 @@ class Lexical_Analyzer:
 			return False
 
 
-	def procedure_declaration(self, token, scope = "global"):
+	def procedure_declaration(self, token, scope = "main"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
 
 		self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0)  # add procedure and his scope into to ST
@@ -1062,10 +1068,15 @@ class Lexical_Analyzer:
 	# return False if undeclared var
 	def lookatST(self, var, scope): 
 		if not scope:
-			scope = "global"
+			scope = "main"
 		for v in self.symbolTable[scope]:
 			if v[0] == var: 	  # var name
 				return v[1]
+		# Search in global scope
+		for v in self.symbolTable["global"]:
+			if v[0] == var: 	  # var name
+				return v[1]
+				
 		return False
 
 # ---- Main -----
