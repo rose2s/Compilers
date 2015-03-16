@@ -28,6 +28,7 @@
 # 1.0.0    Rose		  2015-02-26 Fix bug on Parser
 # 1.0.0    Rose		  2015-03-09 Simple table Management
 # 1.0.0    Rose		  2015-03-11 Simple table Management with scopes
+# 1.0.0    Rose		  2015-03-16 Type checking with operations
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -273,7 +274,9 @@ class Lexical_Analyzer:
 		print expType, " in E"
 
 		if self.E2(analyzer.current_token, sign):
-			return expType
+			print self.checkExp
+			return True
+			#return expType
 
 
 	def E2(self,token, sign):
@@ -281,6 +284,7 @@ class Lexical_Analyzer:
 			print "E2: ",token.getTokenValue()
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
+				self.checkExp.append(token.getTokenValue())
 				token = self.scanToken()
 				self.T(token,sign)
 
@@ -327,6 +331,7 @@ class Lexical_Analyzer:
 
 		if token.getTokenValue() in self.first('T2'):
 			print token.getTokenValue()
+			self.checkExp.append(token.getTokenValue())
 			token = self.scanToken()
 
 			if self.F(token,sign):
@@ -355,25 +360,33 @@ class Lexical_Analyzer:
 					self.errorFlag = True
 					return False
 			else:
-				return expType.lower()
+				self.checkExp.append(expType.lower())
+				return True
+				#return expType.lower()
 
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
 			expType = token.getTokenType() 
 			print expType, " in F"
 			token = self.scanToken()
-			return expType.lower()
+			self.checkExp.append(expType.lower())
+			return True
+			#return expType.lower()
 
 		elif token.getTokenType() in ("STRING"):
 			expType = token.getTokenType() 
 			print expType, " in F"
 			token = self.scanToken()
-			return expType.lower()
+			self.checkExp.append(expType.lower())
+			return True
+			#return expType.lower()
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false"):
 			expType = "bool"
 			print expType, " in F"
 			token = self.scanToken()
-			return expType
+			self.checkExp.append(expType.lower())
+			return True
+			#return expType
 
 		else:
 			print "Error: ID not found"
@@ -789,15 +802,18 @@ class Lexical_Analyzer:
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
 
-				expType = self.expression(token,";")
-				print expType, " in assignment_statement"
+				#expType = self.expression(token,";")
+				#print expType, " in assignment_statement"
 
-				if expType:
+				if self.expression(token,";"):
+					self.arrayTpye()
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.assigTypeChecking(varType,expType): # check type checking
+						if self.assigTypeChecking(varType,self.checkExp[-1]): # check type checking
 		
 							print "Type checking okay"
+							self.checkExp = []
+							print self.checkExp
 							return True
 						else:
 							print "Type unmacthed!"
@@ -1043,26 +1059,30 @@ class Lexical_Analyzer:
 			print "Unmacthed types"
 			return False
 
+	def arrayTpye(self):
+		#for i in range(0 ,len(self.checkExp), 2):
+		self.typeCheckingExp(self.checkExp[0],self.checkExp[1],self.checkExp[S2])
+
 	def typeCheckingExp(self, type1, signal, type2):
 		if signal in ("+","-","*","/"):
 			if type1 == "integer":
 				if type2 == "integer":
-					return "integer"
+					print "integer"
 
 				elif type2 == "float":
-					return "float"
+					print "float"
 
 			elif type1 == "float":
 				if type2 in ("float","integer"):
-					return "float"
+					print "float"
 
 			elif type1 in ("string", "identifier"):
 				if type2 in ("string", "identifier"):
-					return "string"
+					print "string"
 
 			elif type1 == "bool":
 				if type2 == "bool":
-					return "bool"
+					print "bool"
 
 			else:
 				print "Unmacthed types"
@@ -1090,7 +1110,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/scope.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
