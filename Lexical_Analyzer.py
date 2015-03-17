@@ -473,7 +473,7 @@ class Lexical_Analyzer:
 				else:
 					return False
 			else: 
-				self.reportErrorMsg("Wrong Declaration",analyzer.current_token.line)
+				#self.reportErrorMsg("Wrong Declaration",analyzer.current_token.line)
 				self.errorFlag = True
 				return False
 
@@ -548,11 +548,11 @@ class Lexical_Analyzer:
 			if token.getTokenType() == "IDENTIFIER":
 				name = token.getTokenValue()							 # temp var to symbol table
 
-			# check redeclaration of variables
-			#	varType = self.lookatST(name)
-			#	if varType:
-			#		self.reportErrorMsg("Error: redeclaration of "+name, token.line)
-			#		return False
+			#check redeclaration of variables
+				varType = self.lookatST(name, scope)
+				if varType:
+					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
+					return False
 
 			# ---
 
@@ -1096,17 +1096,25 @@ class Lexical_Analyzer:
 	# return var type if var in ST
 	# return False if undeclared var
 	def lookatST(self, var, scope): 
+		print "lookatST FUNCTION"
 		if not scope:
 			scope = "main"
-		for v in self.symbolTable[scope]:
-			if v[0] == var: 	  # var name
-				return v[1]
-		# Search in global scope
-		for v in self.symbolTable["global"]:
-			if v[0] == var: 	  # var name
-				return v[1]
 
-		return False
+		print "scope", scope
+
+		if self.symbolTable.has_key(scope):    		# If ST has this scope
+			for v in self.symbolTable[scope]:
+				if v[0] == var: 	  				# var name
+					return v[1]						# return var name
+		
+		# Search in global scope
+		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
+			for v in self.symbolTable["global"]:
+				if v[0] == var: 	  				# var name
+					return v[1]						# return var name
+	
+		return False 								# Return False if not found var name
+
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
