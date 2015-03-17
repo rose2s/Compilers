@@ -1060,8 +1060,9 @@ class Lexical_Analyzer:
 			return False
 
 	def arrayTpye(self):
-		#for i in range(0 ,len(self.checkExp), 2):
-		self.typeCheckingExp(self.checkExp[0],self.checkExp[1],self.checkExp[S2])
+		for i in range(0 ,len(self.checkExp)-1, 2):
+			print i
+			varType = self.typeCheckingExp(self.checkExp[i],self.checkExp[i+1],self.checkExp[i+2])
 
 	def typeCheckingExp(self, type1, signal, type2):
 		if signal in ("+","-","*","/"):
