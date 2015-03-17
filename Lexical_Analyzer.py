@@ -802,14 +802,12 @@ class Lexical_Analyzer:
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
 
-				#expType = self.expression(token,";")
-				#print expType, " in assignment_statement"
-
 				if self.expression(token,";"):
-					self.arrayTpye()
+					expType = self.arrayType()
+					print expType, " in assignment_statement"
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.assigTypeChecking(varType,self.checkExp[-1]): # check type checking
+						if self.assigTypeChecking(varType, expType): # check type checking
 		
 							print "Type checking okay"
 							self.checkExp = []
@@ -1058,15 +1056,14 @@ class Lexical_Analyzer:
 		else:
 			print "Unmacthed types"
 			return False
-			
+
 # Call typeCheckingExp
-	def arrayTpye(self):
+	def arrayType(self):
 		varType = self.checkExp[0]
 		for i in range(0 ,len(self.checkExp)-1, 2):
 			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2])
-			print "var", varType
+		return varType
 
-#
 	def typeCheckingExp(self, type1, signal, type2):
 		if signal in ("+","-","*","/"):
 			if type1 == "integer":
