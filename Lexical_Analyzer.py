@@ -1058,32 +1058,36 @@ class Lexical_Analyzer:
 		else:
 			print "Unmacthed types"
 			return False
-
+			
+# Call typeCheckingExp
 	def arrayTpye(self):
+		varType = self.checkExp[0]
 		for i in range(0 ,len(self.checkExp)-1, 2):
-			print i
-			varType = self.typeCheckingExp(self.checkExp[i],self.checkExp[i+1],self.checkExp[i+2])
+			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2])
+			print "var", varType
 
+#
 	def typeCheckingExp(self, type1, signal, type2):
 		if signal in ("+","-","*","/"):
 			if type1 == "integer":
 				if type2 == "integer":
-					print "integer"
+					return "integer"
+
 
 				elif type2 == "float":
-					print "float"
+					return "float"
 
 			elif type1 == "float":
 				if type2 in ("float","integer"):
-					print "float"
+					return "float"
 
 			elif type1 in ("string", "identifier"):
 				if type2 in ("string", "identifier"):
-					print "string"
+					return "string"
 
 			elif type1 == "bool":
 				if type2 == "bool":
-					print "bool"
+					return "bool"
 
 			else:
 				print "Unmacthed types"
