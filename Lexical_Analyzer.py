@@ -274,7 +274,7 @@ class Lexical_Analyzer:
 		print expType, " in E"
 
 		if self.E2(analyzer.current_token, sign):
-			print self.checkExp
+			print "ST", self.checkExp
 			return True
 			#return expType
 
@@ -954,6 +954,7 @@ class Lexical_Analyzer:
 
 				if self.expression(token, ")"):
 					token = self.scanToken()
+					self.checkExp = []
 
 					if token.getTokenValue() == "then":
 
@@ -1120,7 +1121,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/scope.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
