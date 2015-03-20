@@ -801,6 +801,8 @@ class Lexical_Analyzer:
 		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
 
+			var_token = token
+
 			# --- Declaration Check ---#
 			STlist = self.lookatST(token, proc_scope)  					# Verify if var within ST
 			if not STlist:												# Error: Undeclared var
@@ -827,6 +829,7 @@ class Lexical_Analyzer:
 							print "Type checking okay"
 							self.checkExp = []
 							print self.checkExp
+							self.add_value_ST(var_token, proc_scope, True)
 							return True
 						else:
 							print "Type unmacthed!"
@@ -1112,9 +1115,9 @@ class Lexical_Analyzer:
 	def addSymbolTable(self, scope, name, Type, size, Value = None):
 		
 		if not self.symbolTable.has_key(scope):
-			self.symbolTable[scope] = [(name,Type, size, Value)]
+			self.symbolTable[scope] = [[name,Type, size, Value]]
 		else: # already exists
-			self.symbolTable[scope].append((name,Type, size, Value))
+			self.symbolTable[scope].append([name,Type, size, Value])
 
 	def printST(self):
 		for k in self.symbolTable.keys():
@@ -1225,6 +1228,35 @@ class Lexical_Analyzer:
 				if v[0] == token.getTokenValue(): 		# var name
 					STlist.append(v[0],v[1],v[2],v[3])  # name, type, size, value
 					return STlist				    	# return 
+		
+		if not declaration:
+			# Return False if not found var name
+			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
+			self.errorFlag = True
+		return False
+
+	def add_value_ST(self, token, scope, value, declaration = False): 
+		print "add_value_ST FUNCTION"
+		if not scope:
+			scope = "main"
+
+		print "scope", scope
+
+		if self.symbolTable.has_key(scope):    			# If ST has this scope
+			for v in self.symbolTable[scope]:
+				if v[0] == token.getTokenValue():   	# var name
+					print "v[3]", v[3]
+					v[3] = value
+					return True
+	
+		self.symbolTable[scope][i][3] = "Rose"
+		
+		# Search in global scope
+		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
+			for v in self.symbolTable["global"]:
+				if v[0] == token.getTokenValue(): 		# var name
+					v[3] = value
+					return True				    		# return 
 		
 		if not declaration:
 			# Return False if not found var name
