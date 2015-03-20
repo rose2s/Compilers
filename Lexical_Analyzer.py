@@ -787,6 +787,7 @@ class Lexical_Analyzer:
 		if token.getTokenType() == "IDENTIFIER":
 
 			varType = self.lookatST(token, proc_scope)  # Verify if var within ST
+			print varType
 		
 			if not varType:								# Error: Undeclared var
 				return False
