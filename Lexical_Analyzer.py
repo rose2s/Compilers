@@ -904,6 +904,22 @@ class Lexical_Analyzer:
 
 					if self.expression(token, ")", proc_scope):
 
+							# ---- Type checking
+
+						expType = self.arrayType("loop")
+						print expType, " in loop_statement"
+						self.checkExp = []
+						print self.checkExp
+
+						if expType:
+							print "expression ok in loop Expression"
+						else:
+							self.reportErrorMsg("Wrong Expression in loop statement", token.line)
+							self.errorFlag = True
+							return False
+												
+						# ---- end type checking
+
 						if self.statement(token, False, proc_scope):
 
 							if analyzer.current_token.getTokenValue() == "end":
@@ -1079,26 +1095,32 @@ class Lexical_Analyzer:
 	# Return type of expression
 	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
+		print "arrayType Function: statement type", statement_type
 
-		if len(self.checkExp) == 1 and statement_type == "if":
-			if self.checkExp[0] == "bool":
-				return "bool"
-			else:
+		if len(self.checkExp) == 1:
+			if statement_type == "if":
+				if self.checkExp[0] == "bool":
+					return "bool"
+				else:
+					return False
+
+			elif statement_type == "loop":
+				print "loop can't not be single exp"
 				return False
 		
 		varType = self.checkExp[0]
-		for i in range(0 ,len(self.checkExp)-1, 2):
+		for i in range(0, len(self.checkExp)-1, 2):
 			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
 		return varType
 
 	def typeCheckingExp(self, type1, signal, type2, statement_type):
 
-		if statement_type == "if":
+		if statement_type in ("if", "loop"):
 			if signal in (">","<","<=",">=","!=", "=="):
 				pass
 			else:
 				return False
-				
+
 		#if signal in ("+","-","*","/"):
 		if type1 == "integer":
 			if type2 == "integer":
@@ -1111,15 +1133,13 @@ class Lexical_Analyzer:
 			if type2 in ("float","integer"):
 				return "float"
 
-		elif type1 in ("string", "identifier"):
-			if type2 in ("string", "identifier"):
+		elif type1 == "string":
+			if type2 == "string":
 				return "string"
 
 		if type1 == "bool":
 			if type2 == "bool":
 				return "bool"
-
-		#elif signal in (">","<","<=",">=","!=", "=="):
 
 		else:
 			print "Unmacthed types"
@@ -1168,7 +1188,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/scope.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
