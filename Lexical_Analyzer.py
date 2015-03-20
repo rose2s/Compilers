@@ -360,8 +360,7 @@ class Lexical_Analyzer:
 
 		elif token.getTokenType() == ("IDENTIFIER"):
 			if self.get_value_ST(token, scope):
-			#STlist = self.lookatST(token, scope)
-			#if STlist:
+				STlist = self.lookatST(token, scope)
 				token = self.scanToken()
 				if token.getTokenValue() == "[":                	   # If array
 					if self.destination(token, scope):
@@ -1270,7 +1269,6 @@ class Lexical_Analyzer:
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
 				if v[0] == token.getTokenValue():   	# var name
-					print "v[3]", v[3]
 					v[3] = value
 					return True
 		
