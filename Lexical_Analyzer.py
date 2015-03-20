@@ -331,6 +331,14 @@ class Lexical_Analyzer:
 				return False
 
 		if token.getTokenValue() in self.first('T2'):
+
+			# Check division by zero
+			if token.getTokenValue() == "/" and token.Next.getTokenValue() == '0':
+				self.reportErrorMsg("Error: Division by Zero", token.line)
+				self.errorFlag = True
+				return False
+			# ---------------------
+
 			print token.getTokenValue()
 			self.checkExp.append(token.getTokenValue())
 			token = self.scanToken()
@@ -380,7 +388,6 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			return True
-			#return expType.lower()
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false"):
 			expType = "bool"
@@ -388,7 +395,6 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			return True
-			#return expType
 
 		else:
 			print "Error: ID not found"
@@ -795,16 +801,17 @@ class Lexical_Analyzer:
 		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
 
-			STlist = self.lookatST(token, proc_scope)  # Verify if var within ST
-			print STlist
-		
-			if not STlist:								# Error: Undeclared var
+			# --- Declaration Check ---#
+			STlist = self.lookatST(token, proc_scope)  					# Verify if var within ST
+			if not STlist:												# Error: Undeclared var
 				return False
+			# ---------  ##  --------- #
 
 			token = self.scanToken()
 
-			if token.getTokenValue() == "[":
-				if self.destination(token, proc_scope):
+			if token.getTokenValue() == "[":  							# If array
+				size = self.destination(token, proc_scope)
+				if size:
 					pass
 
 			if analyzer.current_token.getTokenValue() == ":=":
@@ -849,9 +856,20 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 
 			if self.expression(token,"]", scope):
-				if analyzer.current_token.getTokenValue() == "]":
-					token = self.scanToken()
-					return True
+				
+				# array checking
+				arrayType = self.arrayType("destination")
+				if arrayType == "integer":
+
+					if analyzer.current_token.getTokenValue() == "]":
+						token = self.scanToken()
+						return True
+				else:
+					self.reportErrorMsg("Invalid Array Size", token.line)
+					self.errorFlag = True
+					return False
+
+
 			else:
 				self.reportErrorMsg("Invalid Expression", token.line)
 				self.errorFlag = True
@@ -866,50 +884,54 @@ class Lexical_Analyzer:
 			STlist = self.lookatST(token, proc_scope)
 			print STlist
 
-			if STlist[1] == "proc":   # var type
-				#callList = self.look_procedure_at_ST(token, proc_scope)
+			if STlist:
+				if STlist[1] == "proc":   # var type
+					#callList = self.look_procedure_at_ST(token, proc_scope)
 
-				token = self.scanToken()
-				
-				if token.getTokenValue() == "(":
 					token = self.scanToken()
-
-					if token.getTokenValue() != ")":
-						self.expression(token,[",",")"], proc_scope)
-
-						while analyzer.current_token.getTokenValue() == ",":
-							token = self.scanToken()	
-							self.expression(token,[",",")"], proc_scope)
-
-						# --- Type checking Block
-						if self.checkExp == STlist[3]:  # parameter list
-							print "parameter ok in procedure_call"
-						else:
-							self.reportErrorMsg("Invalid Procedure Call", token.line)
-							self.errorFlag = True
-							return False
-
-						# ---- end type checking
-
-					if analyzer.current_token.getTokenValue() == ")":
+					
+					if token.getTokenValue() == "(":
 						token = self.scanToken()
 
-						if token.getTokenValue() == ";":
-								return True
+						if token.getTokenValue() != ")":
+							self.expression(token,[",",")"], proc_scope)
+
+							while analyzer.current_token.getTokenValue() == ",":
+								token = self.scanToken()	
+								self.expression(token,[",",")"], proc_scope)
+
+							# --- Type checking Block
+							if self.checkExp == STlist[3]:  # parameter list
+								print "parameter ok in procedure_call"
+							else:
+								self.reportErrorMsg("Invalid Procedure Call", token.line)
+								self.errorFlag = True
+								return False
+
+							# ---- end type checking
+
+						if analyzer.current_token.getTokenValue() == ")":
+							token = self.scanToken()
+
+							if token.getTokenValue() == ";":
+									return True
+							else:
+								self.reportError(";", token.getTokenValue(), token.line)
+								self.errorFlag = True
+								return False
 						else:
-							self.reportError(";", token.getTokenValue(), token.line)
+							self.reportErrorMsg("Missing ) of procedure_call", token.line)
 							self.errorFlag = True
 							return False
 					else:
-						self.reportErrorMsg("Missing ) of procedure_call", token.line)
+						self.reportErrorMsg("Missing ( of procedure_call", token.line)
 						self.errorFlag = True
 						return False
 				else:
-					self.reportErrorMsg("Missing ( of procedure_call", token.line)
+					self.reportErrorMsg("Invalid procedure name", token.line)
 					self.errorFlag = True
 					return False
 			else:
-				self.reportErrorMsg("Invalid procedure name", token.line)
 				self.errorFlag = True
 				return False
 		else:
