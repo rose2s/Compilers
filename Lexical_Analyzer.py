@@ -854,33 +854,42 @@ class Lexical_Analyzer:
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
 		if token.getTokenType() == "IDENTIFIER":
-			token = self.scanToken()
-			
-			if token.getTokenValue() == "(":
+			expType = self.lookatST(token, proc_scope)
+			print expType
+
+			if expType == "proc":
+
 				token = self.scanToken()
-
-				if token.getTokenValue() != ")":
-					self.expression(token,[",",")"], proc_scope)
-
-					while analyzer.current_token.getTokenValue() == ",":
-						token = self.scanToken()	
-						self.expression(token,[",",")"], proc_scope)
-
-				if analyzer.current_token.getTokenValue() == ")":
+				
+				if token.getTokenValue() == "(":
 					token = self.scanToken()
 
-					if token.getTokenValue() == ";":
-							return True
+					if token.getTokenValue() != ")":
+						self.expression(token,[",",")"], proc_scope)
+
+						while analyzer.current_token.getTokenValue() == ",":
+							token = self.scanToken()	
+							self.expression(token,[",",")"], proc_scope)
+
+					if analyzer.current_token.getTokenValue() == ")":
+						token = self.scanToken()
+
+						if token.getTokenValue() == ";":
+								return True
+						else:
+							self.reportError(";", token.getTokenValue(), token.line)
+							self.errorFlag = True
+							return False
 					else:
-						self.reportError(";", token.getTokenValue(), token.line)
+						self.reportErrorMsg("Missing ) of procedure_call", token.line)
 						self.errorFlag = True
 						return False
 				else:
-					self.reportErrorMsg("Missing ) of procedure_call", token.line)
+					self.reportErrorMsg("Missing ( of procedure_call", token.line)
 					self.errorFlag = True
 					return False
 			else:
-				self.reportErrorMsg("Missing ( of procedure_call", token.line)
+				self.reportError("Procedure Name",expType, token.line)
 				self.errorFlag = True
 				return False
 		else:
@@ -904,7 +913,7 @@ class Lexical_Analyzer:
 
 					if self.expression(token, ")", proc_scope):
 
-							# ---- Type checking
+						# ---- Type checking
 
 						expType = self.arrayType("loop")
 						print expType, " in loop_statement"
