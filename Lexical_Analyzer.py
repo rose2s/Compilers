@@ -549,7 +549,7 @@ class Lexical_Analyzer:
 				name = token.getTokenValue()							 # temp var to symbol table
 
 			#check redeclaration of variables
-				varType = self.lookatST(name, scope)
+				varType = self.lookatST(token, scope, True)
 				if varType:
 					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
 					return False
@@ -784,14 +784,15 @@ class Lexical_Analyzer:
 		print token.getTokenValue()
 		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
-			var = token.getTokenValue()
-			varType = self.lookatST(var,proc_scope)
+			#var = token.getTokenValue()
+			varType = self.lookatST(token, proc_scope)
+			#varType = self.lookatST(token ,proc_scope)
 			print "Var type:", varType,"\n"
 
-			if not varType:
-				self.reportErrorMsg("NameError: name '" + var + "' is not defined", token.line)
-				self.errorFlag = True
-				return False
+			#if not varType:
+			#	self.reportErrorMsg("NameError: name '" + var + "' is not defined", token.line)
+			#	self.errorFlag = True
+			#	return False
 
 			token = self.scanToken()
 
@@ -954,7 +955,22 @@ class Lexical_Analyzer:
 
 				if self.expression(token, ")"):
 					token = self.scanToken()
+
+					# ---- Type checking
+
+					expType = self.arrayType()
+					print expType, " in if_statement"
 					self.checkExp = []
+					print self.checkExp
+
+					if expType == "bool":
+						print "expression ok in IF Expression"
+					else:
+						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
+						self.errorFlag = True
+						return False
+											
+					# ---- end type checking
 
 					if token.getTokenValue() == "then":
 
@@ -1058,7 +1074,9 @@ class Lexical_Analyzer:
 			print "Unmacthed types"
 			return False
 
-# Call typeCheckingExp
+	# Call typeCheckingExp
+	# Return type of expression
+	# Return False if find unmacthed type
 	def arrayType(self):
 		varType = self.checkExp[0]
 		for i in range(0 ,len(self.checkExp)-1, 2):
@@ -1066,11 +1084,11 @@ class Lexical_Analyzer:
 		return varType
 
 	def typeCheckingExp(self, type1, signal, type2):
-		if signal in ("+","-","*","/"):
+			#if statement_type == "if":
+			#	if signal in ("+","-","*","/"):
 			if type1 == "integer":
 				if type2 == "integer":
 					return "integer"
-
 
 				elif type2 == "float":
 					return "float"
@@ -1090,13 +1108,15 @@ class Lexical_Analyzer:
 			else:
 				print "Unmacthed types"
 				return False
+	
+
 
 		# make relational expressions
 		#elif sign in ("<", ">", "<=", ">="):
 
 	# return var type if var in ST
 	# return False if undeclared var
-	def lookatST(self, var, scope): 
+	def lookatST(self, token, scope, declaration = False): 
 		print "lookatST FUNCTION"
 		if not scope:
 			scope = "main"
@@ -1105,17 +1125,28 @@ class Lexical_Analyzer:
 
 		if self.symbolTable.has_key(scope):    		# If ST has this scope
 			for v in self.symbolTable[scope]:
-				if v[0] == var: 	  				# var name
-					return v[1]						# return var name
+				if v[0] == token.getTokenValue():   # var name
+					return v[1]						# return var type
 		
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
 			for v in self.symbolTable["global"]:
-				if v[0] == var: 	  				# var name
-					return v[1]						# return var name
-	
-		return False 								# Return False if not found var name
+				if v[0] == token.getTokenValue(): 	# var name
+					return v[1]						# return var type
+		
+		if not declaration:
+			# Return False if not found var name
+			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
+			self.errorFlag = True
+		return False
 
+		# Return var type if var exists
+		# Return False if var doesn't exist
+		#def verifyIdentifier(self, token, scope):
+			#var = token.getTokenValue()
+		#	varType = self.lookatST(token,scope)
+		#	print "Var type:", varType,"\n"
+		#	return varType 
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
