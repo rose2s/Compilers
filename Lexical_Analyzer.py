@@ -889,7 +889,7 @@ class Lexical_Analyzer:
 					self.errorFlag = True
 					return False
 			else:
-				self.reportError("Procedure Name",expType, token.line)
+				self.reportErrorMsg("Invalid procedure name", token.line)
 				self.errorFlag = True
 				return False
 		else:
