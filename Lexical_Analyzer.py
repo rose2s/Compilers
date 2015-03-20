@@ -1096,6 +1096,9 @@ class Lexical_Analyzer:
 		if statement_type == "if":
 			if signal in (">","<","<=",">=","!=", "=="):
 				pass
+			else:
+				return False
+				
 		#if signal in ("+","-","*","/"):
 		if type1 == "integer":
 			if type2 == "integer":
