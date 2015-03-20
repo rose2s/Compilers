@@ -784,15 +784,11 @@ class Lexical_Analyzer:
 		print token.getTokenValue()
 		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
-			#var = token.getTokenValue()
-			varType = self.lookatST(token, proc_scope)
-			#varType = self.lookatST(token ,proc_scope)
-			print "Var type:", varType,"\n"
 
-			#if not varType:
-			#	self.reportErrorMsg("NameError: name '" + var + "' is not defined", token.line)
-			#	self.errorFlag = True
-			#	return False
+			varType = self.lookatST(token, proc_scope)  # Verify if var within ST
+		
+			if not varType:								# Error: Undeclared var
+				return False
 
 			token = self.scanToken()
 
@@ -1152,7 +1148,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/scope.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
