@@ -1079,6 +1079,13 @@ class Lexical_Analyzer:
 	# Return type of expression
 	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
+
+		if len(self.checkExp) == 1 and statement_type == "if":
+			if self.checkExp[0] == "bool":
+				return "bool"
+			else:
+				return False
+		
 		varType = self.checkExp[0]
 		for i in range(0 ,len(self.checkExp)-1, 2):
 			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
@@ -1089,9 +1096,6 @@ class Lexical_Analyzer:
 		if statement_type == "if":
 			if signal in (">","<","<=",">=","!=", "=="):
 				pass
-			else:
-				return False
-
 		#if signal in ("+","-","*","/"):
 		if type1 == "integer":
 			if type2 == "integer":
