@@ -804,7 +804,7 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 
 				if self.expression(token,";", proc_scope):
-					expType = self.arrayType()
+					expType = self.arrayType("assigment")
 					print expType, " in assignment_statement"
 
 					if analyzer.current_token.getTokenValue() == ";":
@@ -958,12 +958,13 @@ class Lexical_Analyzer:
 
 					# ---- Type checking
 
-					expType = self.arrayType()
+					expType = self.arrayType("if")
 					print expType, " in if_statement"
 					self.checkExp = []
 					print self.checkExp
 
-					if expType == "bool":
+					if expType:
+					#if expType == "bool":
 						print "expression ok in IF Expression"
 					else:
 						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
@@ -1077,37 +1078,45 @@ class Lexical_Analyzer:
 	# Call typeCheckingExp
 	# Return type of expression
 	# Return False if find unmacthed type
-	def arrayType(self):
+	def arrayType(self, statement_type):
 		varType = self.checkExp[0]
 		for i in range(0 ,len(self.checkExp)-1, 2):
-			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2])
+			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
 		return varType
 
-	def typeCheckingExp(self, type1, signal, type2):
-			#if statement_type == "if":
-			#	if signal in ("+","-","*","/"):
-			if type1 == "integer":
-				if type2 == "integer":
-					return "integer"
+	def typeCheckingExp(self, type1, signal, type2, statement_type):
 
-				elif type2 == "float":
-					return "float"
-
-			elif type1 == "float":
-				if type2 in ("float","integer"):
-					return "float"
-
-			elif type1 in ("string", "identifier"):
-				if type2 in ("string", "identifier"):
-					return "string"
-
-			elif type1 == "bool":
-				if type2 == "bool":
-					return "bool"
-
+		if statement_type == "if":
+			if signal in (">","<","<=",">=","!=", "=="):
+				pass
 			else:
-				print "Unmacthed types"
 				return False
+
+		#if signal in ("+","-","*","/"):
+		if type1 == "integer":
+			if type2 == "integer":
+				return "integer"
+
+			elif type2 == "float":
+				return "float"
+
+		elif type1 == "float":
+			if type2 in ("float","integer"):
+				return "float"
+
+		elif type1 in ("string", "identifier"):
+			if type2 in ("string", "identifier"):
+				return "string"
+
+		if type1 == "bool":
+			if type2 == "bool":
+				return "bool"
+
+		#elif signal in (">","<","<=",">=","!=", "=="):
+
+		else:
+			print "Unmacthed types"
+			return False
 	
 
 
@@ -1152,7 +1161,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/scope.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
