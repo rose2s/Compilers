@@ -29,6 +29,8 @@
 # 1.0.0    Rose		  2015-03-09 Simple table Management
 # 1.0.0    Rose		  2015-03-11 Simple table Management with scopes
 # 1.0.0    Rose		  2015-03-16 Type checking with operations
+# 1.0.0    Rose		  2015-03-19 Type checking with IF, LOOP statement
+# 1.0.0    Rose		  2015-03-20 Type checking with ProcedureCall statement
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -634,7 +636,7 @@ class Lexical_Analyzer:
 		if parList:
 			if parList == True:      # If procedure has no parameter
 				parList = 0
-			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", parList)  # add procedure and his scope into to ST
+			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # add procedure and his scope into to ST
 
 			if self.procedure_body(analyzer.current_token, new_scope):
 			 return True
@@ -861,11 +863,14 @@ class Lexical_Analyzer:
 	# If proc_scope then procedure_call is within procedure
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
+		callList = []
+
 		if token.getTokenType() == "IDENTIFIER":
 			expType = self.lookatST(token, proc_scope)
 			print expType
 
 			if expType == "proc":
+				callList = self.look_procedure_at_ST(token, proc_scope)
 
 				token = self.scanToken()
 				
@@ -878,6 +883,16 @@ class Lexical_Analyzer:
 						while analyzer.current_token.getTokenValue() == ",":
 							token = self.scanToken()	
 							self.expression(token,[",",")"], proc_scope)
+
+						# --- Type checking Block
+						if self.checkExp == callList:
+							print "parameter ok in procedure_call"
+						else:
+							self.reportErrorMsg("Invalid Procedure Call", token.line)
+							self.errorFlag = True
+							return False
+
+						# ---- end type checking
 
 					if analyzer.current_token.getTokenValue() == ")":
 						token = self.scanToken()
@@ -1179,13 +1194,12 @@ class Lexical_Analyzer:
 		if self.symbolTable.has_key(scope):    		# If ST has this scope
 			for v in self.symbolTable[scope]:
 				if v[0] == token.getTokenValue():   # var name
-					return v[1]						# return var type
-		
+					return v[1]					# return var type
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
 			for v in self.symbolTable["global"]:
 				if v[0] == token.getTokenValue(): 	# var name
-					return v[1]						# return var type
+					return v[1]					# return var type
 		
 		if not declaration:
 			# Return False if not found var name
@@ -1193,13 +1207,35 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 		return False
 
-		# Return var type if var exists
-		# Return False if var doesn't exist
-		def verifyIdentifier(self, token, scope):
-			#var = token.getTokenValue()
-			varType = self.lookatST(token,scope)
-			print "Var type:", varType,"\n"
-			return varType 
+	# return list of parameters if var is procedure
+	# Else return False 
+	def look_procedure_at_ST(self, token, scope): 
+		print "look proc at ST FUNCTION"
+		if not scope:
+			scope = "main"
+
+		if self.symbolTable.has_key(scope):    		# If ST has this scope
+			for v in self.symbolTable[scope]:
+				if v[0] == token.getTokenValue():   # var name
+					if v[1] == "proc":
+						return v[3] 				# return Value = list of parameters
+
+		# Search in global scope
+		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
+			for v in self.symbolTable["global"]:
+				if v[0] == token.getTokenValue(): 	# var name
+					if v[1] == "proc":
+						return v[3] 				# return Value = list of parameters
+
+		return False
+
+	# Return var type if var exists
+	# Return False if var doesn't exist
+	def verifyIdentifier(self, token, scope):
+		#var = token.getTokenValue()
+		varType = self.lookatST(token,scope)
+		print "Var type:", varType,"\n"
+		return varType 
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
