@@ -259,12 +259,12 @@ class Lexical_Analyzer:
 	# Validates Expression
 	# Return ExpType if expression is correct
 	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
-		expType = self.E(current_token, sign, scope)
-		print expType, " in Expression"
-		if expType:								
+		STlist = self.E(current_token, sign, scope)
+		#print STlist[1], " in Expression"
+		if STlist:								
 
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
-				return expType
+				return STlist
 			else: 
 				self.reportWarning("Missing )")
 				self.errorFlag = True
@@ -272,18 +272,16 @@ class Lexical_Analyzer:
 
 	def E(self, token, sign, scope):
 		print "E: ",token.getTokenValue()
-		expType = self.T(token,sign, scope)
-		print expType, " in E"
+		STlist = self.T(token,sign, scope)
+		#print STlist[1], " in E"
 
 		if self.E2(analyzer.current_token, sign, scope):
 			print "ST", self.checkExp
 			return True
-			#return expType
-
 
 	def E2(self,token, sign, scope):
 		if not self.errorFlag:
-			print "E2: ",token.getTokenValue()
+			#print "E2: ",token.getTokenValue()
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
 				self.checkExp.append(token.getTokenValue())
@@ -294,7 +292,7 @@ class Lexical_Analyzer:
 					return True
 
 			elif token.getTokenValue() in sign:  				     # Stop Condition of the Recursion
-				print "sign", sign
+				#print "sign", sign
 				return True
 			else: 
 				self.reportError("aritm_op", token.getTokenValue(),token.line)
@@ -305,11 +303,12 @@ class Lexical_Analyzer:
 	def T(self,token,sign, scope):
 		print "T: ",token.getTokenValue()
 
-		expType = self.F(token,sign, scope)
-		print expType, " in T"
-		if expType:
+		STlist = self.F(token,sign, scope)
+		
+		if STlist:
+			#print STlist[1], " in T"
 			if self.T2(analyzer.current_token, sign, scope):
-				return expType
+				return STlist
 		else:
 			return False
 
@@ -357,7 +356,7 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 				if token.getTokenValue() == "[":                	   # If array
 					if self.destination(token, scope):
-						return STlist[1] 							   # var Type
+						return STlist 							 
 					else:
 						self.reportErrorMsg("Error in destination", analyzer.current_token.line)
 						self.errorFlag = True
@@ -630,7 +629,7 @@ class Lexical_Analyzer:
 		new_scope = token.Next.getTokenValue()  # Procedure Name
 
 		parList = self.procedure_header(token)
-		print "parList", type(parList)
+		
 		if parList:
 			if parList == True:      # If procedure has no parameter
 				parList = 0
@@ -1010,7 +1009,6 @@ class Lexical_Analyzer:
 					print self.checkExp
 
 					if expType:
-					#if expType == "bool":
 						print "expression ok in IF Expression"
 					else:
 						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
