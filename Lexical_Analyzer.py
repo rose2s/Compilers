@@ -352,20 +352,19 @@ class Lexical_Analyzer:
 			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
-			expType = self.lookatST(token, scope)
-			if expType:
+			STlist = self.lookatST(token, scope)
+			if STlist:
 				token = self.scanToken()
 				if token.getTokenValue() == "[":                	   # If array
 					if self.destination(token, scope):
-						return expType.lower()
+						return STlist[1] 							   # var Type
 					else:
 						self.reportErrorMsg("Error in destination", analyzer.current_token.line)
 						self.errorFlag = True
 						return False
 				else:
-					self.checkExp.append(expType.lower())
+					self.checkExp.append(STlist[1].lower())  			# var type
 					return True
-					#return expType.lower()
 			else:
 				return False
 
@@ -375,7 +374,6 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			return True
-			#return expType.lower()
 
 		elif token.getTokenType() in ("STRING"):
 			expType = token.getTokenType() 
@@ -554,8 +552,8 @@ class Lexical_Analyzer:
 				name = token.getTokenValue()							 # temp var to symbol table
 
 			#check redeclaration of variables
-				varType = self.lookatST(token, scope, True)
-				if varType:
+				STlist = self.lookatST(token, scope, True)
+				if STlist:
 					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
 					return False
 
@@ -798,10 +796,10 @@ class Lexical_Analyzer:
 		print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
 
-			varType = self.lookatST(token, proc_scope)  # Verify if var within ST
-			print varType
+			STlist = self.lookatST(token, proc_scope)  # Verify if var within ST
+			print STlist
 		
-			if not varType:								# Error: Undeclared var
+			if not STlist:								# Error: Undeclared var
 				return False
 
 			token = self.scanToken()
@@ -818,7 +816,7 @@ class Lexical_Analyzer:
 					print expType, " in assignment_statement"
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.assigTypeChecking(varType, expType): # check type checking
+						if self.assigTypeChecking(STlist[1], expType): # check type checking
 		
 							print "Type checking okay"
 							self.checkExp = []
@@ -863,14 +861,14 @@ class Lexical_Analyzer:
 	# If proc_scope then procedure_call is within procedure
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
-		callList = []
+		#callList = []
 
 		if token.getTokenType() == "IDENTIFIER":
-			expType = self.lookatST(token, proc_scope)
-			print expType
+			STlist = self.lookatST(token, proc_scope)
+			print STlist
 
-			if expType == "proc":
-				callList = self.look_procedure_at_ST(token, proc_scope)
+			if STlist[1] == "proc":   # var type
+				#callList = self.look_procedure_at_ST(token, proc_scope)
 
 				token = self.scanToken()
 				
@@ -885,7 +883,7 @@ class Lexical_Analyzer:
 							self.expression(token,[",",")"], proc_scope)
 
 						# --- Type checking Block
-						if self.checkExp == callList:
+						if self.checkExp == STlist[3]:  # parameter list
 							print "parameter ok in procedure_call"
 						else:
 							self.reportErrorMsg("Invalid Procedure Call", token.line)
@@ -1186,20 +1184,27 @@ class Lexical_Analyzer:
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
 		print "lookatST FUNCTION"
+		STlist = []
 		if not scope:
 			scope = "main"
 
 		print "scope", scope
 
-		if self.symbolTable.has_key(scope):    		# If ST has this scope
+		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
-				if v[0] == token.getTokenValue():   # var name
-					return v[1]					# return var type
+				if v[0] == token.getTokenValue():   	# var name
+					STlist.append(v[0])  # name
+					STlist.append(v[1])  # type
+					STlist.append(v[2])	 # size (if array)
+					STlist.append(v[3])  # value (if procedure)
+					return STlist	
+
 		# Search in global scope
-		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
+		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
 			for v in self.symbolTable["global"]:
-				if v[0] == token.getTokenValue(): 	# var name
-					return v[1]					# return var type
+				if v[0] == token.getTokenValue(): 		# var name
+					STlist.append(v[0],v[1],v[2],v[3])  # name, type, size, value
+					return STlist				    	# return 
 		
 		if not declaration:
 			# Return False if not found var name
@@ -1208,9 +1213,11 @@ class Lexical_Analyzer:
 		return False
 
 	# return list of parameters if var is procedure
-	# Else return False 
+	# Else return False
+""" 
 	def look_procedure_at_ST(self, token, scope): 
 		print "look proc at ST FUNCTION"
+		STlist = []
 		if not scope:
 			scope = "main"
 
@@ -1233,9 +1240,10 @@ class Lexical_Analyzer:
 	# Return False if var doesn't exist
 	def verifyIdentifier(self, token, scope):
 		#var = token.getTokenValue()
-		varType = self.lookatST(token,scope)
-		print "Var type:", varType,"\n"
-		return varType 
+		STlist = self.lookatST(token,scope)
+		print "Var type:", STlist,"\n"
+		return STlist 
+"""
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
