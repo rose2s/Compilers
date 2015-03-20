@@ -256,8 +256,8 @@ class Lexical_Analyzer:
 		
 	# Validates Expression
 	# Return ExpType if expression is correct
-	def expression(self, current_token, sign = ";"):     			# Returns True if token == sign	
-		expType = self.E(current_token, sign)
+	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
+		expType = self.E(current_token, sign, scope)
 		print expType, " in Expression"
 		if expType:								
 
@@ -268,27 +268,27 @@ class Lexical_Analyzer:
 				self.errorFlag = True
 				return False 
 
-	def E(self, token, sign):
+	def E(self, token, sign, scope):
 		print "E: ",token.getTokenValue()
-		expType = self.T(token,sign)
+		expType = self.T(token,sign, scope)
 		print expType, " in E"
 
-		if self.E2(analyzer.current_token, sign):
+		if self.E2(analyzer.current_token, sign, scope):
 			print "ST", self.checkExp
 			return True
 			#return expType
 
 
-	def E2(self,token, sign):
+	def E2(self,token, sign, scope):
 		if not self.errorFlag:
 			print "E2: ",token.getTokenValue()
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
 				self.checkExp.append(token.getTokenValue())
 				token = self.scanToken()
-				self.T(token,sign)
+				self.T(token,sign, scope)
 
-				if self.E2(analyzer.current_token,sign):
+				if self.E2(analyzer.current_token, sign, scope):
 					return True
 
 			elif token.getTokenValue() in sign:  				     # Stop Condition of the Recursion
@@ -300,19 +300,19 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def T(self,token,sign):
+	def T(self,token,sign, scope):
 		print "T: ",token.getTokenValue()
 
-		expType = self.F(token,sign)
+		expType = self.F(token,sign, scope)
 		print expType, " in T"
 		if expType:
-			if self.T2(analyzer.current_token,sign):
+			if self.T2(analyzer.current_token, sign, scope):
 				return expType
 		else:
 			return False
 
 
-	def T2(self,token, sign):
+	def T2(self,token, sign, scope):
 		if token:
 			print "T': ",token.getTokenValue()
 
@@ -334,12 +334,12 @@ class Lexical_Analyzer:
 			self.checkExp.append(token.getTokenValue())
 			token = self.scanToken()
 
-			if self.F(token,sign):
-				self.T2(analyzer.current_token,sign)
+			if self.F(token, sign, scope):
+				self.T2(analyzer.current_token, sign, scope)
 			else:
 				return False
 
-	def F(self,token,sign):
+	def F(self,token, sign, scope):
 		print "F: ",token.getTokenValue()
 		print token.getTokenType()
 
@@ -350,10 +350,11 @@ class Lexical_Analyzer:
 			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
-			expType = token.getTokenType() 
+			expType = self.lookatST(token, scope)
+			#expType = token.getTokenType() 
 			token = self.scanToken()
 			if token.getTokenValue() == "[":                	   # If array
-				if self.destination(token):
+				if self.destination(token, scope):
 					return expType.lower()
 				else:
 					self.reportErrorMsg("Error in destination", analyzer.current_token.line)
@@ -793,13 +794,13 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":
-				if self.destination(token):
+				if self.destination(token, proc_scope):
 					pass
 
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
 
-				if self.expression(token,";"):
+				if self.expression(token,";", proc_scope):
 					expType = self.arrayType()
 					print expType, " in assignment_statement"
 
@@ -832,12 +833,12 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
-	def destination(self,token): 
+	def destination(self,token, scope): 
 		print "\nDestination Function"
 		if token.getTokenValue() == "[":
 			token = self.scanToken()
 
-			if self.expression(token,"]"):
+			if self.expression(token,"]", scope):
 				if analyzer.current_token.getTokenValue() == "]":
 					token = self.scanToken()
 					return True
@@ -856,11 +857,11 @@ class Lexical_Analyzer:
 				token = self.scanToken()
 
 				if token.getTokenValue() != ")":
-					self.expression(token,[",",")"])
+					self.expression(token,[",",")"], proc_scope)
 
 					while analyzer.current_token.getTokenValue() == ",":
 						token = self.scanToken()	
-						self.expression(token,[",",")"])
+						self.expression(token,[",",")"], proc_scope)
 
 				if analyzer.current_token.getTokenValue() == ")":
 					token = self.scanToken()
@@ -898,7 +899,7 @@ class Lexical_Analyzer:
 				if analyzer.current_token.getTokenValue() == ";":
 					token = self.scanToken()
 
-					if self.expression(token, ")"):
+					if self.expression(token, ")", proc_scope):
 
 						if self.statement(token, False, proc_scope):
 
@@ -949,7 +950,7 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 
-				if self.expression(token, ")"):
+				if self.expression(token, ")", proc_scope):
 					token = self.scanToken()
 
 					# ---- Type checking
@@ -1138,11 +1139,11 @@ class Lexical_Analyzer:
 
 		# Return var type if var exists
 		# Return False if var doesn't exist
-		#def verifyIdentifier(self, token, scope):
+		def verifyIdentifier(self, token, scope):
 			#var = token.getTokenValue()
-		#	varType = self.lookatST(token,scope)
-		#	print "Var type:", varType,"\n"
-		#	return varType 
+			varType = self.lookatST(token,scope)
+			print "Var type:", varType,"\n"
+			return varType 
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
