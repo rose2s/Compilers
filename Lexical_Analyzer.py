@@ -359,8 +359,9 @@ class Lexical_Analyzer:
 			self.E(token,sign)
 
 		elif token.getTokenType() == ("IDENTIFIER"):
-			STlist = self.lookatST(token, scope)
-			if STlist:
+			if self.get_value_ST(token, scope):
+			#STlist = self.lookatST(token, scope)
+			#if STlist:
 				token = self.scanToken()
 				if token.getTokenValue() == "[":                	   # If array
 					if self.destination(token, scope):
@@ -373,6 +374,8 @@ class Lexical_Analyzer:
 					self.checkExp.append(STlist[1].lower())  			# var type
 					return True
 			else:
+				self.reportErrorMsg("Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
+				self.errorFlag = True
 				return False
 
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
@@ -829,7 +832,7 @@ class Lexical_Analyzer:
 							print "Type checking okay"
 							self.checkExp = []
 							print self.checkExp
-							self.add_value_ST(var_token, proc_scope, True)
+							self.set_value_ST(var_token, proc_scope, True)
 							return True
 						else:
 							print "Type unmacthed!"
@@ -1235,8 +1238,30 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 		return False
 
-	def add_value_ST(self, token, scope, value, declaration = False): 
-		print "add_value_ST FUNCTION"
+	def get_value_ST(self, token, scope, declaration = False): 
+		print "get_value_ST FUNCTION"
+		if not scope:
+			scope = "main"
+
+		if self.symbolTable.has_key(scope):    			# If ST has this scope
+			for v in self.symbolTable[scope]:
+				if v[0] == token.getTokenValue():   	# var name
+					return v[3]
+		
+		# Search in global scope
+		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
+			for v in self.symbolTable["global"]:
+				if v[0] == token.getTokenValue(): 		# var name
+					return v[3]				    		# return 
+		
+		if not declaration:
+			# Return False if not found var name
+			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
+			self.errorFlag = True
+		return False
+
+	def set_value_ST(self, token, scope, value, declaration = False): 
+		print "set_value_ST FUNCTION"
 		if not scope:
 			scope = "main"
 
@@ -1248,8 +1273,6 @@ class Lexical_Analyzer:
 					print "v[3]", v[3]
 					v[3] = value
 					return True
-	
-		self.symbolTable[scope][i][3] = "Rose"
 		
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
