@@ -65,7 +65,7 @@ class Lexical_Analyzer:
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
-		self.checkExp = []
+		self.checkExp = []									# List for Typing check expressions
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -627,11 +627,12 @@ class Lexical_Analyzer:
 	def procedure_declaration(self, token, scope = "main"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
 
-		self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0)  # add procedure and his scope into to ST
-
 		new_scope = token.Next.getTokenValue()  # Procedure Name
 
-		if self.procedure_header(token):
+		parList = self.procedure_header(token)
+		if parList:
+			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", parList)  # add procedure and his scope into to ST
+
 			if self.procedure_body(analyzer.current_token, new_scope):
 			 return True
 			else:
@@ -641,6 +642,8 @@ class Lexical_Analyzer:
 
 	def procedure_header(self,token):
 		print "Procedure_header Function: ",token.getTokenValue()
+		parList = [] 
+
 		if token.getTokenValue() == "procedure":
 			token = self.scanToken()
 
@@ -652,15 +655,17 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 
 					if self.type_mark(token.getTokenValue()):
+						parList.append(token.getTokenValue())
 						self.variable_declaration(token, scope, True)
 					
 						while analyzer.current_token.getTokenValue() == ",":
 							token = self.scanToken()	
+							parList.append(token.getTokenValue())
 							self.variable_declaration(analyzer.current_token, scope, True)
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
-							return True
+							return parList
 
 						else: 
 							self.reportErrorMsg("Missing ) in the procedure", token.line)
