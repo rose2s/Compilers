@@ -351,19 +351,21 @@ class Lexical_Analyzer:
 
 		elif token.getTokenType() == ("IDENTIFIER"):
 			expType = self.lookatST(token, scope)
-			#expType = token.getTokenType() 
-			token = self.scanToken()
-			if token.getTokenValue() == "[":                	   # If array
-				if self.destination(token, scope):
-					return expType.lower()
+			if expType:
+				token = self.scanToken()
+				if token.getTokenValue() == "[":                	   # If array
+					if self.destination(token, scope):
+						return expType.lower()
+					else:
+						self.reportErrorMsg("Error in destination", analyzer.current_token.line)
+						self.errorFlag = True
+						return False
 				else:
-					self.reportErrorMsg("Error in destination", analyzer.current_token.line)
-					self.errorFlag = True
-					return False
+					self.checkExp.append(expType.lower())
+					return True
+					#return expType.lower()
 			else:
-				self.checkExp.append(expType.lower())
-				return True
-				#return expType.lower()
+				return False
 
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
 			expType = token.getTokenType() 
