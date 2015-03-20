@@ -630,7 +630,10 @@ class Lexical_Analyzer:
 		new_scope = token.Next.getTokenValue()  # Procedure Name
 
 		parList = self.procedure_header(token)
+		print "parList", type(parList)
 		if parList:
+			if parList == True:      # If procedure has no parameter
+				parList = 0
 			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", parList)  # add procedure and his scope into to ST
 
 			if self.procedure_body(analyzer.current_token, new_scope):
