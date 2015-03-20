@@ -490,7 +490,7 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def declaration(self,token, scope = "main"):
+	def declaration(self, token, scope = "main"):
 		global_scope = False
 
 		if not self.errorFlag:
@@ -1180,7 +1180,7 @@ class Lexical_Analyzer:
 		# make relational expressions
 		#elif sign in ("<", ">", "<=", ">="):
 
-	# return var type if var in ST
+	# return list of var items if var in ST
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
 		print "lookatST FUNCTION"
@@ -1211,39 +1211,6 @@ class Lexical_Analyzer:
 			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
 			self.errorFlag = True
 		return False
-
-	# return list of parameters if var is procedure
-	# Else return False
-""" 
-	def look_procedure_at_ST(self, token, scope): 
-		print "look proc at ST FUNCTION"
-		STlist = []
-		if not scope:
-			scope = "main"
-
-		if self.symbolTable.has_key(scope):    		# If ST has this scope
-			for v in self.symbolTable[scope]:
-				if v[0] == token.getTokenValue():   # var name
-					if v[1] == "proc":
-						return v[3] 				# return Value = list of parameters
-
-		# Search in global scope
-		if self.symbolTable.has_key("global"): 		# If ST has this Global scope
-			for v in self.symbolTable["global"]:
-				if v[0] == token.getTokenValue(): 	# var name
-					if v[1] == "proc":
-						return v[3] 				# return Value = list of parameters
-
-		return False
-
-	# Return var type if var exists
-	# Return False if var doesn't exist
-	def verifyIdentifier(self, token, scope):
-		#var = token.getTokenValue()
-		STlist = self.lookatST(token,scope)
-		print "Var type:", STlist,"\n"
-		return STlist 
-"""
 
 # ---- Main -----
 # filename = raw_input('Type Filename:') 
