@@ -349,6 +349,7 @@ class Lexical_Analyzer:
 				return False
 
 	def F(self,token, sign, scope):
+		minus = False
 		print "F: ",token.getTokenValue()
 		print token.getTokenType()
 
@@ -358,17 +359,37 @@ class Lexical_Analyzer:
 			token = self.scanToken()
 			self.E(token,sign)
 
-		elif token.getTokenType() == ("IDENTIFIER"):
+		if token.getTokenValue() == "-": 							# minus
+			token = self.scanToken()
+			minus = True
+										   							
+		if token.getTokenType() == ("IDENTIFIER"):
 			if self.get_value_ST(token, scope):
 				STlist = self.lookatST(token, scope)
 				token = self.scanToken()
-				if token.getTokenValue() == "[":                	   # If array
+				
+				# Minus Type checking
+				if minus:
+					if STlist[1].lower() not in ("integer, float"):
+						self.reportErrorMsg("Minus [-] is not allowed with '"+STlist[1]+"' type", analyzer.current_token.line)
+						self.errorFlag = True
+						return False
+
+					elif token.getTokenValue() == "[":
+						self.reportErrorMsg("Minus [-] is not allowed with array", analyzer.current_token.line)
+						self.errorFlag = True
+						return False
+				# ---- 
+
+				if token.getTokenValue() == "[":   		# If identifier is a array
 					if self.destination(token, scope):
-						return STlist 							 
+							return STlist 	
+
 					else:
 						self.reportErrorMsg("Error in destination", analyzer.current_token.line)
 						self.errorFlag = True
 						return False
+
 				else:
 					self.checkExp.append(STlist[1].lower())  			# var type
 					return True
@@ -384,14 +405,14 @@ class Lexical_Analyzer:
 			self.checkExp.append(expType.lower())
 			return True
 
-		elif token.getTokenType() in ("STRING"):
+		elif token.getTokenType() in ("STRING") and not minus:
 			expType = token.getTokenType() 
 			print expType, " in F"
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			return True
 
-		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false"):
+		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false") and not minus:
 			expType = "bool"
 			print expType, " in F"
 			token = self.scanToken()
@@ -1283,6 +1304,7 @@ class Lexical_Analyzer:
 			# Return False if not found var name
 			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
 			self.errorFlag = True
+			
 		return False
 
 # ---- Main -----
