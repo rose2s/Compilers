@@ -947,7 +947,6 @@ class Lexical_Analyzer:
 								exp_type.append(self.arrayType("procedure_call"))
 
 							# --- Type checking Block
-							#expType = self.arrayType("procedure_call")
 							print exp_type, " in ProcedureCall"
 
 							if exp_type == STlist[3]:  # parameter list
@@ -1037,7 +1036,7 @@ class Lexical_Analyzer:
 								self.errorFlag = True
 								return False
 						else:
-							self.reportErrorMsg("Wrong Statement ", token.line)
+							#self.reportErrorMsg("Wrong Statement ", token.line)
 							self.errorFlag = True
 							return False
 					else:
