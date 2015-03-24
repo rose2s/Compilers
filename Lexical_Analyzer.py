@@ -660,8 +660,18 @@ class Lexical_Analyzer:
 		parList = self.procedure_header(token)
 		
 		if parList:
-			if parList == True:      			# If procedure has no parameter
+
+			#check redeclaration of procedures
+			STlist = self.lookatST(token.Next, scope, True)
+			if STlist:
+				self.reportErrorMsg("Error: redeclaration of Procedure '" + token.Next.getTokenValue() + "'" , token.line)
+				return False
+			# ---
+
+			if parList == True:      			# If procedure has no parameter then value = 0
 				parList = 0
+
+
 			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # add procedure and his scope into to ST
 
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
