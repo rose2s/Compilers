@@ -596,7 +596,7 @@ class Lexical_Analyzer:
 				
 				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
-						print token.getTokenValue()
+						# print token.getTokenValue()
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
 						return True
@@ -622,7 +622,7 @@ class Lexical_Analyzer:
 
 							elif parameterList: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
-									print token.getTokenValue()
+									# print token.getTokenValue()
 									token = self.scanToken()
 
 									self.addSymbolTable(scope, name, Type, size, True)
@@ -833,8 +833,8 @@ class Lexical_Analyzer:
 	def assignment_statement(self, token, proc_scope = False):
 		print "\nAssignment Statement Function"
 		print "scope",proc_scope
-		print token.getTokenValue()
-		print token.getTokenType()
+		# print token.getTokenValue()
+		# print token.getTokenType()
 		if token.getTokenType() == "IDENTIFIER":
 
 			var_token = token
@@ -922,7 +922,7 @@ class Lexical_Analyzer:
 
 		if token.getTokenType() == "IDENTIFIER":
 			STlist = self.lookatST(token, proc_scope)
-			print STlist
+			#print "ST: ",STlist
 
 			if STlist:
 				if STlist[1] == "proc":   # var type
@@ -1009,7 +1009,7 @@ class Lexical_Analyzer:
 						expType = self.arrayType("loop")
 						print expType, " in loop_statement"
 						#self.checkExp = []
-						print self.checkExp
+						#print self.checkExp
 
 						if expType:
 							print "expression ok in loop Expression"
@@ -1077,7 +1077,7 @@ class Lexical_Analyzer:
 					expType = self.arrayType("if")
 					print expType, " in if_statement"
 					#self.checkExp = []
-					print self.checkExp
+					# print self.checkExp
 
 					if expType:
 						print "expression ok in IF Expression"
