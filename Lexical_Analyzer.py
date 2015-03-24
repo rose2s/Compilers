@@ -598,7 +598,7 @@ class Lexical_Analyzer:
 					if token.getTokenValue() in ("in","out"):
 						print token.getTokenValue()
 						token = self.scanToken()
-						self.addSymbolTable(scope, name, Type, size)
+						self.addSymbolTable(scope, name, Type, size, True)
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -625,7 +625,7 @@ class Lexical_Analyzer:
 									print token.getTokenValue()
 									token = self.scanToken()
 
-									self.addSymbolTable(scope, name, Type, size)
+									self.addSymbolTable(scope, name, Type, size, True)
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
@@ -1314,7 +1314,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/scope.src"
+filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_heap.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
