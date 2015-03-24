@@ -1249,8 +1249,11 @@ class Lexical_Analyzer:
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
 			for v in self.symbolTable["global"]:
 				if v[0] == token.getTokenValue(): 		# var name
-					STlist.append(v[0],v[1],v[2],v[3])  # name, type, size, value
-					return STlist				    	# return 
+					STlist.append(v[0])  # name
+					STlist.append(v[1])  # type
+					STlist.append(v[2])	 # size (if array)
+					STlist.append(v[3])  # value (if procedure)
+					return STlist		 # return 
 		
 		if not declaration:
 			# Return False if not found var name
@@ -1311,7 +1314,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/scope.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
