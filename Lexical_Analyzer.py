@@ -560,7 +560,7 @@ class Lexical_Analyzer:
 				return True
 
 			else: 
-				self.reportErrorMsg("Unexpected type in Declaration",token.line)
+				self.reportErrorMsg("SyntaxError: invalid syntax",token.line)
 				self.errorFlag = True
 				return False
 		else:
@@ -813,7 +813,7 @@ class Lexical_Analyzer:
 				return False
 
 		else:
-			self.reportErrorMsg("Missing a statement",token.line)
+			self.reportErrorMsg("SyntaxError: invalid syntax",token.line)
 			return False
 
 	# If proc_scope then it is assigment within procedure
