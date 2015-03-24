@@ -394,7 +394,7 @@ class Lexical_Analyzer:
 					self.checkExp.append(STlist[1].lower())  			# var type
 					return True
 			else:
-				self.reportErrorMsg("Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
+				self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
 				self.errorFlag = True
 				return False
 
@@ -579,13 +579,13 @@ class Lexical_Analyzer:
 			if token.getTokenType() == "IDENTIFIER":
 				name = token.getTokenValue()							 # temp var to symbol table
 
-			#check redeclaration of variables
+				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
 				if STlist:
 					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
 					return False
 
-			# ---
+				# ---
 
 				token = self.scanToken()
 				
@@ -640,7 +640,7 @@ class Lexical_Analyzer:
 						self.reportError("array Size", token.getTokenValue(),token.line)
 						return False
 				else: 
-					self.reportErrorMsg("Undentified character", token.line)
+					self.reportError("';'",token.getTokenValue() , token.line-1)
 					return False
 
 			else: 
@@ -665,6 +665,7 @@ class Lexical_Analyzer:
 			STlist = self.lookatST(token.Next, scope, True)
 			if STlist:
 				self.reportErrorMsg("Error: redeclaration of Procedure '" + token.Next.getTokenValue() + "'" , token.line)
+				self.errorFlag = True
 				return False
 			# ---
 
@@ -677,7 +678,7 @@ class Lexical_Analyzer:
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
-			 return True
+				return True
 			else:
 				return False
 		else:
@@ -948,7 +949,7 @@ class Lexical_Analyzer:
 								print "parameter ok in procedure_call"
 
 							else:
-								self.reportErrorMsg("Invalid Procedure Call", token.line)
+								self.reportErrorMsg("Error: Invalid Procedure Call", token.line)
 								self.errorFlag = True
 								return False
 
@@ -1031,7 +1032,7 @@ class Lexical_Analyzer:
 								self.errorFlag = True
 								return False
 						else:
-							self.reportErrorMsg("Wrong Statement", token.line)
+							self.reportErrorMsg("Wrong Statement ", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1119,7 +1120,7 @@ class Lexical_Analyzer:
 								self.errorFlag = True
 								return False
 						else:
-							self.reportErrorMsg("Wrong Statement", token.line)
+							#self.reportErrorMsg("Wrong Statement", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1205,7 +1206,11 @@ class Lexical_Analyzer:
 				self.checkExp = []
 				return False
 		
-		varType = self.checkExp[0]
+		if len(self.checkExp) >0:
+			varType = self.checkExp[0]
+		else:
+			varType = False
+
 		for i in range(0, len(self.checkExp)-1, 2):
 			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
 		self.checkExp = []
@@ -1279,7 +1284,7 @@ class Lexical_Analyzer:
 		
 		if not declaration:
 			# Return False if not found var name
-			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
+			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' hasn't been defined", token.line)
 			self.errorFlag = True
 		return False
 
@@ -1336,7 +1341,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_heap.src"
+filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_program.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
