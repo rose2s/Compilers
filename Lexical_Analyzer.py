@@ -834,9 +834,11 @@ class Lexical_Analyzer:
 		print "\nAssignment Statement Function"
 		print "scope",proc_scope
 
+
 		if token.getTokenType() == "IDENTIFIER":
 
-			var_token = token
+			var_token = token  # Temp procedure name
+			array_var = False  # Flag that checks whether var is array or not
 
 			# --- Declaration Check ---#
 			STlist = self.lookatST(token, proc_scope)  					# Verify if var within ST
@@ -844,16 +846,29 @@ class Lexical_Analyzer:
 				return False
 			# ---------  ##  --------- #
 
+			if STlist[2] > 0 : 											# If var was declared as array
+				array_var = True
+
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":  								# If array
-				int_size = self.destination(token, proc_scope)   			# True if integer
-				
-				if not int_size:
+				if array_var:
+					if not self.destination(token, proc_scope):		  			# True if integer
+						self.errorFlag = True
+						return False
+					array_var = False 
+			 
+				else:
+					self.reportErrorMsg("Error: Variable '"+ var_token.getTokenValue() +"' is not array type", var_token.line)
 					self.errorFlag = True
 					return False
 
 			if analyzer.current_token.getTokenValue() == ":=":
+				if array_var: 
+					self.reportErrorMsg("Error: Variable '"+ var_token.getTokenValue() +"' is array type", var_token.line)
+					self.errorFlag = True
+					return False
+
 				token = self.scanToken()
 
 				if self.expression(token,";", proc_scope):
