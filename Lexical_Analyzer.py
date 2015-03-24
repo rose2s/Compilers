@@ -904,7 +904,6 @@ class Lexical_Analyzer:
 	# If proc_scope then procedure_call is within procedure
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
-		#callList = []
 
 		if token.getTokenType() == "IDENTIFIER":
 			STlist = self.lookatST(token, proc_scope)
@@ -912,7 +911,6 @@ class Lexical_Analyzer:
 
 			if STlist:
 				if STlist[1] == "proc":   # var type
-					#callList = self.look_procedure_at_ST(token, proc_scope)
 
 					token = self.scanToken()
 					
@@ -927,8 +925,13 @@ class Lexical_Analyzer:
 								self.expression(token,[",",")"], proc_scope)
 
 							# --- Type checking Block
-							if self.checkExp == STlist[3]:  # parameter list
+							expType = self.arrayType("procedure_call")
+							print expType, " in ProcedureCall"
+							self.checkExp = []
+
+							if expType == STlist[3][0]:  # parameter list
 								print "parameter ok in procedure_call"
+
 							else:
 								self.reportErrorMsg("Invalid Procedure Call", token.line)
 								self.errorFlag = True
