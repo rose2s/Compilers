@@ -833,8 +833,7 @@ class Lexical_Analyzer:
 	def assignment_statement(self, token, proc_scope = False):
 		print "\nAssignment Statement Function"
 		print "scope",proc_scope
-		# print token.getTokenValue()
-		# print token.getTokenType()
+
 		if token.getTokenType() == "IDENTIFIER":
 
 			var_token = token
@@ -847,10 +846,12 @@ class Lexical_Analyzer:
 
 			token = self.scanToken()
 
-			if token.getTokenValue() == "[":  							# If array
-				size = self.destination(token, proc_scope)
-				if size:
-					pass
+			if token.getTokenValue() == "[":  								# If array
+				int_size = self.destination(token, proc_scope)   			# True if integer
+				
+				if not int_size:
+					self.errorFlag = True
+					return False
 
 			if analyzer.current_token.getTokenValue() == ":=":
 				token = self.scanToken()
@@ -863,12 +864,11 @@ class Lexical_Analyzer:
 						if self.assigTypeChecking(STlist[1], expType): # check type checking
 		
 							print "Type checking okay"
-							#self.checkExp = []
-							#print self.checkExp
+
 							self.set_value_ST(var_token, proc_scope, True)
 							return True
 						else:
-							print "Type unmacthed!"
+							self.reportErrorMsg("Type unmacthed!", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -889,6 +889,8 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			return False
 
+	# Verify array variables
+	# Return True if size is int; Else return False
 	def destination(self,token, scope): 
 		print "\nDestination Function"
 		if token.getTokenValue() == "[":
@@ -896,19 +898,19 @@ class Lexical_Analyzer:
 
 			if self.expression(token,"]", scope):
 				
-				# array checking
+				# --- Array Checking
 				arrayType = self.arrayType("destination")
-				#self.checkExp = []
+
 				if arrayType == "integer":
 
 					if analyzer.current_token.getTokenValue() == "]":
 						token = self.scanToken()
 						return True
 				else:
-					self.reportErrorMsg("Invalid Array Size", token.line)
+					self.reportErrorMsg("Error: Invalid Array Size", token.line)
 					self.errorFlag = True
 					return False
-
+				# -------
 
 			else:
 				self.reportErrorMsg("Invalid Expression", token.line)
