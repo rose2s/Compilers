@@ -850,8 +850,8 @@ class Lexical_Analyzer:
 						if self.assigTypeChecking(STlist[1], expType): # check type checking
 		
 							print "Type checking okay"
-							self.checkExp = []
-							print self.checkExp
+							#self.checkExp = []
+							#print self.checkExp
 							self.set_value_ST(var_token, proc_scope, True)
 							return True
 						else:
@@ -885,6 +885,7 @@ class Lexical_Analyzer:
 				
 				# array checking
 				arrayType = self.arrayType("destination")
+				#self.checkExp = []
 				if arrayType == "integer":
 
 					if analyzer.current_token.getTokenValue() == "]":
@@ -904,6 +905,7 @@ class Lexical_Analyzer:
 	# If proc_scope then procedure_call is within procedure
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
+		exp_type = []
 
 		if token.getTokenType() == "IDENTIFIER":
 			STlist = self.lookatST(token, proc_scope)
@@ -919,17 +921,17 @@ class Lexical_Analyzer:
 
 						if token.getTokenValue() != ")":
 							self.expression(token,[",",")"], proc_scope)
+							exp_type.append(self.arrayType("procedure_call"))
 
 							while analyzer.current_token.getTokenValue() == ",":
 								token = self.scanToken()	
 								self.expression(token,[",",")"], proc_scope)
+								exp_type.append(self.arrayType("procedure_call"))
 
 							# --- Type checking Block
-							expType = self.arrayType("procedure_call")
-							print expType, " in ProcedureCall"
-							self.checkExp = []
+							print exp_type, " in ProcedureCall"
 
-							if expType == STlist[3][0]:  # parameter list
+							if exp_type == STlist[3]:  # parameter list
 								print "parameter ok in procedure_call"
 
 							else:
@@ -988,7 +990,7 @@ class Lexical_Analyzer:
 
 						expType = self.arrayType("loop")
 						print expType, " in loop_statement"
-						self.checkExp = []
+						#self.checkExp = []
 						print self.checkExp
 
 						if expType:
@@ -1056,7 +1058,7 @@ class Lexical_Analyzer:
 
 					expType = self.arrayType("if")
 					print expType, " in if_statement"
-					self.checkExp = []
+					#self.checkExp = []
 					print self.checkExp
 
 					if expType:
@@ -1179,17 +1181,21 @@ class Lexical_Analyzer:
 		if len(self.checkExp) == 1:
 			if statement_type == "if":
 				if self.checkExp[0] == "bool":
+					self.checkExp = []
 					return "bool"
 				else:
+					self.checkExp = []
 					return False
 
 			elif statement_type == "loop":
 				print "loop can't not be single exp"
+				self.checkExp = []
 				return False
 		
 		varType = self.checkExp[0]
 		for i in range(0, len(self.checkExp)-1, 2):
 			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
+		self.checkExp = []
 		return varType
 
 	def typeCheckingExp(self, type1, signal, type2, statement_type):
