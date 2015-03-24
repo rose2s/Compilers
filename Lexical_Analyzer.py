@@ -420,7 +420,7 @@ class Lexical_Analyzer:
 			return True
 
 		else:
-			print "Error: ID not found"
+			self.reportErrorMsg("Error: ID '"+token.getTokenValue()+ "' not found", analyzer.current_token.line)	
 			self.errorFlag = True
 			return False
 
@@ -933,12 +933,17 @@ class Lexical_Analyzer:
 						token = self.scanToken()
 
 						if token.getTokenValue() != ")":
-							self.expression(token,[",",")"], proc_scope)
+							if not self.expression(token,[",",")"], proc_scope):
+								return False
+
 							exp_type.append(self.arrayType("procedure_call"))
+
 
 							while analyzer.current_token.getTokenValue() == ",":
 								token = self.scanToken()	
-								self.expression(token,[",",")"], proc_scope)
+								if not self.expression(token,[",",")"], proc_scope):
+									return False
+
 								exp_type.append(self.arrayType("procedure_call"))
 
 							# --- Type checking Block
@@ -1206,7 +1211,7 @@ class Lexical_Analyzer:
 				self.checkExp = []
 				return False
 		
-		if len(self.checkExp) >0:
+		if len(self.checkExp) > 0:
 			varType = self.checkExp[0]
 		else:
 			varType = False
@@ -1341,7 +1346,7 @@ class Lexical_Analyzer:
 # filename = raw_input('Type Filename:') 
 dfa = DFA()
 
-filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_program.src"
+filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_program_array.src"
 analyzer = Lexical_Analyzer()
 analyzer.getTokenFromFile(filename)
 
