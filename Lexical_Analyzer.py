@@ -660,9 +660,11 @@ class Lexical_Analyzer:
 		parList = self.procedure_header(token)
 		
 		if parList:
-			if parList == True:      # If procedure has no parameter
+			if parList == True:      			# If procedure has no parameter
 				parList = 0
 			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # add procedure and his scope into to ST
+
+			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
 			 return True
@@ -929,6 +931,7 @@ class Lexical_Analyzer:
 								exp_type.append(self.arrayType("procedure_call"))
 
 							# --- Type checking Block
+							#expType = self.arrayType("procedure_call")
 							print exp_type, " in ProcedureCall"
 
 							if exp_type == STlist[3]:  # parameter list
