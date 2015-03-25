@@ -381,7 +381,7 @@ class Lexical_Analyzer:
 						self.errorFlag = True
 						return False
 				# ---- 
-				if STlist[2] > 0: 									    # If var was declared as array
+				if STlist[2] > 0: 									    	# If var was declared as array
 					is_array = True
 
 				if token.getTokenValue() == "[":   							# If identifier is a ARRAY
@@ -392,8 +392,7 @@ class Lexical_Analyzer:
 							self.errorFlag = True
 							return False
 						else:
-							#array_var = False 
-							self.checkExp.append(STlist[1].lower())  				# var type
+							self.checkExp.append(STlist[1].lower())  		# var type
 							return True 	
 
 					else:
