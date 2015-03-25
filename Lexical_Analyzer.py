@@ -349,7 +349,8 @@ class Lexical_Analyzer:
 				return False
 
 	def F(self,token, sign, scope):
-		minus = False
+		minus = False        # Flag to minus sign
+ 		is_array = False    # Flag that checks whether var is array or not
 		print "F: ",token.getTokenValue()
 		print token.getTokenType()
 
@@ -364,7 +365,7 @@ class Lexical_Analyzer:
 			minus = True
 										   							
 		if token.getTokenType() == ("IDENTIFIER"):
-			if self.get_value_ST(token, scope):
+			if self.get_value_ST(token, scope):    					# IF var has been initialized
 				STlist = self.lookatST(token, scope)
 				token = self.scanToken()
 				
@@ -380,19 +381,34 @@ class Lexical_Analyzer:
 						self.errorFlag = True
 						return False
 				# ---- 
+				if STlist[2] > 0: 									    # If var was declared as array
+					is_array = True
 
-				if token.getTokenValue() == "[":   		# If identifier is a array
-					if self.destination(token, scope):
-							return STlist 	
+				if token.getTokenValue() == "[":   							# If identifier is a ARRAY
+
+					# --- Array checking -----
+					if is_array:
+						if not self.destination(token, scope):
+							self.errorFlag = True
+							return False
+						else:
+							#array_var = False 
+							self.checkExp.append(STlist[1].lower())  				# var type
+							return True 	
 
 					else:
-						self.reportErrorMsg("Error in destination", analyzer.current_token.line)
+						self.reportErrorMsg("Error: Variable '"+ STlist[0] +"' is not array type", analyzer.current_token.line)
 						self.errorFlag = True
 						return False
 
 				else:
-					self.checkExp.append(STlist[1].lower())  			# var type
-					return True
+					if is_array: 
+						self.reportErrorMsg("Error: Variable '"+ STlist[0] +"' is array type", analyzer.current_token.line)
+						self.errorFlag = True
+						return False
+					else:	
+						self.checkExp.append(STlist[1].lower())  				# var type
+						return True
 			else:
 				self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
 				self.errorFlag = True
@@ -846,6 +862,7 @@ class Lexical_Analyzer:
 				return False
 			# ---------  ##  --------- #
 
+			# --- Array checking -----
 			if STlist[2] > 0 : 											# If var was declared as array
 				array_var = True
 
@@ -853,7 +870,7 @@ class Lexical_Analyzer:
 
 			if token.getTokenValue() == "[":  								# If array
 				if array_var:
-					if not self.destination(token, proc_scope):		  			# True if integer
+					if not self.destination(token, proc_scope):		  		# True if integer
 						self.errorFlag = True
 						return False
 					array_var = False 
@@ -868,10 +885,12 @@ class Lexical_Analyzer:
 					self.reportErrorMsg("Error: Variable '"+ var_token.getTokenValue() +"' is array type", var_token.line)
 					self.errorFlag = True
 					return False
+			# ---------
 
 				token = self.scanToken()
 
 				if self.expression(token,";", proc_scope):
+
 					expType = self.arrayType("assigment")
 					print expType, " in assignment_statement"
 
@@ -891,7 +910,7 @@ class Lexical_Analyzer:
 						self.errorFlag = True
 						return False
 				else:
-					self.reportErrorMsg("Wrong Expression in assignment_statement", token.line)
+					#self.reportErrorMsg("Wrong Expression in assignment_statement", token.line)
 					self.errorFlag = True
 					return False
 			else:
@@ -1189,6 +1208,8 @@ class Lexical_Analyzer:
 				print i, self.symbolTable[k][i]
 
 	def assigTypeChecking(self, type1, type2):
+		print "assig_type_checking of",type1,",",type2
+
 		if type1 == type2 and type2 == "integer":  
 			return "integer"
 
