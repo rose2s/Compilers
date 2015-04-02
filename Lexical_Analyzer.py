@@ -31,12 +31,15 @@
 # 1.0.0    Rose		  2015-03-16 Type checking with operations
 # 1.0.0    Rose		  2015-03-19 Type checking with IF, LOOP statement
 # 1.0.0    Rose		  2015-03-20 Type checking with ProcedureCall statement
+# 1.0.0    Rose		  2015-03-23 Minus sign
+# 1.0.0    Rose		  2015-03-24 Type checking with Array variables
 #-------------------------------------------------------------------------------
 
 import os,sys
 from automata import DFA
 from List import List
 from stack import Stack
+from codeGen import CodeGen
 
 class Lexical_Analyzer:
 
@@ -58,7 +61,7 @@ class Lexical_Analyzer:
 	non_terminals = ['E','E2','T','T2','F']
 	current_token = None
 
-	def __init__(self):
+	def __init__(self, generatedFile):
 		self.lineCount = 0    								# Show the error
 		self.IDtokenNum = 0   								# ID for Symbol table
 		self.errorFlag = False                        		# Flag for errors     
@@ -68,6 +71,8 @@ class Lexical_Analyzer:
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
 		self.checkExp = []									# List for Typing check expressions
+		self.listGen = []
+		self.file = CodeGen(generatedFile)
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -586,20 +591,25 @@ class Lexical_Analyzer:
 
 		size = 0
 		print "Variable_declaration Funtion:",token.getTokenValue()
-
+		
+		if scope == "global":	
+			self.listGen.append("global")
+				
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
 			Type = token.getTokenValue()								# temp var to symbol table
+			
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
 				name = token.getTokenValue()							 # temp var to symbol table
+				self.listGen.append(name)
+				self.listGen.append(Type)
 
 				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
 				if STlist:
 					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
 					return False
-
 				# ---
 
 				token = self.scanToken()
@@ -607,13 +617,15 @@ class Lexical_Analyzer:
 				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
+					self.file.genDeclaration(self.listGen)
+					self.listGen = []
 					return True
 				
 				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
-						# print token.getTokenValue()
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
+						self.listGen.append(", ")
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -626,6 +638,7 @@ class Lexical_Analyzer:
 					if token.getTokenType() in ("INTEGER, FLOAT"):
 						size = token.getTokenValue()
 						token = self.scanToken()
+						self.listGen.append(size)
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
@@ -633,6 +646,8 @@ class Lexical_Analyzer:
 							if token.getTokenValue() == ";" and not parameterList:   # var is array and NOT var parameter
 								token = self.scanToken()
 								self.addSymbolTable(scope, name, Type, size)
+								self.file.genDeclaration(self.listGen)
+								self.listGen = []
 								return True
 
 							elif parameterList: 									 # var is array and is var parameter
@@ -641,6 +656,7 @@ class Lexical_Analyzer:
 									token = self.scanToken()
 
 									self.addSymbolTable(scope, name, Type, size, True)
+									self.listGen.append(", ")
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
@@ -667,10 +683,15 @@ class Lexical_Analyzer:
 			return False
 
 
+	# myList = [global,name,[global, type name]]
 	def procedure_declaration(self, token, scope = "main"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
+		
+		if scope == "global":
+			self.listGen.append("global")
 
 		new_scope = token.Next.getTokenValue()  # Procedure Name
+		self.listGen.append(new_scope)
 
 		parList = self.procedure_header(token)
 		
@@ -722,8 +743,12 @@ class Lexical_Analyzer:
 							parList.append(token.getTokenValue())
 							self.variable_declaration(analyzer.current_token, scope, True)
 
+
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
+
+							self.file.genFunction(self.listGen)
+							self.listGen = []
 							return parList
 
 						else: 
@@ -1379,14 +1404,17 @@ class Lexical_Analyzer:
 		return False
 
 # ---- Main -----
-# filename = raw_input('Type Filename:') 
+#filename = raw_input('Type Filename:') 
 dfa = DFA()
+filename = "/Users/roses/Downloads/Repository/test.src"
 
-filename = "/Users/roses/Downloads/Repository/testPgms/correct/test_program_array.src"
-analyzer = Lexical_Analyzer()
+generatedFile = filename[0:-3]+"ll"
+analyzer = Lexical_Analyzer(generatedFile)
 analyzer.getTokenFromFile(filename)
-
 analyzer.current_token = analyzer.tokenList.Next  
+
+#nalyzer.file.createFile(generatedFile)
+#analyzer.file.writeToken(generatedFile)
 
 analyzer.program(analyzer.tokenList.Next)
 
