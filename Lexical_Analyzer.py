@@ -602,8 +602,9 @@ class Lexical_Analyzer:
 
 			if token.getTokenType() == "IDENTIFIER":
 				name = token.getTokenValue()							 # temp var to symbol table
-				self.listGen.append(name)
 				self.listGen.append(Type)
+				self.listGen.append(name)
+				
 
 				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
@@ -625,7 +626,6 @@ class Lexical_Analyzer:
 					if token.getTokenValue() in ("in","out"):
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
-						self.listGen.append(", ")
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -656,7 +656,7 @@ class Lexical_Analyzer:
 									token = self.scanToken()
 
 									self.addSymbolTable(scope, name, Type, size, True)
-									self.listGen.append(", ")
+						
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
