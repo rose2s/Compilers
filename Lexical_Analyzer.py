@@ -33,6 +33,8 @@
 # 1.0.0    Rose		  2015-03-20 Type checking with ProcedureCall statement
 # 1.0.0    Rose		  2015-03-23 Minus sign
 # 1.0.0    Rose		  2015-03-24 Type checking with Array variables
+# 1.0.0    Rose		  2015-03-31 Start Code Gneration
+# 1.0.0    Rose		  2015-04-04 Fix bug in Type checking Expressions
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -48,7 +50,7 @@ class Lexical_Analyzer:
 				 's8': "ARIT_OP",'s10': "LEFT_PAR",'s11': "RIG_PAR",'s12': "LEFT_CH", 's13': "RIG_CH",
 				 's14': "COMMA",'s15': "SC",'s16': "LEFT_BRA", 's17': "RIG_BRA",'s18': "STRING"}
 
-	keywords  = ["string", "case", "integer", "bool", "float", "for", "and", "or", "global", "not", "in", "program", "out", "procedure",
+	keywords  = ["string", "case", "integer", "bool", "float", "for", "global", "not", "in", "program", "out", "procedure",
                           "if", "begin", "then", "return", "else", "end", "EOF", "true","false"]
 
 	symbolTable = {}
@@ -181,6 +183,13 @@ class Lexical_Analyzer:
 						word = '' 									# Resets buffer
 						value = ''
 
+					# AND Buffer
+					elif value == 'and': 		
+			  			word += l[s]								
+			  			self.run_automata(word.lower())             # Runs automata to validate operator
+						word = '' 									# Resets buffer
+						value = ''
+
 			  		else:											
 				  		if s+1 < len(l):							# If it is NOT last character of the line
 				  			if l[s]+l[s+1] == '//':					# If Comments then skip line
@@ -200,6 +209,14 @@ class Lexical_Analyzer:
 			  					if s+1 < len(l):									
 				  					if l[s+1] == '=':				# Double operator
 			  							value = 'op'
+			  							word += l[s]
+				  					else:
+				  						self.run_automata(l[s])     # Single operator
+
+				  		elif l[s] == "&":							# AND operator then flag to AND buffer
+			  					if s+1 < len(l):									
+				  					if l[s+1] == '&':			
+			  							value = 'and'
 			  							word += l[s]
 				  					else:
 				  						self.run_automata(l[s])     # Single operator
@@ -265,7 +282,6 @@ class Lexical_Analyzer:
 	# Return ExpType if expression is correct
 	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
 		STlist = self.E(current_token, sign, scope)
-		#print STlist[1], " in Expression"
 		if STlist:								
 
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
@@ -278,15 +294,18 @@ class Lexical_Analyzer:
 	def E(self, token, sign, scope):
 		print "E: ",token.getTokenValue()
 		STlist = self.T(token,sign, scope)
-		#print STlist[1], " in E"
 
 		if self.E2(analyzer.current_token, sign, scope):
 			print "ST", self.checkExp
-			return True
+			
+			if analyzer.current_token.getTokenValue in ("&&","|"):
+				self.E(current_token, sign, scope)
+			
+			else:
+				return True
 
 	def E2(self,token, sign, scope):
 		if not self.errorFlag:
-			#print "E2: ",token.getTokenValue()
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
 				self.checkExp.append(token.getTokenValue())
@@ -297,7 +316,6 @@ class Lexical_Analyzer:
 					return True
 
 			elif token.getTokenValue() in sign:  				     # Stop Condition of the Recursion
-				#print "sign", sign
 				return True
 			else: 
 				self.reportError("aritm_op", token.getTokenValue(),token.line)
@@ -311,7 +329,6 @@ class Lexical_Analyzer:
 		STlist = self.F(token,sign, scope)
 		
 		if STlist:
-			#print STlist[1], " in T"
 			if self.T2(analyzer.current_token, sign, scope):
 				return STlist
 		else:
