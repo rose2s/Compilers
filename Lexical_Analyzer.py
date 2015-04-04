@@ -153,15 +153,13 @@ class Lexical_Analyzer:
 			  		elif value == 'str': 			
 						if l[s] != '\"': 						    # If NOT quotes
 							word += l[s]						 
-							if s == len(l)-1:					    # If it is last character of the line
-								print "KD A STRING 1?",word			
+							if s == len(l)-1:					    # If it is last character of the line	
 								self.run_automata(word.lower())     # Runs automata
 							else:
 								continue						    # Increments String Buffer	
 								
 						else: 
-							word += l[s] 
-							print "KD A STRING?",word				
+							word += l[s] 			
 							self.run_automata(word.lower())		    # Runs automata to validate String
 							word = ''							    # Resets Buffer
 							value = ''
@@ -357,7 +355,7 @@ class Lexical_Analyzer:
 
 	def F(self,token, sign, scope):
 		minus = False        # Flag to minus sign
- 		is_array = False    # Flag that checks whether var is array or not
+ 		is_array = False     # Flag that checks whether var is array or not
 		print "F: ",token.getTokenValue()
 		print token.getTokenType()
 
@@ -450,6 +448,7 @@ class Lexical_Analyzer:
 	# If relation then verify if variavel is a relational operator
 	def relation_op(self, relation = False):
 	 	l = [">=","==","<=","<",">","!="]
+
 	 	if not relation:
 	 		return l
 	 	elif relation in l:
@@ -921,7 +920,7 @@ class Lexical_Analyzer:
 					print expType, " in assignment_statement"
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.assigTypeChecking(STlist[1], expType): # check type checking
+						if self.typeChecking(STlist[1], expType): # check type checking
 		
 							print "Type checking okay"
 
@@ -1070,12 +1069,8 @@ class Lexical_Analyzer:
 
 						expType = self.arrayType("loop")
 						print expType, " in loop_statement"
-						#self.checkExp = []
-						#print self.checkExp
 
-						if expType:
-							print "expression ok in loop Expression"
-						else:
+						if not expType:
 							self.reportErrorMsg("Wrong Expression in loop statement", token.line)
 							self.errorFlag = True
 							return False
@@ -1138,16 +1133,12 @@ class Lexical_Analyzer:
 
 					expType = self.arrayType("if")
 					print expType, " in if_statement"
-					#self.checkExp = []
-					# print self.checkExp
 
-					if expType:
-						print "expression ok in IF Expression"
-					else:
+					if not expType:
+
 						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
 						self.errorFlag = True
-						return False
-											
+						return False		
 					# ---- end type checking
 
 					if token.getTokenValue() == "then":
@@ -1233,7 +1224,7 @@ class Lexical_Analyzer:
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
 
-	def assigTypeChecking(self, type1, type2):
+	def typeChecking(self, type1, type2):
 		print "assig_type_checking of",type1,",",type2
 
 		if type1 == type2 and type2 == "integer":  
@@ -1241,6 +1232,10 @@ class Lexical_Analyzer:
 
 		elif type1 == "float":
 			if type2 in ("float","integer"):
+				return "float"
+
+		elif type2 == "float":
+			if type1 in ("float","integer"):
 				return "float"
 
 		elif type1.lower() in ("string", "identifier"):
@@ -1259,6 +1254,7 @@ class Lexical_Analyzer:
 	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
 		print "arrayType Function: statement type", statement_type
+		cond = False
 
 		if len(self.checkExp) == 1:
 			if statement_type == "if":
@@ -1280,47 +1276,24 @@ class Lexical_Analyzer:
 			varType = False
 
 		for i in range(0, len(self.checkExp)-1, 2):
-			varType = self.typeCheckingExp(varType, self.checkExp[i+1],self.checkExp[i+2], statement_type)
+			if self.relation_op(self.checkExp[i+1]): # signal
+				cond = True
+			varType = self.typeChecking(varType, self.checkExp[i+2]) # [type1 ,type2]
+			#varType = self.typeCheckingExp(varType, self.checkExp[i+1], self.checkExp[i+2], statement_type) # [type1,signal,type2]
 		self.checkExp = []
-		return varType
 
-	def typeCheckingExp(self, type1, signal, type2, statement_type):
+		if cond:
+			varType = "bool"
 
-		if statement_type in ("if", "loop"):
-			if signal in (">","<","<=",">=","!=", "=="):
-				pass
+		if statement_type in ("loop", "if"):
+			if cond:
+				return varType
 			else:
 				return False
-
-		#if signal in ("+","-","*","/"):
-		if type1 == "integer":
-			if type2 == "integer":
-				return "integer"
-
-			elif type2 == "float":
-				return "float"
-
-		elif type1 == "float":
-			if type2 in ("float","integer"):
-				return "float"
-
-		elif type1 == "string":
-			if type2 == "string":
-				return "string"
-
-		if type1 == "bool":
-			if type2 == "bool":
-				return "bool"
-
 		else:
-			print "Unmacthed types"
-			return False
+			return varType
+
 	
-
-
-		# make relational expressions
-		#elif sign in ("<", ">", "<=", ">="):
-
 	# return list of var items if var in ST
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
