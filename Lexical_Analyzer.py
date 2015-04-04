@@ -154,12 +154,14 @@ class Lexical_Analyzer:
 						if l[s] != '\"': 						    # If NOT quotes
 							word += l[s]						 
 							if s == len(l)-1:					    # If it is last character of the line
+								print "KD A STRING 1?",word			
 								self.run_automata(word.lower())     # Runs automata
 							else:
 								continue						    # Increments String Buffer	
 								
 						else: 
-							word += l[s] 				
+							word += l[s] 
+							print "KD A STRING?",word				
 							self.run_automata(word.lower())		    # Runs automata to validate String
 							word = ''							    # Resets Buffer
 							value = ''
