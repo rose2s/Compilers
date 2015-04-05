@@ -1257,6 +1257,7 @@ class Lexical_Analyzer:
 	# Return type of expression
 	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
+		condList = []
 		print "arrayType Function: statement type", statement_type
 		cond = False
 
@@ -1282,11 +1283,21 @@ class Lexical_Analyzer:
 		for i in range(0, len(self.checkExp)-1, 2):
 			signal = self.checkExp[i+1]
 
-			if self.relation_op(signal): 							 # if signal is relacional signal
-				cond = True
+			if self.relation_op(signal) or signal in ("&&","|"): 		 # if signal is relacional signal
+				#cond = True
+				condList.append(varType)
+				condList.append(signal)
+				varType = self.checkExp[i+2]
+			else:
+				varType = self.typeChecking(varType, signal, self.checkExp[i+2]) # [type1, signal ,type2]
 
-			varType = self.typeChecking(varType, signal, self.checkExp[i+2]) # [type1, signal ,type2]
-		
+		if len(condList) > 0:
+			condList.append(varType)
+			print "cond List", condList
+
+			for i in range(0, len(condList)-1, 2):
+				varType = self.typeChecking(varType, condList[i+1], condList[i+2]) # [type1, signal ,type2]
+
 		self.checkExp = []
 		return varType
 
