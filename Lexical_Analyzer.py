@@ -382,6 +382,8 @@ class Lexical_Analyzer:
 				return False
 
 	def F(self,token, sign, scope):
+
+		ST = []
 		minus = False        # Flag to minus sign
  		is_array = False     # Flag that checks whether var is array or not
 		print "F: ",token.getTokenValue()
@@ -398,51 +400,62 @@ class Lexical_Analyzer:
 			minus = True
 										   							
 		if token.getTokenType() == ("IDENTIFIER"):
-			if self.get_value_ST(token, scope):    					# IF var has been initialized
-				STlist = self.lookatST(token, scope)
-				token = self.scanToken()
+			
+			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
+			if ST:
+				print ST
+				print len(ST)
+				if ST[3] == True or len(ST) == 5: #  GLOBAL  							# IF var has been initialized
 				
-				# Minus Type checking
-				if minus:
-					if STlist[1].lower() not in ("integer, float"):
-						self.reportErrorMsg("Minus [-] is not allowed with '"+STlist[1]+"' type", analyzer.current_token.line)
-						self.errorFlag = True
-						return False
-
-					elif token.getTokenValue() == "[":
-						self.reportErrorMsg("Minus [-] is not allowed with array", analyzer.current_token.line)
-						self.errorFlag = True
-						return False
-				# ---- 
-				if STlist[2] > 0: 									    	# If var was declared as array
-					is_array = True
-
-				if token.getTokenValue() == "[":   							# If identifier is a ARRAY
-
-					# --- Array checking -----
-					if is_array:
-						if not self.destination(token, scope):
+					#STlist = self.lookatST(token, scope)  				# STList = [name, type, size, value]
+					token = self.scanToken()
+					
+					# Minus Type checking
+					if minus:
+						if ST[1].lower() not in ("integer, float"):
+							self.reportErrorMsg("Minus [-] is not allowed with '"+ST[1]+"' type", analyzer.current_token.line)
 							self.errorFlag = True
 							return False
+
+						elif token.getTokenValue() == "[":
+							self.reportErrorMsg("Minus [-] is not allowed with array", analyzer.current_token.line)
+							self.errorFlag = True
+							return False
+					# ---- 
+					if ST[2] > 0: 									    	# If var was declared as array
+						is_array = True
+
+					if token.getTokenValue() == "[":   							# If identifier is a ARRAY
+
+						# --- Array checking -----
+						if is_array:
+							if not self.destination(token, scope):
+								self.errorFlag = True
+								return False
+							else:
+								self.checkExp.append(ST[1].lower())  		# var type
+								return True 	
+
 						else:
-							self.checkExp.append(STlist[1].lower())  		# var type
-							return True 	
+							self.reportErrorMsg("Error: Variable '"+ ST[0] +"' is not array type", analyzer.current_token.line)
+							self.errorFlag = True
+							return False
 
 					else:
-						self.reportErrorMsg("Error: Variable '"+ STlist[0] +"' is not array type", analyzer.current_token.line)
-						self.errorFlag = True
-						return False
+						if is_array: 
+							self.reportErrorMsg("Error: Variable '"+ ST[0] +"' is array type", analyzer.current_token.line)
+							self.errorFlag = True
+							return False
+						else:	
+							self.checkExp.append(ST[1].lower())  				# var type
+							return True
 
-				else:
-					if is_array: 
-						self.reportErrorMsg("Error: Variable '"+ STlist[0] +"' is array type", analyzer.current_token.line)
-						self.errorFlag = True
-						return False
-					else:	
-						self.checkExp.append(STlist[1].lower())  				# var type
-						return True
+				else: # then it is a global variable
+					self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
+					self.errorFlag = True
+					return False
 			else:
-				self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
+				#self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
 				self.errorFlag = True
 				return False
 
@@ -1162,7 +1175,7 @@ class Lexical_Analyzer:
 					expType = self.arrayType("if")
 					print expType, " in if_statement"
 
-					if not expType:
+					if expType != "bool":
 
 						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
 						self.errorFlag = True
@@ -1259,7 +1272,6 @@ class Lexical_Analyzer:
 	def arrayType(self, statement_type):
 		condList = []
 		print "arrayType Function: statement type", statement_type
-		cond = False
 
 		if len(self.checkExp) == 1:
 			if statement_type == "if":
@@ -1284,7 +1296,6 @@ class Lexical_Analyzer:
 			signal = self.checkExp[i+1]
 
 			if self.relation_op(signal) or signal in ("&&","|"): 		 # if signal is relacional signal
-				#cond = True
 				condList.append(varType)
 				condList.append(signal)
 				varType = self.checkExp[i+2]
@@ -1326,6 +1337,7 @@ class Lexical_Analyzer:
 
 	# If not signal, then assign checking
 	def typeChecking(self, type1, signal, type2):
+		
 		print "type_checking of",type1,", and ",type2
 		print "signal", signal
 
@@ -1366,14 +1378,6 @@ class Lexical_Analyzer:
 			if type1 == type2 and type2 == "integer":  
 				return "integer"
 
-			elif type1 == "float":
-				if type2 in ("float","integer"):
-					return "float"
-
-			elif type2 == "float":
-				if type1 in ("float","integer"):
-					return "float"
-
 			elif type1 == type2 and type2 == "bool":
 				return "bool"
 			
@@ -1388,7 +1392,7 @@ class Lexical_Analyzer:
 			print "Unmacthed types"
 			return False
 	
-	# return list of var items if var in ST
+	# return list of var items if var in ST [name, type, size, value]
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
 		print "lookatST FUNCTION"
@@ -1410,11 +1414,12 @@ class Lexical_Analyzer:
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
 			for v in self.symbolTable["global"]:
-				if v[0] == token.getTokenValue(): 		# var name
-					STlist.append(v[0])  # name
-					STlist.append(v[1])  # type
-					STlist.append(v[2])	 # size (if array)
-					STlist.append(v[3])  # value (if procedure)
+				if v[0] == token.getTokenValue(): 	# var name
+					STlist.append(v[0])  			# name
+					STlist.append(v[1])  			# type
+					STlist.append(v[2])			    # size (if array)
+					STlist.append(v[3])  			# value (if procedure)
+					STlist.append("global scope")   # if global var
 					return STlist		 # return 
 		
 		if not declaration:
@@ -1423,28 +1428,8 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 		return False
 
-	def get_value_ST(self, token, scope, declaration = False): 
-		print "get_value_ST FUNCTION"
-		if not scope:
-			scope = "main"
-
-		if self.symbolTable.has_key(scope):    			# If ST has this scope
-			for v in self.symbolTable[scope]:
-				if v[0] == token.getTokenValue():   	# var name
-					return v[3]
-		
-		# Search in global scope
-		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
-			for v in self.symbolTable["global"]:
-				if v[0] == token.getTokenValue(): 		# var name
-					return v[3]				    		# return 
-		
-		if not declaration:
-			# Return False if not found var name
-			self.reportErrorMsg("NameError: name '" + token.getTokenValue() + "' is not defined", token.line)
-			self.errorFlag = True
-		return False
-
+	# Assign True to the var if var in ST
+	# Return false if not declared
 	def set_value_ST(self, token, scope, value, declaration = False): 
 		print "set_value_ST FUNCTION"
 		if not scope:
