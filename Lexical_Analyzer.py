@@ -35,6 +35,8 @@
 # 1.0.0    Rose		  2015-03-24 Type checking with Array variables
 # 1.0.0    Rose		  2015-03-31 Start Code Gneration
 # 1.0.0    Rose		  2015-04-04 Fix bug in Type checking Expressions
+# 1.0.0    Rose		  2015-04-06 Fix bugs in parser
+# 1.0.0    Rose		  2015-04-07 File managemente
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -1298,6 +1300,7 @@ class Lexical_Analyzer:
 			self.symbolTable[scope].append([name,Type, size, Value])
 
 	def printST(self):
+		print "Simbol Table"
 		for k in self.symbolTable.keys():
 			print "\nScope:",k
 			for i in range(len(self.symbolTable[k])):
@@ -1504,8 +1507,8 @@ class Lexical_Analyzer:
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
 filename = "/Users/roses/Downloads/Repository/test.src"
-
 generatedFile = filename[0:-3]+"ll"
+
 
 # If file already exists, then delete it
 if os.path.exists(generatedFile):
@@ -1515,8 +1518,6 @@ analyzer = Lexical_Analyzer(generatedFile)
 analyzer.getTokenFromFile(filename)
 analyzer.current_token = analyzer.tokenList.Next  
 
-#nalyzer.file.createFile(generatedFile)
-#analyzer.file.writeToken(generatedFile)
 
 analyzer.program(analyzer.tokenList.Next)
 
