@@ -511,7 +511,22 @@ class Lexical_Analyzer:
 	def program(self,token):
 		if self.program_header(token):
 			self.reset()
-			self.program_body(analyzer.current_token)
+			if self.program_body(analyzer.current_token):
+				if analyzer.current_token.getTokenValue() == "end":
+					token = self.scanToken()
+
+					if token.getTokenValue() == "program":
+						print "\nSuccess!"
+						return True
+
+					else:
+						self.reportError("program", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
+				else:
+					self.reportError("end", token.getTokenValue(), token.line)
+					self.errorFlag = True
+					return False
 
 	def program_header(self,token):
 		print "\nProgram_header Function"
@@ -559,23 +574,10 @@ class Lexical_Analyzer:
 				print "\nStart Main Program!"
 
 				if self.statement(analyzer.current_token):
-
-					if analyzer.current_token.getTokenValue() == "end":
-						token = self.scanToken()
-
-						if token.getTokenValue() == "program":
-							print "\nSuccess!"
-							return True
-
-						else:
-							self.reportError("program", token.getTokenValue(), token.line)
-							self.errorFlag = True
-							return False
-					else:
-						self.reportError("end", token.getTokenValue(), token.line)
-						self.errorFlag = True
-						return False
+					return True
+	
 				else:
+					self.errorFlag = True
 					return False
 			else: 
 				#self.reportErrorMsg("Wrong Declaration",analyzer.current_token.line)
@@ -863,13 +865,14 @@ class Lexical_Analyzer:
 	# If proc_scope then it is a statement within procedure
 	def statement(self,token, if_stat = False, proc_scope = False): 
 		print "Statement Function:", token.getTokenValue()
+		print "if_stat", if_stat
 		#print "scope",proc_scope
 		prior = token
 		token = self.scanToken()
 		#print "token:",token.getTokenValue()
 
 		if not token:
-			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line)
+			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
 			return False
 
 		if not if_stat:  # if_stat: then should execute at least one statement
@@ -885,6 +888,8 @@ class Lexical_Analyzer:
 				if self.assignment_statement(token, proc_scope):
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
+					else:
+						return False
 				else: 
 					return False
 
@@ -893,6 +898,8 @@ class Lexical_Analyzer:
 
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
+					else:
+						return False
 				else:
 					return False
 
@@ -901,6 +908,8 @@ class Lexical_Analyzer:
 
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
+				else:
+					return False
 			else:
 				return False
 
@@ -911,6 +920,8 @@ class Lexical_Analyzer:
 
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
+				else:
+					return False
 			else:
 				return False
 
@@ -921,6 +932,8 @@ class Lexical_Analyzer:
 
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
+				else:
+					return False
 			else:
 				return False
 
@@ -929,7 +942,7 @@ class Lexical_Analyzer:
 			return False
 
 		else:
-			self.reportErrorMsg("SyntaxError: invalid syntax",token.line)
+			#self.reportErrorMsg("SyntaxError: invalid syntax ",token.line)
 			return False
 
 	# If proc_scope then it is assigment within procedure
@@ -1215,12 +1228,12 @@ class Lexical_Analyzer:
 										return False
 
 								else:
-									self.reportErrorMsg("Error: IF must have at least one statement", token.line)
+									self.reportErrorMsg("Error: IF statement must have at least one statement", token.line)
 									self.errorFlag = True
 									return False
 
 							if not analyzer.current_token:
-								self.reportErrorMsg("SyntaxError: Missing 'end if'", token.line)
+								self.reportErrorMsg("SyntaxError: Missing 'end if'", token.line+1)
 								self.errorFlag = True
 								return False
 
@@ -1491,6 +1504,11 @@ dfa = DFA()
 filename = "/Users/roses/Downloads/Repository/test.src"
 
 generatedFile = filename[0:-3]+"ll"
+
+# If file already exists, then delete it
+if os.path.exists(generatedFile):
+	os.remove(generatedFile)
+
 analyzer = Lexical_Analyzer(generatedFile)
 analyzer.getTokenFromFile(filename)
 analyzer.current_token = analyzer.tokenList.Next  
