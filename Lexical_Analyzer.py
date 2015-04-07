@@ -400,15 +400,15 @@ class Lexical_Analyzer:
 			minus = True
 										   							
 		if token.getTokenType() == ("IDENTIFIER"):
-			
+
 			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
+			print ST
+			print len(ST)
+			print scope
+
 			if ST:
-				print ST
-				print len(ST)
-				print scope
-				if ST[3] == True or (len(ST) == 5 and not scope ): #  GLOBAL  							# IF var has been initialized
-				
-					#STlist = self.lookatST(token, scope)  				# STList = [name, type, size, value]
+				if ST[3] == True or (len(ST) == 5 and scope): #  GLOBAL  							# IF var has been initialized
+		
 					token = self.scanToken()
 					
 					# Minus Type checking
@@ -1112,7 +1112,7 @@ class Lexical_Analyzer:
 						expType = self.arrayType("loop")
 						print expType, " in loop_statement"
 
-						if not expType:
+						if expType != "bool":
 							self.reportErrorMsg("Wrong Expression in loop statement", token.line)
 							self.errorFlag = True
 							return False
