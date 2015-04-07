@@ -284,7 +284,7 @@ class Lexical_Analyzer:
 		STlist = self.E(current_token, sign, scope)
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
-				print "Correct Expression"
+				print "\nCorrect Expression"
 				return STlist
 			else: 
 				self.reportWarning("Missing )")
@@ -354,12 +354,13 @@ class Lexical_Analyzer:
 		elif token.getTokenValue() in ("&&","|"):
 			return True
 
-		elif token.getTokenValue() == ")":
+		while token.getTokenValue() == ")" and not self.EXPstack.isEmpty():
 			if not self.EXPstack.isEmpty():
 				self.EXPstack.pop()
+				print "stack", self.EXPstack.items
 				token = self.scanToken()
 			else:
-				self.reportError(") ","(", token.line)
+				self.reportError("(",")", token.line)
 				self.errorFlag = True
 				return False
 
@@ -389,11 +390,11 @@ class Lexical_Analyzer:
 		print "F: ",token.getTokenValue()
 		print token.getTokenType()
 
-		if token.getTokenValue() == "(":
+		while token.getTokenValue() == "(":
 			self.EXPstack.push(token.getTokenValue())   		   # push Parenthesis
-			print "stack: ",self.EXPstack.peek()
+			print "stack: ",self.EXPstack.items
 			token = self.scanToken()
-			self.E(token,sign)
+			#self.E(token,sign, scope)
 
 		if token.getTokenValue() == "-": 							# minus
 			token = self.scanToken()
@@ -563,8 +564,17 @@ class Lexical_Analyzer:
 						token = self.scanToken()
 
 						if token.getTokenValue() == "program":
-							print "\nCORRECT PROGRAM"
+							print "\nSuccess!"
 							return True
+
+						else:
+							self.reportError("program", token.getTokenValue(), token.line)
+							self.errorFlag = True
+							return False
+					else:
+						self.reportError("end", token.getTokenValue(), token.line)
+						self.errorFlag = True
+						return False
 				else:
 					return False
 			else: 
@@ -853,9 +863,14 @@ class Lexical_Analyzer:
 	# If proc_scope then it is a statement within procedure
 	def statement(self,token, if_stat = False, proc_scope = False): 
 		print "Statement Function:", token.getTokenValue()
-		print "scope",proc_scope
+		#print "scope",proc_scope
+		prior = token
 		token = self.scanToken()
-		print "token:",token.getTokenValue()
+		#print "token:",token.getTokenValue()
+
+		if not token:
+			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line)
+			return False
 
 		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
@@ -865,22 +880,23 @@ class Lexical_Analyzer:
 				if token.getTokenValue() == "else" and self.stack.size() > 0:
 					return True
 
-		if token.Next.getTokenValue() in (":=","["):
-			if self.assignment_statement(token, proc_scope):
-				if self.statement(analyzer.current_token, False, proc_scope):
-					return True
-			else: 
-				return False
+		if token.Next:
+			if token.Next.getTokenValue() in (":=","["):
+				if self.assignment_statement(token, proc_scope):
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+				else: 
+					return False
 
-		elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
-			if self.procedure_call(token, proc_scope):
+			elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
+				if self.procedure_call(token, proc_scope):
 
-				if self.statement(analyzer.current_token, False, proc_scope):
-					return True
-			else:
-				return False
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+				else:
+					return False
 
-		elif token.getTokenValue() == "return":
+		if token.getTokenValue() == "return":
 			if self.return_statement(token, proc_scope):
 
 				if self.statement(analyzer.current_token, False, proc_scope):
@@ -907,6 +923,10 @@ class Lexical_Analyzer:
 					return True
 			else:
 				return False
+
+		elif if_stat:
+			self.reportErrorMsg("Error: IF must have at least one statement",token.line)
+			return False
 
 		else:
 			self.reportErrorMsg("SyntaxError: invalid syntax",token.line)
@@ -964,7 +984,7 @@ class Lexical_Analyzer:
 					if analyzer.current_token.getTokenValue() == ";":
 						if self.assignTypeChecking(STlist[1], expType): # check type checking
 		
-							print "Type checking okay"
+							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
 							return True
@@ -1190,17 +1210,19 @@ class Lexical_Analyzer:
 
 								if self.stack.peek() == "if":
 
-									if self.statement(token, True, proc_scope):  # execute at least once
-										pass
-
-									else:
+									if not self.statement(token, True, proc_scope):  # execute at least once
 										self.errorFlag = True
 										return False
 
 								else:
-									self.reportErrorMsg("Missing IF statement", token.line)
+									self.reportErrorMsg("Error: IF must have at least one statement", token.line)
 									self.errorFlag = True
 									return False
+
+							if not analyzer.current_token:
+								self.reportErrorMsg("SyntaxError: Missing 'end if'", token.line)
+								self.errorFlag = True
+								return False
 
 							if analyzer.current_token.getTokenValue() == "end": # IF without ELSE
 								token = self.scanToken()
