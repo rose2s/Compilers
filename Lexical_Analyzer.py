@@ -94,7 +94,7 @@ class Lexical_Analyzer:
 
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
-		
+		print "Tokens:"
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
 
@@ -247,7 +247,7 @@ class Lexical_Analyzer:
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
 				
-			    print inp_program + " is " + token
+			    print "<"+inp_program + "> is <" + token+">"
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
 		else:									
@@ -531,7 +531,7 @@ class Lexical_Analyzer:
 					return False
 
 	def program_header(self,token):
-		print "\nProgram_header Function"
+		#print "\nProgram_header Function"
 		if not self.errorFlag:
 
 				if self.stack.isEmpty():
@@ -866,8 +866,7 @@ class Lexical_Analyzer:
 	# If if_stat then "else is a sign for expressions"
 	# If proc_scope then it is a statement within procedure
 	def statement(self,token, if_stat = False, proc_scope = False): 
-		print "Statement Function:", token.getTokenValue()
-		print "if_stat", if_stat
+		#print "Statement Function:", token.getTokenValue()
 		#print "scope",proc_scope
 		prior = token
 		token = self.scanToken()
@@ -1446,7 +1445,7 @@ class Lexical_Analyzer:
 		if not scope:
 			scope = "main"
 
-		print "scope", scope
+		#print "scope", scope
 
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
