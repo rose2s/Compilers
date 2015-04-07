@@ -1281,12 +1281,14 @@ class Lexical_Analyzer:
 
 	def reportError(self, expected, received, line):
 	 	print  "\nSyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
+	 	self.file.deleteFile()
 
 	def reportWarning(self, message):
 	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", in line ", line,'\n'
+	 	self.file.deleteFile()
 
 	def addSymbolTable(self, scope, name, Type, size, Value = None):
 		
