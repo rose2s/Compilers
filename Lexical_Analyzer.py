@@ -402,9 +402,6 @@ class Lexical_Analyzer:
 		if token.getTokenType() == ("IDENTIFIER"):
 
 			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
-			print ST
-			print len(ST)
-			print scope
 
 			if ST:
 				if ST[3] == True or (len(ST) == 5 and scope): #  GLOBAL  							# IF var has been initialized
@@ -463,8 +460,12 @@ class Lexical_Analyzer:
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
 			expType = token.getTokenType() 
 			print expType, " in F"
+
+			if token.getTokenValue() in ("0","1"):   # boolean checking
+				self.checkExp.append("int")
+			else:
+				self.checkExp.append(expType.lower())
 			token = self.scanToken()
-			self.checkExp.append(expType.lower())
 			return True
 
 		elif token.getTokenType() in ("STRING") and not minus:
@@ -648,7 +649,6 @@ class Lexical_Analyzer:
 				self.listGen.append(Type)
 				self.listGen.append(name)
 				
-
 				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
 				if STlist:
@@ -969,7 +969,7 @@ class Lexical_Analyzer:
 							self.set_value_ST(var_token, proc_scope, True)
 							return True
 						else:
-							self.reportErrorMsg("Type unmacthed!", token.line)
+							self.reportErrorMsg("Error: Unmatched Types!", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1245,7 +1245,7 @@ class Lexical_Analyzer:
 			return True
 
 	def reportError(self, expected, received, line):
-	 	print  "\nSyntaxError: "+expected+" Expected"+", "+received+" Received, in line ", line,'\n'
+	 	print  "\nSyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
 
 	def reportWarning(self, message):
 	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
@@ -1306,7 +1306,7 @@ class Lexical_Analyzer:
 		if len(condList) > 0:
 			condList.append(varType)
 			print "cond List", condList
-
+			varType = condList[0]
 			for i in range(0, len(condList)-1, 2):
 				varType = self.typeChecking(varType, condList[i+1], condList[i+2]) # [type1, signal ,type2]
 
@@ -1315,82 +1315,87 @@ class Lexical_Analyzer:
 
 	def assignTypeChecking(self, type1, type2):
 
-		if type1 == type2 and type2 == "integer":  
+		print "Assignment Type Checking of", type1,type2
+
+		if type1 in ("integer", "int") and type2 in ("integer", "int"):  
 			return "integer"
 
 		elif type1 == "float":
-			if type2 in ("float","integer"):
+			if type2 in ("float","integer", "int"):
 				return "float"
 
 		elif type2 == "float":
-			if type1 in ("float","integer"):
+			if type1 == "float":
 				return "float"
 
-		elif type1 == type2 and type2 == "bool":
+		elif type1 == "bool":
+			if type2 in ("bool", "int"):
+				return "bool"
+
+		elif type2 == type1 and type1 == "bool":
 			return "bool"
 		
 		elif type1.lower() in ("string", "identifier"):
 			if type2 in ("string", "identifier"):
 				return "string"
 		else:
-			print "Unmacthed types"
+			#print "Unmacthed types"
 			return False
 
-	# If not signal, then assign checking
 	def typeChecking(self, type1, signal, type2):
 		
-		print "type_checking of",type1,", and ",type2
+		print "\nType_checking of",type1,", and ",type2
 		print "signal", signal
 
 		if self.relation_op(signal):  					# If it is a relational signal
 
-			if type1 == type2 and type2 == "integer":  
+			if type1 in ("integer", "int") and type2 in ("integer", "int"):  
 				return "bool"
 
 			elif type1 == "float":
-				if type2 in ("float","integer"):
+				if type2 in ("float","integer", "int"):
 					return "bool"
 
 			elif type2 == "float":
-				if type1 in ("float","integer"):
+				if type1 in ("float","integer", "int"):
 					return "bool"
 			else:
-				print "Unmacthed types"
+				#print "Unmacthed types"
 				return False
 
 		elif signal in ("+","-","*","/"): 					# If it is a relational signal
 
-			if type1 == type2 and type2 == "integer": 
+			if type1 in ("integer", "int") and type2 in ("integer", "int"): 
 				return "integer"
 
 			elif type1 == "float":
-				if type2 in ("float","integer"):
+				if type2 in ("float","integer", "int"):
 					return "float"
 
 			elif type2 == "float":
-				if type1 in ("float","integer"):
+				if type1 in ("float","integer", "int"):
 					return "float"
 			else:
-				print "Unmacthed types"
+				#print "Unmacthed types"
 				return False
 
 		elif signal in ("&&", "|", "not"): 		
 
-			if type1 == type2 and type2 == "integer":  
+			if type1 in ("integer", "int") and type2 in ("integer", "int"):  
 				return "integer"
 
-			elif type1 == type2 and type2 == "bool":
+			elif type1 in ("bool", "int") and type2 in ("bool", "int"):
 				return "bool"
-			
+
 			else:
-				print "Unmacthed types"
+				#print "Unmacthed types"
 				return False
 
 		elif type1.lower() in ("string", "identifier"):
 			if type2 in ("string", "identifier"):
 				return "string"
 		else:
-			print "Unmacthed types"
+			#print "Unmacthed types"
 			return False
 	
 	# return list of var items if var in ST [name, type, size, value]
