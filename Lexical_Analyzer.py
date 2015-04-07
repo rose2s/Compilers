@@ -405,7 +405,8 @@ class Lexical_Analyzer:
 			if ST:
 				print ST
 				print len(ST)
-				if ST[3] == True or len(ST) == 5: #  GLOBAL  							# IF var has been initialized
+				print scope
+				if ST[3] == True or (len(ST) == 5 and not scope ): #  GLOBAL  							# IF var has been initialized
 				
 					#STlist = self.lookatST(token, scope)  				# STList = [name, type, size, value]
 					token = self.scanToken()
