@@ -407,8 +407,12 @@ class Lexical_Analyzer:
 			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
 
 			if ST:
-				if ST[3] == True or (len(ST) == 5 and scope): #  GLOBAL  							# IF var has been initialized
-		
+				if ST[3] == True or (self.isGlobal(token) and scope): #  GLOBAL  							# IF var has been initialized
+					
+					if self.isGlobal(token):
+						var = "@"+token.getTokenValue()
+					else:
+						var = "%"+token.getTokenValue()
 					token = self.scanToken()
 					
 					# Minus Type checking
@@ -435,6 +439,7 @@ class Lexical_Analyzer:
 								return False
 							else:
 								self.checkExp.append(ST[1].lower())  		# var type
+								self.listGen.append(var)  
 								return True 	
 
 						else:
@@ -449,6 +454,7 @@ class Lexical_Analyzer:
 							return False
 						else:	
 							self.checkExp.append(ST[1].lower())  				# var type
+							self.listGen.append(var)  
 							return True
 
 				else: # then it is a global variable
@@ -466,8 +472,10 @@ class Lexical_Analyzer:
 
 			if token.getTokenValue() in ("0","1"):   # boolean checking
 				self.checkExp.append("int")
+				self.listGen.append(token.getTokenValue())  
 			else:
 				self.checkExp.append(expType.lower())
+				self.listGen.append(token.getTokenValue())  
 			token = self.scanToken()
 			return True
 
@@ -476,6 +484,7 @@ class Lexical_Analyzer:
 			print expType, " in F"
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
+			self.listGen.append(token.getTokenValue())  
 			return True
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false") and not minus:
@@ -483,6 +492,7 @@ class Lexical_Analyzer:
 			print expType, " in F"
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
+			self.listGen.append(token.getTokenValue())  
 			return True
 
 		else:
@@ -947,10 +957,10 @@ class Lexical_Analyzer:
 			return False
 
 	# If proc_scope then it is assigment within procedure
+	# listgGen = [[global], type, name, value]
 	def assignment_statement(self, token, proc_scope = False):
 		print "\nAssignment Statement Function"
 		print "scope",proc_scope
-
 
 		if token.getTokenType() == "IDENTIFIER":
 
@@ -962,6 +972,11 @@ class Lexical_Analyzer:
 			if not STlist:												# Error: Undeclared var
 				return False
 			# ---------  ##  --------- #
+
+			if self.isGlobal(var_token):
+				self.listGen.append("global")
+			self.listGen.append(STlist[1])  # type
+			self.listGen.append(var_token.getTokenValue())  # name
 
 			# --- Array checking -----
 			if STlist[2] > 0 : 											# If var was declared as array
@@ -1001,6 +1016,8 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
+							self.file.genAssignment(self.listGen)
+							self.listGen = []
 							return True
 						else:
 							self.reportErrorMsg("Error: Unmatched Types!", token.line)
@@ -1436,7 +1453,18 @@ class Lexical_Analyzer:
 		else:
 			#print "Unmacthed types"
 			return False
-	
+
+	# return True is var is Global
+	def isGlobal(self, token): 
+
+		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
+			for v in self.symbolTable["global"]:
+				if v[0] == token.getTokenValue(): 	
+					return True	
+			return False
+		else:
+			return False
+
 	# return list of var items if var in ST [name, type, size, value]
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
