@@ -301,6 +301,7 @@ class Lexical_Analyzer:
 			print "ST", self.checkExp
 			
 			if analyzer.current_token.getTokenValue() in ("&&","|"):
+				self.listGen.append(analyzer.current_token.getTokenValue())  
 				self.checkExp.append(analyzer.current_token.getTokenValue())
 				token = self.scanToken()
 				if self.E(token, sign, scope):
@@ -315,6 +316,7 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
+				self.listGen.append(token.getTokenValue())  # * or /
 				self.checkExp.append(token.getTokenValue())
 				token = self.scanToken()
 				self.T(token,sign, scope)
@@ -376,6 +378,7 @@ class Lexical_Analyzer:
 			# ---------------------
 
 			print token.getTokenValue()
+			self.listGen.append(token.getTokenValue())  # * or /
 			self.checkExp.append(token.getTokenValue())
 			token = self.scanToken()
 
@@ -413,8 +416,10 @@ class Lexical_Analyzer:
 						var = "@"+token.getTokenValue()
 					else:
 						var = "%"+token.getTokenValue()
+						vtype = ST[1]
 					token = self.scanToken()
 					
+					loadList = [vtype, var]
 					# Minus Type checking
 					if minus:
 						if ST[1].lower() not in ("integer, float"):
@@ -439,7 +444,8 @@ class Lexical_Analyzer:
 								return False
 							else:
 								self.checkExp.append(ST[1].lower())  		# var type
-								self.listGen.append(var)  
+								self.listGen.append(var) 
+								self.file.load(loadList) 
 								return True 	
 
 						else:
@@ -455,6 +461,7 @@ class Lexical_Analyzer:
 						else:	
 							self.checkExp.append(ST[1].lower())  				# var type
 							self.listGen.append(var)  
+							self.file.load(loadList) 
 							return True
 
 				else: # then it is a global variable

@@ -1,19 +1,28 @@
 import os
 
+# Alloca command: <result> = alloca <type>[, i32 <NumElements>][, align <alignment>]     ; yields {type*}:result
+# Load command:   <result> = load <ty>* <pointer>[, align <alignment>]
+# Store Command:  store <ty> <value>, <ty>* <pointer>[, align <alignment>]       
 class CodeGen:
 	
 	def __init__(self, filename):
 		self.filename = filename
 		self.sentence = []
-		self.mainTemp = 0
+		self.temp = 1
 
 	def createFile(self):
 		file = open(self.filename,'a')
 
+	def getTemp(self):
+		return self.temp
+
+	def setTemp(self):
+		self.temp = self.temp + 1;
+
 	def getType(self, varType):
 		if varType == "integer":
 			return "i32"
-		elif varType == "integer":
+		elif varType == "int":
 			return "i32"
 		elif varType == "float":
 			return "float"
@@ -46,8 +55,9 @@ class CodeGen:
 
 		self.writeToken()
 
-	# store i32 2, i32* %x, align 4
-	# myList = [global, type, name, value]
+	# Load command:   %temp = load <type>* <@|var> , align 4  			-->   %1 = load float* %y, align 4
+	# Store Command:  store <type> <%temp>, <type>* <@|%var>, align 4   -->   store float %1, float* %x, align 4
+	# myList = [global, vartype, var, value]
 	def genAssignment(self, myList):
 		print "CODE ASSIGNMENT FUNCTION FUNCTION: ", myList
 		scope = "%"
@@ -74,6 +84,76 @@ class CodeGen:
 		#	self.sentence.append(varType+", align 4")
 
 		self.writeToken()
+
+	# Load command:   %temp = load <type>* <@|var> , align 4  -->   %1 = load float* %y, align 4
+	# myList = [vartype, var]
+	#  <result> = op type value, var
+	def load(self, myList):
+		print "CODE Load function: ", myList
+
+		varType = self.getType(myList[0])
+		name = myList[1]
+		
+		self.sentence.append("%")
+		self.sentence.append(str(self.temp))
+		self.setTemp()
+		self.sentence.append(" = load ")
+		self.sentence.append(varType)
+		self.sentence.append("* ")
+		self.sentence.append(name)
+		self.sentence.append(", align 4")
+		print "sentence",self.sentence
+
+		self.writeToken()
+
+	def getCompOp(self, code, typeVar):
+		if typeVar in ("int", "integer"):
+			if code == "==":
+				return "eq"
+			elif code == "!=":
+				return "ne"
+			elif code == ">":
+				return "sgt" 
+			elif code == "<=":
+				return "sle"
+
+		elif typeVar == "float":
+			if code == "==":
+				return "oeq"
+			elif code == "!=":
+				return "one"
+			elif code == ">":
+				return "ogt" 
+			elif code == "<=":
+				return "ole"
+
+# <result> = icmp eq i32 4, 5          ; yields: result=false
+# <result> = icmp ne float* %X, %X     ; y
+	def getOp(self, op, typeVar):
+		if typeVar in ("int","integer"):
+			if op == '+':
+				return "add"
+			elif op == '-':
+				return "sub"
+			elif op == '*':
+				return "mul"
+			elif op == '/':
+				return "sdiv"
+			elif op == '&&':
+				return "and"
+			elif op == '|':
+				return "or"
+
+		elif typeVar == "float":
+			if op == '+':
+				return "fadd"
+			elif op == '-':
+				return "fsub"
+			elif op == '*':
+				return "fmul"
+			elif op == '/':
+				return "fdiv"
+
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):
@@ -145,6 +225,7 @@ class CodeGen:
 		with open(self.filename,'a') as f:
 			#f.write("\n")
 			for t in self.sentence:
+				print "t: ",t
 				f.write(t)
 			self.skipLine()
 			self.sentence = []
@@ -152,7 +233,8 @@ class CodeGen:
 	def skipLine(self):
 		with open(self.filename,'a') as f:
 			f.write("\n")
-
+	def deleteFile(self):
+		os.remove(self.filename)
 
 #filename = "/Users/roses/Downloads/Repository/Rose.ll"
 # = CodeGen(filename)
