@@ -284,10 +284,13 @@ class Lexical_Analyzer:
 	# Validates Expression
 	# Return ExpType if expression is correct
 	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
+		print "\nLISTA BEFORE",self.listGen
 		STlist = self.E(current_token, sign, scope)
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				print "\nCorrect Expression"
+				print "\nLISTA DEPOIS",self.listGen
+				self.file.genExpression(self.listGen)
 				return STlist
 			else: 
 				self.reportWarning("Missing )")
@@ -445,6 +448,7 @@ class Lexical_Analyzer:
 								return False
 							else:
 								self.checkExp.append(ST[1].lower())  		# var type
+								self.listGen.append(ST[1].lower()) # type 
 								self.listGen.append(var) 
 								print "loadList", loadList
 								self.file.load(loadList) 
@@ -462,7 +466,8 @@ class Lexical_Analyzer:
 							return False
 						else:	
 							self.checkExp.append(ST[1].lower())  				# var type
-							self.listGen.append(var) 
+							self.listGen.append(ST[1].lower()) # type 
+							self.listGen.append(var) 		 # var
 							print "loadList", loadList
 							self.file.load(loadList) 
 							return True
@@ -482,9 +487,11 @@ class Lexical_Analyzer:
 
 			if token.getTokenValue() in ("0","1"):   # boolean checking
 				self.checkExp.append("int")
+				self.listGen.append("int") # type 
 				self.listGen.append(token.getTokenValue())  
 			else:
 				self.checkExp.append(expType.lower())
+				self.listGen.append(expType.lower()) # type 
 				self.listGen.append(token.getTokenValue())  
 			token = self.scanToken()
 			return True
@@ -494,6 +501,7 @@ class Lexical_Analyzer:
 			print expType, " in F"
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
+			self.listGen.append(expType.lower()) # type
 			self.listGen.append(token.getTokenValue())  
 			return True
 
@@ -502,6 +510,7 @@ class Lexical_Analyzer:
 			print expType, " in F"
 			token = self.scanToken()
 			self.checkExp.append(expType.lower())
+			self.listGen.append(expType.lower()) #type
 			self.listGen.append(token.getTokenValue())  
 			return True
 

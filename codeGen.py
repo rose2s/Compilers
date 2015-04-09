@@ -65,7 +65,7 @@ class CodeGen:
 	# Store Command:  store <type> <%temp>, <type>* <@|%var>, align 4   -->   store float %1, float* %x, align 4
 	# myList = [global, vartype, var, value]
 	def genAssignment(self, myList):
-		print "CODE ASSIGNMENT FUNCTION FUNCTION: ", myList
+		print "\nGenCode for Assignment: ", myList
 		scope = "%"
 
 		if myList[0] == "global":
@@ -79,12 +79,11 @@ class CodeGen:
 		self.sentence.append("store ")
 		self.sentence.append(varType)
 
-		print "value", value
-		print "dic", self.tempDic
-		if self.getTemp(value):
-			self.sentence.append(" %"+self.getTemp(value)+", ")
-		else:
-			self.sentence.append(" "+value+", ")
+		#if self.getTemp(value):
+		#	self.sentence.append(" %"+self.getTemp(value)+", ")
+		#else:
+		#	self.sentence.append(" "+value+", ")
+		self.sentence.append(" %"+str(self.temp-1)+", ")
 		self.sentence.append(varType+"* ")
 		self.sentence.append(scope+name)
 		self.sentence.append(", align 4")
@@ -100,7 +99,7 @@ class CodeGen:
 	# myList = [vartype, var]
 	#  <result> = op type value, var
 	def load(self, myList):
-		print "CODE Load function: ", myList
+		print "\nGenCode for Load: ", myList
 
 		varType = self.getType(myList[0])
 		name = myList[1]
@@ -118,6 +117,36 @@ class CodeGen:
 		self.sentence.append(", align 4")
 		print "sentence",self.sentence
 
+		self.writeToken()
+
+	# myList = [type, '%a', '+', type, '%b']
+	#   %4 = add nsw i32 %2, %3
+	def genExpression(self,myList):
+		print "\nGenCode for Expression: "
+		if myList[0] == "global":
+			myList = myList[3:]	 # remove type and var of code assignment
+		else:
+			myList = myList[2:]  # remove type and var of code assignment
+		print myList
+
+		if len(myList) > 2:  # fazer p len == 2 --> tem tem add
+		#	for i in range(0,len(myList),3)
+			self.sentence.append("%")
+			self.sentence.append(str(self.temp))
+			self.setTemp()
+			self.sentence.append(" = ")
+			self.sentence.append(self.getOp(myList[2],myList[0])+" ")
+			self.sentence.append(self.getType(myList[0])+" ")
+
+			if self.getTemp(myList[1]):
+				self.sentence.append("%"+self.getTemp(myList[1])+", ")
+			else:
+				self.sentence.append(" "+myList[1]+", ")
+
+			#self.sentence.append(self.getTemp(myList[1])+", ")  # tem var
+			self.sentence.append("%"+self.getTemp(myList[4]))  # tem var
+
+		print "sentence",self.sentence
 		self.writeToken()
 
 	def getCompOp(self, code, typeVar):
@@ -171,7 +200,7 @@ class CodeGen:
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):
-		print "CODE PROCEDURE: ", myList
+		print "\nGenCode for procedure: ", myList
 		scope = "%"
 		#; function
 		self.sentence.append("declare void ")
@@ -236,11 +265,11 @@ class CodeGen:
 			return False
 
 	def writeToken(self):
-		print "mistList", self.sentence
+		#print "mistList", self.sentence
 		with open(self.filename,'a') as f:
 			#f.write("\n")
 			for t in self.sentence:
-				print "t: ",t
+				#print "t: ",t
 				f.write(t)
 			self.skipLine()
 			self.sentence = []
@@ -248,9 +277,10 @@ class CodeGen:
 	def skipLine(self):
 		with open(self.filename,'a') as f:
 			f.write("\n")
-			
+
 	def deleteFile(self):
-		os.remove(self.filename)
+		if os.path.exists(self.filename):
+			os.remove(self.filename)
 
 #filename = "/Users/roses/Downloads/Repository/Rose.ll"
 # = CodeGen(filename)
