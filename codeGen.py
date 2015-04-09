@@ -17,9 +17,9 @@ class CodeGen:
 	def getTemp(self, var):
 		#print "VAR in dict ",var
 		for k,v in self.tempDic.items():
-			print k
+			#print k
 			if k == var:
-				return v
+				return "%"+str(v)
 		return False
 
 	def setTemp(self):
@@ -81,7 +81,7 @@ class CodeGen:
 		if len(myList) == 4:
 			value = myList[3]    # value
 			if self.getTemp(value):
-				self.sentence.append(" %"+self.getTemp(value)+", ")
+				self.sentence.append(self.getTemp(value)+", ")
 			else:
 				self.sentence.append(" "+value+", ")
 		else:
@@ -129,27 +129,37 @@ class CodeGen:
 		print myList
 
 		if len(myList) > 2:  # fazer p len == 2 --> tem tem add
-		#	for i in range(0,len(myList),3)
-			self.sentence.append("%")
-			self.sentence.append(str(self.temp))
-			self.setTemp()
-			self.sentence.append(" = ")
-			self.sentence.append(self.getOp(myList[2],myList[0])+" ")
-			self.sentence.append(self.getType(myList[0])+" ")
-			# 1 operand
-			if self.getTemp(myList[1]):
-				self.sentence.append("%"+self.getTemp(myList[1])+", ")
-			else:
-				self.sentence.append(" "+myList[1]+", ")
-				
-			# 2 operand
-			if self.getTemp(myList[4]):
-				self.sentence.append("%"+self.getTemp(myList[4]))
-			else:
-				self.sentence.append(myList[4])
 
-		print "sentence",self.sentence
-		self.writeToken()
+			while len(myList) > 0:
+				self.sentence.append("%")
+				self.sentence.append(str(self.temp))
+				self.setTemp()
+				self.sentence.append(" = ")
+				self.sentence.append(self.getOp(myList[2],myList[3])+" ")
+				self.sentence.append(self.getType(myList[3]))
+				
+				# 1 operand
+				if self.getTemp(myList[1]):
+					x = self.getTemp(myList[1])
+				else:
+					x = myList[1]
+
+				self.sentence.append(" "+ x +", ")
+				# 2 operand
+				if self.getTemp(myList[4]):
+					y = self.getTemp(myList[4])
+				else:
+					y = myList[4]
+				self.sentence.append(y)
+				
+				print "sentence",self.sentence
+				self.writeToken()
+				myList = myList[3:]
+				print "after cut", myList
+				myList[1] = "%"+str(self.temp-1)		  # result of previous operation
+				print "under operation: ",myList
+				if len(myList) == 2:
+					myList = []
 
 	def getCompOp(self, code, typeVar):
 		if typeVar in ("int", "integer"):
