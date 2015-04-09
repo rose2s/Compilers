@@ -64,8 +64,8 @@ class CodeGen:
 	# Load command:   %temp = load <type>* <@|var> , align 4  			-->   %1 = load float* %y, align 4
 	# Store Command:  store <type> <%temp>, <type>* <@|%var>, align 4   -->   store float %1, float* %x, align 4
 	# myList = [global, vartype, var, value]
-	def genAssignment(self, myList):
-		print "\nGenCode for Assignment: ", myList
+	def genStore(self, myList):
+		print "\nGenCode for Store: ", myList
 		scope = "%"
 
 		if myList[0] == "global":
@@ -74,31 +74,30 @@ class CodeGen:
 
 		varType = self.getType(myList[0])
 		name = myList[1]
-		value = myList[2]
 
 		self.sentence.append("store ")
 		self.sentence.append(varType)
 
-		#if self.getTemp(value):
-		#	self.sentence.append(" %"+self.getTemp(value)+", ")
-		#else:
-		#	self.sentence.append(" "+value+", ")
-		self.sentence.append(" %"+str(self.temp-1)+", ")
+		if len(myList) == 4:
+			value = myList[3]    # value
+			if self.getTemp(value):
+				self.sentence.append(" %"+self.getTemp(value)+", ")
+			else:
+				self.sentence.append(" "+value+", ")
+		else:
+			value = myList[3]    # value
+			self.sentence.append(" %"+str(self.temp-1)+", ")
+
 		self.sentence.append(varType+"* ")
 		self.sentence.append(scope+name)
 		self.sentence.append(", align 4")
-
-		#if len(myList) > 2:  		# array
-		#	self.sentence.append("["+myList[2]+" x "+varType+"]")
-		#else:
-		#	self.sentence.append(varType+", align 4")
 
 		self.writeToken()
 
 	# Load command:   %temp = load <type>* <@|var> , align 4  -->   %1 = load float* %y, align 4
 	# myList = [vartype, var]
 	#  <result> = op type value, var
-	def load(self, myList):
+	def genLoad(self, myList):
 		print "\nGenCode for Load: ", myList
 
 		varType = self.getType(myList[0])
@@ -137,14 +136,17 @@ class CodeGen:
 			self.sentence.append(" = ")
 			self.sentence.append(self.getOp(myList[2],myList[0])+" ")
 			self.sentence.append(self.getType(myList[0])+" ")
-
+			# 1 operand
 			if self.getTemp(myList[1]):
 				self.sentence.append("%"+self.getTemp(myList[1])+", ")
 			else:
 				self.sentence.append(" "+myList[1]+", ")
-
-			#self.sentence.append(self.getTemp(myList[1])+", ")  # tem var
-			self.sentence.append("%"+self.getTemp(myList[4]))  # tem var
+				
+			# 2 operand
+			if self.getTemp(myList[4]):
+				self.sentence.append("%"+self.getTemp(myList[4]))
+			else:
+				self.sentence.append(myList[4])
 
 		print "sentence",self.sentence
 		self.writeToken()

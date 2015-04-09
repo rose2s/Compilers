@@ -38,9 +38,10 @@
 # 1.0.0    Rose		  2015-04-06 Fix bugs in parser
 # 1.0.0    Rose		  2015-04-07 File managemente
 # 1.0.0    Rose		  2015-04-08 Code Generation
+# 1.0.0    Rose		  2015-04-09 Code Generation (exp)
 #-------------------------------------------------------------------------------
 
-import os,sys
+import os,sys, getopt 
 from automata import DFA
 from List import List
 from stack import Stack
@@ -284,12 +285,12 @@ class Lexical_Analyzer:
 	# Validates Expression
 	# Return ExpType if expression is correct
 	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
-		print "\nLISTA BEFORE",self.listGen
+		
 		STlist = self.E(current_token, sign, scope)
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				print "\nCorrect Expression"
-				print "\nLISTA DEPOIS",self.listGen
+				
 				self.file.genExpression(self.listGen)
 				return STlist
 			else: 
@@ -451,7 +452,7 @@ class Lexical_Analyzer:
 								self.listGen.append(ST[1].lower()) # type 
 								self.listGen.append(var) 
 								print "loadList", loadList
-								self.file.load(loadList) 
+								self.file.genLoad(loadList) 
 								return True 	
 
 						else:
@@ -469,7 +470,7 @@ class Lexical_Analyzer:
 							self.listGen.append(ST[1].lower()) # type 
 							self.listGen.append(var) 		 # var
 							print "loadList", loadList
-							self.file.load(loadList) 
+							self.file.genLoad(loadList) 
 							return True
 
 				else: # then it is a global variable
@@ -1036,7 +1037,7 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
-							self.file.genAssignment(self.listGen)
+							self.file.genStore(self.listGen)
 							self.listGen = []
 							return True
 						else:
@@ -1549,6 +1550,7 @@ class Lexical_Analyzer:
 			self.errorFlag = True
 			
 		return False
+
 
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
