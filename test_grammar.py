@@ -1,5 +1,0 @@
-//festa
-program rose is
-
-
-
