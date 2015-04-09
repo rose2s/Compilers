@@ -8,13 +8,19 @@ class CodeGen:
 	def __init__(self, filename):
 		self.filename = filename
 		self.sentence = []
-		self.temp = 1
+		self.temp 	  = 1
+		self.tempDic  = {}
 
 	def createFile(self):
 		file = open(self.filename,'a')
 
-	def getTemp(self):
-		return self.temp
+	def getTemp(self, var):
+		#print "VAR in dict ",var
+		for k,v in self.tempDic.items():
+			print k
+			if k == var:
+				return v
+		return False
 
 	def setTemp(self):
 		self.temp = self.temp + 1;
@@ -69,13 +75,18 @@ class CodeGen:
 		varType = self.getType(myList[0])
 		name = myList[1]
 		value = myList[2]
-		
+
 		self.sentence.append("store ")
 		self.sentence.append(varType)
-		self.sentence.append(" "+value+", ")
+
+		print "value", value
+		print "dic", self.tempDic
+		if self.getTemp(value):
+			self.sentence.append(" %"+self.getTemp(value)+", ")
+		else:
+			self.sentence.append(" "+value+", ")
 		self.sentence.append(varType+"* ")
-		self.sentence.append(scope)
-		self.sentence.append(name)
+		self.sentence.append(scope+name)
 		self.sentence.append(", align 4")
 
 		#if len(myList) > 2:  		# array
@@ -94,6 +105,9 @@ class CodeGen:
 		varType = self.getType(myList[0])
 		name = myList[1]
 		
+		self.tempDic[name] = str(self.temp)
+		print self.tempDic
+
 		self.sentence.append("%")
 		self.sentence.append(str(self.temp))
 		self.setTemp()
@@ -210,8 +224,8 @@ class CodeGen:
 		self.sentence.append("entry:")
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append("}")
-		self.writeToken()
+		#self.sentence.append("}")
+		#self.writeToken()
 
 		print "FUNCTION:", self.sentence
 
@@ -222,6 +236,7 @@ class CodeGen:
 			return False
 
 	def writeToken(self):
+		print "mistList", self.sentence
 		with open(self.filename,'a') as f:
 			#f.write("\n")
 			for t in self.sentence:
@@ -233,6 +248,7 @@ class CodeGen:
 	def skipLine(self):
 		with open(self.filename,'a') as f:
 			f.write("\n")
+			
 	def deleteFile(self):
 		os.remove(self.filename)
 

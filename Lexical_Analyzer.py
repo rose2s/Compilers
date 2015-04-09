@@ -37,6 +37,7 @@
 # 1.0.0    Rose		  2015-04-04 Fix bug in Type checking Expressions
 # 1.0.0    Rose		  2015-04-06 Fix bugs in parser
 # 1.0.0    Rose		  2015-04-07 File managemente
+# 1.0.0    Rose		  2015-04-08 Code Generation
 #-------------------------------------------------------------------------------
 
 import os,sys
@@ -445,6 +446,7 @@ class Lexical_Analyzer:
 							else:
 								self.checkExp.append(ST[1].lower())  		# var type
 								self.listGen.append(var) 
+								print "loadList", loadList
 								self.file.load(loadList) 
 								return True 	
 
@@ -460,7 +462,8 @@ class Lexical_Analyzer:
 							return False
 						else:	
 							self.checkExp.append(ST[1].lower())  				# var type
-							self.listGen.append(var)  
+							self.listGen.append(var) 
+							print "loadList", loadList
 							self.file.load(loadList) 
 							return True
 
@@ -590,6 +593,7 @@ class Lexical_Analyzer:
 		print "\nPrgram_Body Function: ", token.getTokenValue()
 		if not self.errorFlag:
 			if self.declaration(token):
+				self.file.skipLine()
 				print "\nStart Main Program!"
 
 				if self.statement(analyzer.current_token):
@@ -1485,10 +1489,10 @@ class Lexical_Analyzer:
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
 				if v[0] == token.getTokenValue():   	# var name
-					STlist.append(v[0])  # name
-					STlist.append(v[1])  # type
-					STlist.append(v[2])	 # size (if array)
-					STlist.append(v[3])  # value (if procedure)
+					STlist.append(v[0])  				# name
+					STlist.append(v[1])  				# type
+					STlist.append(v[2])	 				# size (if array)
+					STlist.append(v[3])  				# value (if procedure)
 					return STlist	
 
 		# Search in global scope
