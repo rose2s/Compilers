@@ -81,7 +81,7 @@ class CodeGen:
 		if len(myList) == 2:   	 # single assignment [type, value]
 			value = myList[1]    # value
 			if self.getTemp(value):
-				self.sentence.append(self.getTemp(value)+", ")
+				self.sentence.append(" %"+str(self.getTemp(value))+", ")
 			else:
 				self.sentence.append(" "+value+", ")
 		else:
@@ -103,9 +103,9 @@ class CodeGen:
 		varType = self.getType(myList[0])
 		name = myList[1]
 		
-		if not self.tempDic.has_key(name):
-			self.tempDic[name] = str(self.temp)
-			print self.tempDic
+		#if not self.tempDic.has_key(name):
+		self.tempDic[name] = str(self.temp)
+		print self.tempDic
 
 		self.sentence.append("%")
 		self.sentence.append(str(self.temp))
@@ -175,28 +175,27 @@ class CodeGen:
 	def getCompOp(self, code, typeVar):
 		if typeVar in ("int", "integer"):
 			if code == "==":
-				return "eq"
+				return "icmp eq"
 			elif code == "!=":
-				return "ne"
+				return "icmp ne"
 			elif code == ">":
-				return "sgt" 
+				return "icmp sgt" 
 			elif code == "<=":
-				return "sle"
+				return "icmp sle"
 
 		elif typeVar == "float":
 			if code == "==":
-				return "oeq"
+				return "fcmp oeq"
 			elif code == "!=":
-				return "one"
+				return "fcmp one"
 			elif code == ">":
-				return "ogt" 
+				return "fcmp ogt" 
 			elif code == "<=":
-				return "ole"
+				return "fcmp ole"
 
 # <result> = icmp eq i32 4, 5          ; yields: result=false
 # <result> = icmp ne float* %X, %X     ; y
 	def getOp(self, op, typeVar):
-		print "\nGetOp function <op> <type>",op, typeVar
 		if typeVar in ("int","integer"):
 			if op == '+':
 				return "add"
@@ -211,13 +210,13 @@ class CodeGen:
 			elif op == '|':
 				return "or"
 			elif op == "==":
-				return "eq"
+				return "icmp eq"
 			elif op == "!=":
-				return "ne"
+				return "icmp ne"
 			elif op == ">":
-				return "sgt" 
+				return "icmp sgt" 
 			elif op == "<=":
-				return "sle"
+				return "icmp sle"
 
 		elif typeVar == "float":
 			if op == '+':
@@ -229,14 +228,24 @@ class CodeGen:
 			elif op == '/':
 				return "fdiv"
 			elif op == "==":
-				return "oeq"
+				return "fcmp oeq"
 			elif op == "!=":
-				return "one"
+				return "fcmp one"
 			elif op == ">":
-				return "ogt" 
+				return "fcmp ogt" 
 			elif op == "<=":
-				return "ole"
+				return "fcmp ole"
 
+	def genIf(self):
+		self.sentence.append("br i1 %"+str(self.temp-1)+", label ")
+		self.sentence.append("%"+str(self.temp)+", label ")
+		self.setTemp()
+		self.sentence.append("%"+str(self.temp))
+		self.setTemp()
+		self.writeToken()
+		self.skipLine()
+		self.sentence.append(str(self.temp-2)+": ")  # label 1 --> if true
+		self.writeToken()
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):

@@ -1243,6 +1243,9 @@ class Lexical_Analyzer:
 
 				if self.expression(token, ")", proc_scope):
 					token = self.scanToken()
+					self.listGen = []  # after expression
+
+					self.file.genIf()
 
 					# ---- Type checking
 
