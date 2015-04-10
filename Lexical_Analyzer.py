@@ -1263,12 +1263,15 @@ class Lexical_Analyzer:
 
 						if self.statement(token, True, proc_scope):
 							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
+								self.file.genElse()
 
 								if self.stack.peek() == "if":
 
 									if not self.statement(token, True, proc_scope):  # execute at least once
 										self.errorFlag = True
 										return False
+									else:
+										self.file.genThen()
 
 								else:
 									self.reportErrorMsg("Error: IF statement must have at least one statement", token.line)
@@ -1287,6 +1290,7 @@ class Lexical_Analyzer:
 									self.stack.pop()
 									if token.Next.getTokenValue() == "end":  # If last Else
 										self.IFlag = False
+									self.file.genThen()
 									return True
 								else:
 									self.reportError("if", token.getTokenValue(), token.line)

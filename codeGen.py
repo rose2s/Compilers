@@ -94,6 +94,12 @@ class CodeGen:
 
 		self.writeToken()
 
+	def addTemp(self, name):
+		#if not self.tempDic.has_key(name):
+		self.tempDic[name] = str(self.temp)
+		print self.tempDic
+		self.setTemp()
+
 	# Load command:   %temp = load <type>* <@|var> , align 4  -->   %1 = load float* %y, align 4
 	# myList = [vartype, var]
 	#  <result> = op type value, var
@@ -103,13 +109,10 @@ class CodeGen:
 		varType = self.getType(myList[0])
 		name = myList[1]
 		
-		#if not self.tempDic.has_key(name):
-		self.tempDic[name] = str(self.temp)
-		print self.tempDic
+		self.addTemp(name)
 
 		self.sentence.append("%")
-		self.sentence.append(str(self.temp))
-		self.setTemp()
+		self.sentence.append(str(self.getTemp(name)))
 		self.sentence.append(" = load ")
 		self.sentence.append(varType)
 		self.sentence.append("* ")
@@ -238,13 +241,33 @@ class CodeGen:
 
 	def genIf(self):
 		self.sentence.append("br i1 %"+str(self.temp-1)+", label ")
-		self.sentence.append("%"+str(self.temp)+", label ")
-		self.setTemp()
-		self.sentence.append("%"+str(self.temp))
-		self.setTemp()
+		self.addTemp("true")
+		self.sentence.append("%"+str(self.getTemp("true"))+", label ")
+		self.addTemp("false")
+		self.sentence.append("%"+str(self.getTemp("false")))
+
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(str(self.temp-2)+": ")  # label 1 --> if true
+		self.sentence.append(str(self.getTemp("true"))+": ")  # label 1 --> if true
+		self.writeToken()
+
+	# br label %next
+	def genElse(self):
+		x = self.getTemp("false")
+		self.addTemp("false")
+		self.sentence.append("br label %"+str(self.getTemp("false")))
+		self.writeToken()
+		self.skipLine()
+		self.sentence.append(str(x)+": ")  
+		self.writeToken()
+
+		
+
+	def genThen(self):
+		self.sentence.append("br label %"+str(self.getTemp("false")))
+		self.writeToken()
+		self.skipLine()
+		self.sentence.append(str(self.getTemp("false"))+": ")  
 		self.writeToken()
 
 	# myList = [global,name,[global, type name]]
