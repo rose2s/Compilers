@@ -18,8 +18,8 @@ class CodeGen:
 		#print "VAR in dict ",var
 		for k,v in self.tempDic.items():
 			#print k
-			if k == var:
-				return "%"+str(v)
+			if k in (var, "@"+var, "%"+var):
+				return v
 		return False
 
 	def setTemp(self):
@@ -103,8 +103,9 @@ class CodeGen:
 		varType = self.getType(myList[0])
 		name = myList[1]
 		
-		self.tempDic[name] = str(self.temp)
-		print self.tempDic
+		if not self.tempDic.has_key(name):
+			self.tempDic[name] = str(self.temp)
+			print self.tempDic
 
 		self.sentence.append("%")
 		self.sentence.append(str(self.temp))
@@ -120,15 +121,27 @@ class CodeGen:
 
 	# myList = [type, '%a', '+', type, '%b']
 	#   %4 = add nsw i32 %2, %3
+
 	def genExpression(self,myList):
-		print "\nGenCode for Expression: "
+		#if self.getCompOp(myList[2],myList[3]):
+		#	self.genCompExp(myList)
+		#elif self.getOp(myList[2],myList[3]):
+			self.genAritmExpression(myList)
+
+	def genCompExp(self, myList):
+		print "GenCode for Comp Exp", myList
+		myList = myList[5:]
+		print myList
+
+	def genAritmExpression(self,myList):
+		print "\nGenCode for Aritm Expression: "
 		if myList[0] == "global":
 			myList = myList[3:]	 # remove type and var of code assignment
 		else:
 			myList = myList[2:]  # remove type and var of code assignment
 		print myList
 
-		if len(myList) > 2:  # fazer p len == 2 --> tem tem add
+		if len(myList) > 4:  # fazer p len == 2 --> tem tem add
 
 			while len(myList) > 0:
 				self.sentence.append("%")
@@ -140,14 +153,14 @@ class CodeGen:
 				
 				# 1 operand
 				if self.getTemp(myList[1]):
-					x = self.getTemp(myList[1])
+					x = str("%")+self.getTemp(myList[1])
 				else:
 					x = myList[1]
 
 				self.sentence.append(" "+ x +", ")
 				# 2 operand
 				if self.getTemp(myList[4]):
-					y = self.getTemp(myList[4])
+					y = str("%")+self.getTemp(myList[4])
 				else:
 					y = myList[4]
 				self.sentence.append(y)
@@ -198,6 +211,14 @@ class CodeGen:
 				return "and"
 			elif op == '|':
 				return "or"
+			elif op == "==":
+				return "eq"
+			elif op == "!=":
+				return "ne"
+			elif op == ">":
+				return "sgt" 
+			elif op == "<=":
+				return "sle"
 
 		elif typeVar == "float":
 			if op == '+':
@@ -208,6 +229,14 @@ class CodeGen:
 				return "fmul"
 			elif op == '/':
 				return "fdiv"
+			elif op == "==":
+				return "oeq"
+			elif op == "!=":
+				return "one"
+			elif op == ">":
+				return "ogt" 
+			elif op == "<=":
+				return "ole"
 
 
 	# myList = [global,name,[global, type name]]
@@ -269,6 +298,23 @@ class CodeGen:
 		#self.writeToken()
 
 		print "FUNCTION:", self.sentence
+
+	def genUnBr(self, ):  # unconditional Branch
+		self.sentence.append("br")
+		self.sentence.append("label "+str(self.temp))
+		self.sentence.append("                         ; Unconditional branch")	
+
+		self.writeToken()
+
+	def genCoBr(self):    # conditional Branch
+		self.sentence.append("br i1")
+		self.sentence.append(str(self.temp)+", label ")
+		self.sentence.append("if_true")
+		self.sentence.append(", label")
+		self.sentence.append("if_false")
+		self.sentence.append("                         ; Conditional branch")	
+
+		self.writeToken()
 
 	def isEmpty(self):
 		if os.stat(self.filename).st_size == 0:

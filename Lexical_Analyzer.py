@@ -500,19 +500,19 @@ class Lexical_Analyzer:
 		elif token.getTokenType() in ("STRING") and not minus:
 			expType = token.getTokenType() 
 			print expType, " in F"
-			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			self.listGen.append(expType.lower()) # type
 			self.listGen.append(token.getTokenValue())  
+			token = self.scanToken()
 			return True
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false") and not minus:
 			expType = "bool"
 			print expType, " in F"
-			token = self.scanToken()
 			self.checkExp.append(expType.lower())
 			self.listGen.append(expType.lower()) #type
 			self.listGen.append(token.getTokenValue())  
+			token = self.scanToken()
 			return True
 
 		else:
