@@ -64,28 +64,28 @@ class CodeGen:
 	# Load command:   %temp = load <type>* <@|var> , align 4  			-->   %1 = load float* %y, align 4
 	# Store Command:  store <type> <%temp>, <type>* <@|%var>, align 4   -->   store float %1, float* %x, align 4
 	# myList = [global, vartype, var, value]
-	def genStore(self, myList):
-		print "\nGenCode for Store: ", myList
+	def genStore(self, result, myList):
+		print "\nGenCode for Store: ", result, myList
 		scope = "%"
 
-		if myList[0] == "global":
+		if result[0] == "global":
 			scope = "@"
-			myList = myList[1:]
+			result = result[1:]
 
-		varType = self.getType(myList[0])
-		name = myList[1]
+		varType = self.getType(result[0])
+		name = result[1]
 
 		self.sentence.append("store ")
 		self.sentence.append(varType)
 
-		if len(myList) == 4:
-			value = myList[3]    # value
+		if len(myList) == 2:   	 # single assignment [type, value]
+			value = myList[1]    # value
 			if self.getTemp(value):
 				self.sentence.append(self.getTemp(value)+", ")
 			else:
 				self.sentence.append(" "+value+", ")
 		else:
-			value = myList[3]    # value
+			value = myList[1]    # value
 			self.sentence.append(" %"+str(self.temp-1)+", ")
 
 		self.sentence.append(varType+"* ")
@@ -136,12 +136,10 @@ class CodeGen:
 	def genAritmExpression(self,myList):
 		print "\nGenCode for Aritm Expression: "
 		if myList[0] == "global":
-			myList = myList[3:]	 # remove type and var of code assignment
-		else:
-			myList = myList[2:]  # remove type and var of code assignment
+			myList = myList[1:]	 # remove type and var of code assignment
 		print myList
 
-		if len(myList) > 4:  # fazer p len == 2 --> tem tem add
+		if len(myList) > 2:  # fazer p len == 2 --> tem tem add
 
 			while len(myList) > 0:
 				self.sentence.append("%")
@@ -198,6 +196,7 @@ class CodeGen:
 # <result> = icmp eq i32 4, 5          ; yields: result=false
 # <result> = icmp ne float* %X, %X     ; y
 	def getOp(self, op, typeVar):
+		print "\nGetOp function <op> <type>",op, typeVar
 		if typeVar in ("int","integer"):
 			if op == '+':
 				return "add"

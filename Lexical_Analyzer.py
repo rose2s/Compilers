@@ -996,8 +996,9 @@ class Lexical_Analyzer:
 
 			if self.isGlobal(var_token):
 				self.listGen.append("global")
-			self.listGen.append(STlist[1])  # type
-			self.listGen.append(var_token.getTokenValue())  # name
+			#self.listGen.append(STlist[1])  # type
+			#self.listGen.append(var_token.getTokenValue())  # name
+			storeList = [STlist[1], var_token.getTokenValue()]
 
 			# --- Array checking -----
 			if STlist[2] > 0 : 											# If var was declared as array
@@ -1037,7 +1038,7 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
-							self.file.genStore(self.listGen)
+							self.file.genStore(storeList, self.listGen)
 							self.listGen = []
 							return True
 						else:
