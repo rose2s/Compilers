@@ -261,8 +261,6 @@ class CodeGen:
 		self.sentence.append(str(x)+": ")  
 		self.writeToken()
 
-		
-
 	def genThen(self):
 		self.sentence.append("br label %"+str(self.getTemp("false")))
 		self.writeToken()
