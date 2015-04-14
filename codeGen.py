@@ -266,29 +266,33 @@ class CodeGen:
 
 	# br label %next
 	def genElse(self):
-		
+		elseVar = self.ifStack.peek() 
+
+		end = "end"+str(self.ifStack.peek()[-1])  #
+		self.ifStack.push(end)
 		self.sentence.append("br label %"+self.ifStack.peek())
 		
-		elseVar = "else"+str(self.ifStack.peek()[-1])  #
-		self.ifStack.push(elseVar)
+		#elseVar = "end"+str(self.ifStack.peek()[-1])  #
+		#self.ifStack.push(elseVar)
 
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(self.ifStack.peek()+": ")  
+		self.sentence.append(elseVar+": ")  
 		self.writeToken()
 
 	def genThen(self):
-		
-		if (self.ifStack.peek()[0:4] == "else"):  #else+count
-			self.ifStack.pop()
-
+		print "\nstack 1", self.ifStack.items
 		self.sentence.append("br label %"+self.ifStack.peek())
 		self.writeToken()
 		self.skipLine()
 		self.sentence.append(self.ifStack.peek()+": ")  
 		self.writeToken()
+
+		if (self.ifStack.peek()[0:3] == "end"):  #else+count
+			self.ifStack.pop()
 		self.ifStack.pop()  # remove ifFalse
 		self.ifStack.pop()  # remove ifTrue
+		print "\nstack 2", self.ifStack.items
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):
