@@ -1270,8 +1270,6 @@ class Lexical_Analyzer:
 									if not self.statement(token, True, proc_scope):  # execute at least once
 										self.errorFlag = True
 										return False
-									#else:
-									#	self.file.genThen()
 
 								else:
 									self.reportErrorMsg("Error: IF statement must have at least one statement", token.line)

@@ -1,8 +1,11 @@
 import os
+from stack import Stack
 
 # Alloca command: <result> = alloca <type>[, i32 <NumElements>][, align <alignment>]     ; yields {type*}:result
 # Load command:   <result> = load <ty>* <pointer>[, align <alignment>]
-# Store Command:  store <ty> <value>, <ty>* <pointer>[, align <alignment>]       
+# Store Command:  store <ty> <value>, <ty>* <pointer>[, align <alignment>]    
+
+
 class CodeGen:
 	
 	def __init__(self, filename):
@@ -10,6 +13,8 @@ class CodeGen:
 		self.sentence = []
 		self.temp 	  = 1
 		self.tempDic  = {}
+		self.ifStack = Stack()
+		self.ifCount = 1
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -238,35 +243,61 @@ class CodeGen:
 				return "fcmp ogt" 
 			elif op == "<=":
 				return "fcmp ole"
+	def setIfCount(self):
+		self.ifCount = self.ifCount + 1;
 
 	def genIf(self):
 		self.sentence.append("br i1 %"+str(self.temp-1)+", label ")
-		self.addTemp("true")
-		self.sentence.append("%"+str(self.getTemp("true"))+", label ")
-		self.addTemp("false")
-		self.sentence.append("%"+str(self.getTemp("false")))
+		#self.addTemp("true")
+		#self.sentence.append("%"+str(self.getTemp("true"))+", label ")
+		#self.addTemp("false")
+		#self.sentence.append("%"+str(self.getTemp("false")))
 
+		ifTrue = "ifTrue"+str(self.ifCount)
+		ifFalse = "ifFalse"+str(self.ifCount)
+		self.setIfCount()
+		
+		self.ifStack.push(ifTrue)
+		self.ifStack.push(ifFalse)
+
+		self.sentence.append("%"+ifTrue+", label ")
+		self.sentence.append("%"+ifFalse)
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(str(self.getTemp("true"))+": ")  # label 1 --> if true
+		self.sentence.append(ifTrue+": ")  # label 1 --> if true
 		self.writeToken()
+		print self.ifStack.items
 
 	# br label %next
 	def genElse(self):
-		x = self.getTemp("false")
-		self.addTemp("false")
-		self.sentence.append("br label %"+str(self.getTemp("false")))
+		#x = self.getTemp("false")
+		#self.addTemp("false")
+
+		self.sentence.append("br label %"+self.ifStack.peek())
+		#print "\nelse", self.ifStack.peek()[-1]
+		elseVar = "else"+str(self.ifStack.peek()[-1])  #
+		self.ifStack.push(elseVar)
+
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(str(x)+": ")  
+		self.sentence.append(self.ifStack.peek()+": ")  
 		self.writeToken()
 
 	def genThen(self):
-		self.sentence.append("br label %"+str(self.getTemp("false")))
+		#print "\nOI",self.ifStack.peek()[0:4]
+		if (self.ifStack.peek()[0:4] == "else"):  #else+count
+			self.ifStack.pop()
+
+		#self.setIfCount()
+		end = self.ifStack.pop()
+
+		self.sentence.append("br label %"+end)
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(str(self.getTemp("false"))+": ")  
+		self.sentence.append(end+": ")  
 		self.writeToken()
+		self.ifStack.pop()
+		print "\nstack after end",self.ifStack.items
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):
