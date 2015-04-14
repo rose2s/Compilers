@@ -14,7 +14,9 @@ class CodeGen:
 		self.temp 	  = 1
 		self.tempDic  = {}
 		self.ifStack = Stack()
+		self.loopStack = Stack()
 		self.ifCount = 1
+		self.loopCount = 1
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -247,7 +249,6 @@ class CodeGen:
 		self.ifCount = self.ifCount + 1;
 
 	def genIf(self):
-		self.sentence.append("br i1 %"+str(self.temp-1)+", label ")
 		
 		ifTrue = "ifTrue"+str(self.ifCount)
 		ifFalse = "ifFalse"+str(self.ifCount)
@@ -256,13 +257,9 @@ class CodeGen:
 		self.ifStack.push(ifTrue)
 		self.ifStack.push(ifFalse)
 
-		self.sentence.append("%"+ifTrue+", label ")
-		self.sentence.append("%"+ifFalse)
-		self.writeToken()
-		self.skipLine()
-		self.sentence.append(ifTrue+": ")  # label 1 --> if true
-		self.writeToken()
-		print self.ifStack.items
+		self.genCoBr(str(self.temp-1), ifTrue, ifFalse)
+
+		#self.genLabel(ifTrue)
 
 	# br label %next
 	def genElse(self):
@@ -270,21 +267,16 @@ class CodeGen:
 
 		end = "end"+str(self.ifStack.peek()[-1])  #
 		self.ifStack.push(end)
-		self.sentence.append("br label %"+self.ifStack.peek())
-		
-		#elseVar = "end"+str(self.ifStack.peek()[-1])  #
-		#self.ifStack.push(elseVar)
 
-		self.writeToken()
-		self.skipLine()
-		self.sentence.append(elseVar+": ")  
-		self.writeToken()
+		self.genUnBr(self.ifStack.peek())
+
+		self.genLabel(elseVar)
 
 	def genThen(self):
 		print "\nstack 1", self.ifStack.items
-		self.sentence.append("br label %"+self.ifStack.peek())
-		self.writeToken()
-		self.skipLine()
+		
+		self.genUnBr(self.ifStack.peek())
+
 		self.sentence.append(self.ifStack.peek()+": ")  
 		self.writeToken()
 
@@ -349,26 +341,29 @@ class CodeGen:
 		self.sentence.append("entry:")
 		self.writeToken()
 		self.skipLine()
-		#self.sentence.append("}")
-		#self.writeToken()
 
 		print "FUNCTION:", self.sentence
 
-	def genUnBr(self, ):  # unconditional Branch
-		self.sentence.append("br")
-		self.sentence.append("label "+str(self.temp))
-		self.sentence.append("                         ; Unconditional branch")	
-
+	def genUnBr(self, label):  # unconditional Branch
+		self.sentence.append("br ")
+		self.sentence.append("label %"+label)
+		self.sentence.append("                                       ; Unconditional branch")	
 		self.writeToken()
+		self.skipLine()
 
-	def genCoBr(self):    # conditional Branch
-		self.sentence.append("br i1")
-		self.sentence.append(str(self.temp)+", label ")
-		self.sentence.append("if_true")
-		self.sentence.append(", label")
-		self.sentence.append("if_false")
-		self.sentence.append("                         ; Conditional branch")	
+	def genCoBr(self, cond, label1, label2):    # conditional Branch
+		self.sentence.append("br i1 %")
+		self.sentence.append(cond+", label %")
+		self.sentence.append(label1+" ")
+		self.sentence.append(", label %")
+		self.sentence.append(label2)
+		self.sentence.append("           ; Conditional branch")	
+		self.writeToken()
+		self.skipLine()
+		self.genLabel(label1)
 
+	def genLabel(self, label):
+		self.sentence.append(label+": ")	
 		self.writeToken()
 
 	def isEmpty(self):
