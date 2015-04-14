@@ -156,8 +156,8 @@ class CodeGen:
 				self.sentence.append(str(self.temp))
 				self.setTemp()
 				self.sentence.append(" = ")
-				self.sentence.append(self.getOp(myList[2],myList[3])+" ")
-				self.sentence.append(self.getType(myList[3]))
+				self.sentence.append(self.getOp(myList[2],myList[3]))
+				self.sentence.append(" "+self.getType(myList[3]))
 				
 				# 1 operand
 				if self.getTemp(myList[1]):
@@ -175,6 +175,7 @@ class CodeGen:
 				
 				print "sentence",self.sentence
 				self.writeToken()
+				self.skipLine()
 				myList = myList[3:]
 				print "after cut", myList
 				myList[1] = "%"+str(self.temp-1)		  # result of previous operation
@@ -190,6 +191,10 @@ class CodeGen:
 				return "icmp ne"
 			elif code == ">":
 				return "icmp sgt" 
+			elif code == "<":
+				return "icmp slt" 
+			elif code == ">=":
+				return "icmp sge" 
 			elif code == "<=":
 				return "icmp sle"
 
@@ -200,12 +205,19 @@ class CodeGen:
 				return "fcmp one"
 			elif code == ">":
 				return "fcmp ogt" 
+			elif code == "<":
+				return "fcmp olt"
+			elif code == ">=":
+				return "fcmp oge"
 			elif code == "<=":
 				return "fcmp ole"
+		else:
+			return False
 
 # <result> = icmp eq i32 4, 5          ; yields: result=false
 # <result> = icmp ne float* %X, %X     ; y
 	def getOp(self, op, typeVar):
+		print "\ngetOp FUnction <op>, <type>: ", op, typeVar
 		if typeVar in ("int","integer"):
 			if op == '+':
 				return "add"
@@ -225,6 +237,10 @@ class CodeGen:
 				return "icmp ne"
 			elif op == ">":
 				return "icmp sgt" 
+			elif op == "<":
+				return "icmp slt" 
+			elif op == ">=":
+				return "icmp sge" 
 			elif op == "<=":
 				return "icmp sle"
 
@@ -243,8 +259,15 @@ class CodeGen:
 				return "fcmp one"
 			elif op == ">":
 				return "fcmp ogt" 
+			elif op == "<":
+				return "fcmp olt"
+			elif op == ">=":
+				return "fcmp oge"
 			elif op == "<=":
 				return "fcmp ole"
+		else:
+			return False
+
 	def setIfCount(self):
 		self.ifCount = self.ifCount + 1;
 
@@ -259,8 +282,13 @@ class CodeGen:
 
 		self.genCoBr(str(self.temp-1), ifTrue, ifFalse)
 
-		#self.genLabel(ifTrue)
+	def genLoop(self):
+		self.genUnBr("loop"+str(self.loopCount))
+		self.loopCount = self.loopCount + 1
 
+		self.genLabel("loop"+str(self.loopCount-1))
+		self.setTemp()
+   
 	# br label %next
 	def genElse(self):
 		elseVar = self.ifStack.peek() 
@@ -346,7 +374,7 @@ class CodeGen:
 
 	def genUnBr(self, label):  # unconditional Branch
 		self.sentence.append("br ")
-		self.sentence.append("label %"+label)
+		self.sentence.append("label %"+str(label))
 		self.sentence.append("                                       ; Unconditional branch")	
 		self.writeToken()
 		self.skipLine()
@@ -363,7 +391,7 @@ class CodeGen:
 		self.genLabel(label1)
 
 	def genLabel(self, label):
-		self.sentence.append(label+": ")	
+		self.sentence.append("; <label>:"+str(label))	
 		self.writeToken()
 
 	def isEmpty(self):

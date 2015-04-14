@@ -1174,11 +1174,13 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 				self.assignment_statement(token, proc_scope)
+				self.file.genLoop()
 
 				if analyzer.current_token.getTokenValue() == ";":
 					token = self.scanToken()
 
 					if self.expression(token, ")", proc_scope):
+						self.listGen = []  # 
 
 						# ---- Type checking
 
