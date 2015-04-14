@@ -248,11 +248,7 @@ class CodeGen:
 
 	def genIf(self):
 		self.sentence.append("br i1 %"+str(self.temp-1)+", label ")
-		#self.addTemp("true")
-		#self.sentence.append("%"+str(self.getTemp("true"))+", label ")
-		#self.addTemp("false")
-		#self.sentence.append("%"+str(self.getTemp("false")))
-
+		
 		ifTrue = "ifTrue"+str(self.ifCount)
 		ifFalse = "ifFalse"+str(self.ifCount)
 		self.setIfCount()
@@ -270,11 +266,9 @@ class CodeGen:
 
 	# br label %next
 	def genElse(self):
-		#x = self.getTemp("false")
-		#self.addTemp("false")
-
+		
 		self.sentence.append("br label %"+self.ifStack.peek())
-		#print "\nelse", self.ifStack.peek()[-1]
+		
 		elseVar = "else"+str(self.ifStack.peek()[-1])  #
 		self.ifStack.push(elseVar)
 
@@ -284,20 +278,17 @@ class CodeGen:
 		self.writeToken()
 
 	def genThen(self):
-		#print "\nOI",self.ifStack.peek()[0:4]
+		
 		if (self.ifStack.peek()[0:4] == "else"):  #else+count
 			self.ifStack.pop()
 
-		#self.setIfCount()
-		end = self.ifStack.pop()
-
-		self.sentence.append("br label %"+end)
+		self.sentence.append("br label %"+self.ifStack.peek())
 		self.writeToken()
 		self.skipLine()
-		self.sentence.append(end+": ")  
+		self.sentence.append(self.ifStack.peek()+": ")  
 		self.writeToken()
-		self.ifStack.pop()
-		print "\nstack after end",self.ifStack.items
+		self.ifStack.pop()  # remove ifFalse
+		self.ifStack.pop()  # remove ifTrue
 
 	# myList = [global,name,[global, type name]]
 	def genFunction(self,myList):
