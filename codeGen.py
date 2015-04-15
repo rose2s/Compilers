@@ -367,7 +367,7 @@ class CodeGen:
 		#self.sentence.append(funcName+"(")
 
 		while len(myList) > 0:
-			print "parameter list",myList
+			print "\nparameter list",myList
 			if myList[0] == "global":
 				if len(myList) > 4: 					 # or var is array e|or has more than 1 var
 					if myList[3] not in ("in","out"):             # global and array
@@ -404,15 +404,15 @@ class CodeGen:
 					print "outList", outList
 					
 			else:
-				if len(myList) > 4:   
+				if len(myList) > 3:   
 					print "type", myList[2]
 					if myList[2] not in ("in","out"):     # not global but array    
 					#if (myList[2] != "global" and self.getType(myList[2]) == False):  
 						#self.sentence.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])  
 						writeList.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])
 						if myList[3] == "out":
-							outList.append(myList[1]) # type
-							outList.append(myList[2]) # var
+							outList.append(myList[0]) # type
+							outList.append(myList[1]) # var
 						myList = myList[4:]
 						print "list",myList
 						print "outList", outList
@@ -428,14 +428,16 @@ class CodeGen:
 						myList = myList[3:]	
 						print "list", myList
 						print "outList", outList
-						self.sentence.append(", ")		
+						#self.sentence.append(", ")
+						writeList.append(", ")
+
 				else:  								# last parameter
 					#self.sentence.append(self.getType(myList[0])+" %"+myList[1])
 					writeList.append(self.getType(myList[0])+" %"+myList[1])
 					if myList[2] == "out":
 						outList.append(myList[0]) # type
 						outList.append(myList[1]) # var
-					myList = myList[3:]
+					myList = myList[4:]
 
 		print "\nlist final", myList
 		print "outList final", outList
@@ -447,7 +449,10 @@ class CodeGen:
 		#self.sentence.append("entry:")
 		writeList.append("entry:\n")
 		print "sentence",self.sentence
-		returnType = self.getType(outList[0])
+		if len(outList) > 0:
+			returnType = self.getType(outList[0])
+		else:
+			returnType = "void"
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
 		print self.sentence
