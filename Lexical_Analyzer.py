@@ -712,7 +712,7 @@ class Lexical_Analyzer:
 				
 				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
-						#self.listGen.append(token.getTokenValue())
+						self.listGen.append(token.getTokenValue())
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
 						return True
@@ -741,7 +741,7 @@ class Lexical_Analyzer:
 
 							elif parameterList: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
-									# print token.getTokenValue()
+									self.listGen.append(token.getTokenValue())
 									token = self.scanToken()
 
 									self.addSymbolTable(scope, name, Type, size, True)
