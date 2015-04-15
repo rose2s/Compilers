@@ -175,7 +175,7 @@ class CodeGen:
 				
 				print "sentence",self.sentence
 				self.writeToken()
-				self.skipLine()
+				#self.skipLine()
 				myList = myList[3:]
 				print "after cut", myList
 				myList[1] = "%"+str(self.temp-1)		  # result of previous operation
@@ -271,6 +271,9 @@ class CodeGen:
 	def setIfCount(self):
 		self.ifCount = self.ifCount + 1;
 
+	def setLoopCount(self):
+		self.loopCount = self.loopCount + 1;
+
 	def genIf(self):
 		
 		ifTrue = "ifTrue"+str(self.ifCount)
@@ -282,12 +285,40 @@ class CodeGen:
 
 		self.genCoBr(str(self.temp-1), ifTrue, ifFalse)
 
-	def genLoop(self):
+	def genLoop1(self):
 		self.genUnBr("loop"+str(self.loopCount))
-		self.loopCount = self.loopCount + 1
 
-		self.genLabel("loop"+str(self.loopCount-1))
+		self.genLabel("loop"+str(self.loopCount))
+		#self.setTemp()
+
+	def genLoop2(self):
+		loopTrue = "loopTrue"+str(self.loopCount)
+		loopFalse = "loopFalse"+str(self.loopCount)
+		self.setLoopCount()
+		
+		self.loopStack.push(loopTrue)
+		self.loopStack.push(loopFalse)
+
+		self.genCoBr(str(self.temp-1), loopTrue, loopFalse)
+
+	def genLoop3(self, myList):
+		
+		self.genUnBr(self.temp)
+		self.genLabel(self.temp)
 		self.setTemp()
+		self.genLoad(myList)
+		myList[1] = myList[1][1]
+
+		myList.append("+")
+		myList.append("integer")
+		myList.append("1")
+		self.genAritmExpression(myList)
+		self.genStore(myList[:2],myList)
+		loopFalse = self.loopStack.pop()
+		loopTrue = self.loopStack.pop()
+		self.genUnBr("loop"+str(loopFalse[-1]))
+		self.genLabel(loopFalse)
+                                  
    
 	# br label %next
 	def genElse(self):
@@ -391,8 +422,10 @@ class CodeGen:
 		self.genLabel(label1)
 
 	def genLabel(self, label):
-		self.sentence.append("; <label>:"+str(label))	
+		#self.sentence.append("; <label>:"+str(label))	
+		self.sentence.append(str(label)+": ")	
 		self.writeToken()
+
 
 	def isEmpty(self):
 		if os.stat(self.filename).st_size == 0:
