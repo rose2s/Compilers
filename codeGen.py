@@ -345,7 +345,7 @@ class CodeGen:
 		self.ifStack.pop()  # remove ifTrue
 		print "\nstack 2", self.ifStack.items
 
-	# myList = [global,name,[global, type name]]
+	# myList = [global,name,[global, type, name, in|out]]
 	def genFunction(self,myList):
 		print "\nGenCode for procedure: ", myList
 		scope = "%"

@@ -712,6 +712,7 @@ class Lexical_Analyzer:
 				
 				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
+						#self.listGen.append(token.getTokenValue())
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
 						return True
@@ -771,7 +772,7 @@ class Lexical_Analyzer:
 			return False
 
 
-	# myList = [global,name,[global, type name]]
+	# myList = [global,name,[global, type, name in|out]]
 	def procedure_declaration(self, token, scope = "main"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
 		
