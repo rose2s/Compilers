@@ -880,10 +880,19 @@ class Lexical_Analyzer:
 
 			if analyzer.current_token.getTokenValue() == "end":
 				token = self.scanToken()
+
 				if token.getTokenValue() == "procedure":
-					print "end procedure"
 					token = self.scanToken()
-					return True
+
+					if token.getTokenValue() == ";":
+						print "end procedure"
+						token = self.scanToken()
+						return True
+					else:
+						print token.line
+						self.reportError(";", token.getTokenValue(), token.line-1)
+						self.errorFlag = True
+						return False
 				else:
 					self.reportError("procedure", token.getTokenValue(), token.line)
 					self.errorFlag = True
