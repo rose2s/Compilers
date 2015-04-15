@@ -332,7 +332,7 @@ class CodeGen:
 		self.genLabel(elseVar)
 
 	def genThen(self):
-		print "\nstack 1", self.ifStack.items
+		#print "\nstack 1", self.ifStack.items
 		
 		self.genUnBr(self.ifStack.peek())
 
@@ -343,7 +343,7 @@ class CodeGen:
 			self.ifStack.pop()
 		self.ifStack.pop()  # remove ifFalse
 		self.ifStack.pop()  # remove ifTrue
-		print "\nstack 2", self.ifStack.items
+	#	print "\nstack 2", self.ifStack.items
 
 	# myList = [global,name,[global, type, name, in|out]]
 	def genFunction(self,myList):

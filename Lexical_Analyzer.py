@@ -898,11 +898,13 @@ class Lexical_Analyzer:
 	# If if_stat then "else is a sign for expressions"
 	# If proc_scope then it is a statement within procedure
 	def statement(self,token, if_stat = False, proc_scope = False): 
-		#print "Statement Function:", token.getTokenValue()
+		print "Statement Function:", token.getTokenValue()
+		#if token.getTokenValue() == ";":
+		#	token = self.scanToken()
 		#print "scope",proc_scope
 		prior = token
 		token = self.scanToken()
-		#print "token:",token.getTokenValue()
+		print "token :", token.getTokenValue()
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
@@ -975,7 +977,7 @@ class Lexical_Analyzer:
 			return False
 
 		else:
-			#self.reportErrorMsg("SyntaxError: invalid syntax ",token.line)
+			self.reportErrorMsg("SyntaxError: invalid syntax ",token.line)
 			return False
 
 	# If proc_scope then it is assigment within procedure
@@ -1099,7 +1101,6 @@ class Lexical_Analyzer:
 
 		if token.getTokenType() == "IDENTIFIER":
 			STlist = self.lookatST(token, proc_scope)
-			#print "ST: ",STlist
 
 			if STlist:
 				if STlist[1] == "proc":   # var type
@@ -1142,7 +1143,7 @@ class Lexical_Analyzer:
 							if token.getTokenValue() == ";":
 									return True
 							else:
-								self.reportError(";", token.getTokenValue(), token.line)
+								self.reportError(";", token.getTokenValue(), token.line-1)
 								self.errorFlag = True
 								return False
 						else:
@@ -1206,9 +1207,17 @@ class Lexical_Analyzer:
 								token = self.scanToken()
 
 								if token.getTokenValue() == "for":
-									return True
+									token = self.scanToken()
+
+									if token.getTokenValue() == ";":
+										return True
+									else:
+										print token.line
+										self.reportError(";", token.getTokenValue(), token.line-1)
+										self.errorFlag = True
+										return False
 								else:
-									self.reportErrorMsg("Missing 'for' of 'End For", token.line)
+									self.reportErrorMsg("Missing 'for' of 'End For", token.line-1)
 									self.errorFlag = True
 									return False
 							else:
@@ -1294,10 +1303,17 @@ class Lexical_Analyzer:
 
 								if token.getTokenValue() == "if":
 									self.stack.pop()
-									if token.Next.getTokenValue() == "end":  # If last Else
-										self.IFlag = False
-									self.file.genThen()
-									return True
+									token = self.scanToken()
+
+									if token.getTokenValue() == ";":
+										if token.Next.getTokenValue() == "end":  # If last Else
+											self.IFlag = False
+										self.file.genThen()
+										return True
+									else:
+										self.reportError(";", token.getTokenValue(), token.line-1)
+										self.errorFlag = True
+										return False
 								else:
 									self.reportError("if", token.getTokenValue(), token.line)
 									self.errorFlag = True
@@ -1328,9 +1344,17 @@ class Lexical_Analyzer:
 			return False
 
 	# If proc_scope then Return is within procedure
-	def return_statement(self,token, proc_scope = False):
+	def return_statement(self, token, proc_scope = False):
 		if token.getTokenValue() == "return":
-			return True
+			token = self.scanToken()
+
+			if token.getTokenValue() == ";":
+				return True
+			else:
+				self.reportError(";", token.getTokenValue(), token.line-1)
+				self.errorFlag = True
+				return False
+
 
 	def reportError(self, expected, received, line):
 	 	print  "\nSyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
