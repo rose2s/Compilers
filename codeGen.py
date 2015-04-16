@@ -58,17 +58,20 @@ class CodeGen:
 	# @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList):
 		print "CODE DECLARATION FUNCTION: ", myList
+		print "sentence", self.sentence
 		scope = "%"
 
 		if myList[0] == "global":
 			scope = "@"
 			myList = myList[1:]
 
-		name = myList[1]
-		varType = self.getType(myList[0])
+		name = str(myList[1])
+		varType = str(self.getType(myList[0]))
 		
 		self.sentence.append(scope)
+
 		self.sentence.append(name+" = alloca ")
+
 		if len(myList) > 2:  		# array
 			self.sentence.append("["+myList[2]+" x "+varType+"], align 4")
 		else:
@@ -79,7 +82,7 @@ class CodeGen:
 	# Load command:   %temp = load <type>* <@|var> , align 4  			-->   %1 = load float* %y, align 4
 	# Store Command:  store <type> <%temp>, <type>* <@|%var>, align 4   -->   store float %1, float* %x, align 4
 	# myList = [global, vartype, var, value]
-	def genStore(self, result, myList):
+	def genStore(self, result, myList, isFunction = False):
 		print "\nGenCode for Store: ", result, myList
 		scope = "%"
 
@@ -104,13 +107,18 @@ class CodeGen:
 			self.sentence.append(" %"+str(self.temp-1)+", ")
 
 		self.sentence.append(varType+"* ")
-		self.sentence.append(scope+name)
+
+		if isFunction:
+			print "oi", self.tempDic
+			name = str(self.getTemp(name))
+			self.sentence.append(scope+name)
+		else:
+			self.sentence.append(scope+name)
 		self.sentence.append(", align 4")
 
 		self.writeToken()
 
-	def addTemp(self, name):
-		#if not self.tempDic.has_key(name):
+	def addTemp(self, name): 
 		self.tempDic[name] = str(self.temp)
 		print self.tempDic
 		self.setTemp()
@@ -396,6 +404,7 @@ class CodeGen:
 	def genFunction(self,myList):
 		writeList = []
 		outList = []
+		allocaList = []
 
 		print "\nGenCode for procedure: ", myList
 		scope = "%"
@@ -417,6 +426,10 @@ class CodeGen:
 
 						writeList.append("["+myList[3]+" x "+ self.getType(myList[1])+"] @"+myList[2])
 
+						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
+						self.addTemp(myList[2])
+						#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
+
 						if myList[4] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
@@ -424,6 +437,11 @@ class CodeGen:
 						writeList.append(", ")
 					else:										# global but not array  
 						writeList.append(self.getType(myList[1])+" @"+myList[2])
+
+						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
+						self.addTemp(myList[2])
+						#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
+
 						if myList[3] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
@@ -431,6 +449,11 @@ class CodeGen:
 						self.sentence.append(", ")
 				else:  										# last parameter
 					self.sentence.append(self.getType(myList[1])+" @"+myList[2])
+
+					allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
+					self.addTemp(myList[2])
+					#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
+
 					if myList[3] == "out":
 						outList.append(myList[1]) # type
 						outList.append(myList[2]) # var
@@ -442,6 +465,10 @@ class CodeGen:
 					if myList[2] not in ("in","out"):     # not global but array    
 						writeList.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])
 
+						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
+						self.addTemp(myList[1])
+						#storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
+
 						if myList[3] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
@@ -449,6 +476,11 @@ class CodeGen:
 						writeList.append(", ")
 					else:									# not global, and not array
 						writeList.append(self.getType(myList[0])+" %"+myList[1]) 
+
+						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
+						self.addTemp(myList[1])
+						#storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
+
 						if myList[2] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
@@ -458,6 +490,11 @@ class CodeGen:
 						writeList.append(", ")
 				else:  								# last parameter
 					writeList.append(self.getType(myList[0])+" %"+myList[1])
+
+					allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
+					self.addTemp(myList[1])
+					# storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
+					
 					if myList[2] == "out":
 						outList.append(myList[0]) # type
 						outList.append(myList[1]) # var
@@ -475,6 +512,16 @@ class CodeGen:
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
 		self.writeToken()
+
+		# alloca all parameter list
+		print "\nALLOCA", allocaList
+		for l in allocaList:
+			self.genDeclaration([l[0],l[1]])
+			self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])])
+		#print "\nSTORE", storeList
+		#self.genStore(storeList[0],storeList[1])
+		# genStore(result, myList)    --> result = [[global], type, name], myList = [type, name]
+		# genDeclaration(myList)		--> myList = [[global], type, name]
 
 	def genUnBr(self, label):  # unconditional Branch
 		self.sentence.append("br ")

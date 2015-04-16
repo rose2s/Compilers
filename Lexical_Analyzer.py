@@ -1111,7 +1111,10 @@ class Lexical_Analyzer:
 
 							self.set_value_ST(var_token, proc_scope, True)
 							try:
-								self.file.genStore(storeList, self.listGen)
+								if proc_scope:
+									self.file.genStore(storeList, self.listGen, True)
+								else:
+									self.file.genStore(storeList, self.listGen)
 							except:
 								print "It couldn't generate store instruction"
 							self.listGen = []
