@@ -107,7 +107,7 @@ class Lexical_Analyzer:
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
 		
-		self.file.genModule("'"+self.getFileName(filename)+"") 
+		self.file.genModule("'"+self.getFileName(filename)+"'") 
 
 		print "Tokens:"
 		word = ""
@@ -428,7 +428,6 @@ class Lexical_Analyzer:
 			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
 
 			if ST:
-				print ST
 				if ST[3] == True or (self.isGlobal(token) and scope): #  GLOBAL  							# IF var has been initialized
 					
 					if self.isGlobal(token):
@@ -563,6 +562,8 @@ class Lexical_Analyzer:
 
 					if token.getTokenValue() == "program":
 						print "\nSuccess!"
+						self.file.genEnd()
+
 						return True
 
 					else:
@@ -575,7 +576,6 @@ class Lexical_Analyzer:
 					return False
 
 	def program_header(self,token):
-		#print "\nProgram_header Function"
 		if not self.errorFlag:
 
 				if self.stack.isEmpty():
@@ -619,6 +619,8 @@ class Lexical_Analyzer:
 			if self.declaration(token):
 				self.file.skipLine()
 				print "\nStart Main Program!"
+
+				self.file.genFunction(["global","main"])
 
 				if self.statement(analyzer.current_token):
 					return True
@@ -694,7 +696,6 @@ class Lexical_Analyzer:
 
 		size = 0
 		print "Variable_declaration Funtion:",token.getTokenValue()
-		print self.listGen
 		
 		if scope == "global":	
 			self.listGen.append("global")

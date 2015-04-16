@@ -49,9 +49,16 @@ class CodeGen:
 	def genModule(self, filename):
 		self.sentence.append("; ModuleID = "+filename)
 		self.writeToken()
+		self.skipLine()
 
-	# myList=[type, name]
-	# @|%var = alloca type, align 4
+	def genEnd(self):
+		self.sentence.append("}")
+		self.writeToken()
+		self.skipLine()
+		self.sentence.append("attributes #0 = { nounwind }")
+		self.writeToken()
+	
+	# @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList):
 		print "CODE DECLARATION FUNCTION: ", myList
 		scope = "%"
@@ -417,13 +424,13 @@ class CodeGen:
 						outList.append(myList[1]) # var
 					myList = myList[4:]
 
-		writeList.append(") {\n")
+		writeList.append(") #0 {\n")
 		writeList.append("entry:\n")
 		if len(outList) > 0:
 			returnType = self.getType(outList[0])
 		else:
 			returnType = "void"
-
+		self.sentence.append("; Function Attrs: nounwind\n")
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
 		self.writeToken()
