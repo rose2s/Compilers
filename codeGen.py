@@ -22,9 +22,7 @@ class CodeGen:
 		file = open(self.filename,'a')
 
 	def getTemp(self, var):
-		#print "VAR in dict ",var
 		for k,v in self.tempDic.items():
-			#print k
 			if k in (var, "@"+var, "%"+var):
 				return v
 		return False
@@ -47,17 +45,10 @@ class CodeGen:
 			return False
 
 	def genModule(self, filename):
-		self.sentence.append("; ModuleID = "+filename)
+		self.sentence.append("; ModuleID = "+filename+"\n")
 		self.writeToken()
-		self.skipLine()
 
-	def genEnd(self):
-		self.sentence.append("}")
-		self.writeToken()
-		self.skipLine()
-		self.sentence.append("attributes #0 = { nounwind }")
-		self.writeToken()
-	
+
 	# @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList):
 		print "CODE DECLARATION FUNCTION: ", myList
@@ -73,7 +64,7 @@ class CodeGen:
 		self.sentence.append(scope)
 		self.sentence.append(name+" = alloca ")
 		if len(myList) > 2:  		# array
-			self.sentence.append("["+myList[2]+" x "+varType+"]")
+			self.sentence.append("["+myList[2]+" x "+varType+"], align 4")
 		else:
 			self.sentence.append(varType+", align 4")
 
@@ -425,7 +416,8 @@ class CodeGen:
 					myList = myList[4:]
 
 		writeList.append(") #0 {\n")
-		writeList.append("entry:\n")
+		writeList.append("entry:")
+		
 		if len(outList) > 0:
 			returnType = self.getType(outList[0])
 		else:
@@ -454,7 +446,6 @@ class CodeGen:
 		self.genLabel(label1)
 
 	def genLabel(self, label):
-		#self.sentence.append("; <label>:"+str(label))	
 		self.sentence.append(str(label)+": ")	
 		self.writeToken()
 
@@ -465,12 +456,13 @@ class CodeGen:
 		else:
 			return False
 
-	def writeToken(self):
-		#print "mistList", self.sentence
+	def writeToken(self, var = False):
+		
+		if var:
+			self.sentence.append(var)
+
 		with open(self.filename,'a') as f:
-			#f.write("\n")
 			for t in self.sentence:
-				#print "t: ",t
 				f.write(t)
 			self.skipLine()
 			self.sentence = []

@@ -78,6 +78,7 @@ class Lexical_Analyzer:
 		self.stack = Stack()								# Stack used for parser
 		self.checkExp = []									# List for Typing check expressions
 		self.listGen = []
+		self.tupleList = []  								# List of tuples used for generate variable declarations
 		self.file = CodeGen(generatedFile)
 
 	# Verifies if a variable is Letter
@@ -107,7 +108,7 @@ class Lexical_Analyzer:
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
 		
-		self.file.genModule("'"+self.getFileName(filename)+"'") 
+		self.file.writeToken("; ModuleID = '"+self.getFileName(filename)+"'\n") 
 
 		print "Tokens:"
 		word = ""
@@ -562,7 +563,8 @@ class Lexical_Analyzer:
 
 					if token.getTokenValue() == "program":
 						print "\nSuccess!"
-						self.file.genEnd()
+
+						self.file.writeToken("\n}\nattributes #0 = { nounwind }")  # generate end of file
 
 						return True
 
@@ -620,7 +622,10 @@ class Lexical_Analyzer:
 				self.file.skipLine()
 				print "\nStart Main Program!"
 
-				self.file.genFunction(["global","main"])
+				self.file.genFunction(["global","main"])  # generate main function
+				for l in self.tupleList:				  # generate variable declarations
+					self.file.genDeclaration(l)
+				self.tupleList = []
 
 				if self.statement(analyzer.current_token):
 					return True
@@ -695,11 +700,14 @@ class Lexical_Analyzer:
 	def variable_declaration(self, token, scope = "main", parameterList = False): 
 
 		size = 0
+		tup = []
 		print "Variable_declaration Funtion:",token.getTokenValue()
-		
+
 		if scope == "global":	
 			self.listGen.append("global")
-				
+			if not parameterList:
+				tup.append(scope)
+	
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
 			Type = token.getTokenValue()								# temp var to symbol table
 			
@@ -709,6 +717,10 @@ class Lexical_Analyzer:
 				name = token.getTokenValue()							 # temp var to symbol table
 				self.listGen.append(Type)
 				self.listGen.append(name)
+
+				if not parameterList:
+					tup.append(Type)
+					tup.append(name)
 				
 				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
@@ -722,7 +734,8 @@ class Lexical_Analyzer:
 				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
-					self.file.genDeclaration(self.listGen)
+					#self.file.genDeclaration(self.listGen)
+					self.tupleList.append(tup)
 					self.listGen = []
 					return True
 				
@@ -744,6 +757,7 @@ class Lexical_Analyzer:
 						size = token.getTokenValue()
 						token = self.scanToken()
 						self.listGen.append(size)
+						tup.append(size)
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
@@ -751,7 +765,8 @@ class Lexical_Analyzer:
 							if token.getTokenValue() == ";" and not parameterList:   # var is array and NOT var parameter
 								token = self.scanToken()
 								self.addSymbolTable(scope, name, Type, size)
-								self.file.genDeclaration(self.listGen)
+								#self.file.genDeclaration(self.listGen)
+								self.tupleList.append(tup)
 								self.listGen = []
 								return True
 
@@ -819,6 +834,7 @@ class Lexical_Analyzer:
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
+				self.file.writeToken("\n}")
 				return True
 			else:
 				return False
