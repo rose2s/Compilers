@@ -851,7 +851,8 @@ class Lexical_Analyzer:
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
-				self.file.writeToken("\n}")
+				self.file.genReturn(new_scope)
+				#self.file.writeToken("\n}")
 				return True
 			else:
 				return False

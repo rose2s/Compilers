@@ -428,8 +428,7 @@ class CodeGen:
 
 						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 						self.addTemp(myList[2])
-						#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
-
+						
 						if myList[4] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
@@ -440,8 +439,7 @@ class CodeGen:
 
 						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 						self.addTemp(myList[2])
-						#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
-
+						
 						if myList[3] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
@@ -452,8 +450,7 @@ class CodeGen:
 
 					allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 					self.addTemp(myList[2])
-					#storeList.append([ [self.getType(myList[1]), self.temp-1], [ self.getType(myList[1]), myList[2]] ]) # result(type, temp), list(type, name)
-
+					
 					if myList[3] == "out":
 						outList.append(myList[1]) # type
 						outList.append(myList[2]) # var
@@ -467,8 +464,7 @@ class CodeGen:
 
 						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 						self.addTemp(myList[1])
-						#storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
-
+						
 						if myList[3] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
@@ -479,8 +475,7 @@ class CodeGen:
 
 						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 						self.addTemp(myList[1])
-						#storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
-
+						
 						if myList[2] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
@@ -493,7 +488,6 @@ class CodeGen:
 
 					allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 					self.addTemp(myList[1])
-					# storeList.append([ [self.getType(myList[0]), self.temp-1], [ self.getType(myList[0]), myList[1]] ]) # result(type, temp), list(type, name)
 					
 					if myList[2] == "out":
 						outList.append(myList[0]) # type
@@ -514,15 +508,10 @@ class CodeGen:
 		self.writeToken()
 
 		# alloca all parameter list
-		print "\nALLOCA", allocaList
 		for l in allocaList:
 			self.genDeclaration([l[0],l[1]])
 			self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])])
-		#print "\nSTORE", storeList
-		#self.genStore(storeList[0],storeList[1])
-		# genStore(result, myList)    --> result = [[global], type, name], myList = [type, name]
-		# genDeclaration(myList)		--> myList = [[global], type, name]
-
+	
 	def genUnBr(self, label):  # unconditional Branch
 		self.sentence.append("br ")
 		self.sentence.append("label %"+str(label))
@@ -545,6 +534,18 @@ class CodeGen:
 		self.sentence.append(str(label)+": ")	
 		self.writeToken()
 
+	def genReturn(self, var):
+		typee = self.funcDic[var]
+
+		self.sentence.append("ret ")
+		if typee:  # vooid
+			self.sentence.append(typee+" ")
+			self.sentence.append("%"+str(self.temp-1))  # fix this temp
+		else:
+			self.sentence.append("void")
+
+		self.sentence.append("\n}")
+		self.writeToken()
 
 	def isEmpty(self):
 		if os.stat(self.filename).st_size == 0:
