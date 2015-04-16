@@ -46,6 +46,10 @@ class CodeGen:
 		else:
 			return False
 
+	def genModule(self, filename):
+		self.sentence.append("; ModuleID = "+filename)
+		self.writeToken()
+
 	# myList=[type, name]
 	# @|%var = alloca type, align 4
 	def genDeclaration(self, myList):
@@ -331,9 +335,7 @@ class CodeGen:
 
 		self.genLabel(elseVar)
 
-	def genThen(self):
-		#print "\nstack 1", self.ifStack.items
-		
+	def genThen(self):		
 		self.genUnBr(self.ifStack.peek())
 
 		self.sentence.append(self.ifStack.peek()+": ")  
@@ -343,7 +345,6 @@ class CodeGen:
 			self.ifStack.pop()
 		self.ifStack.pop()  # remove ifFalse
 		self.ifStack.pop()  # remove ifTrue
-	#	print "\nstack 2", self.ifStack.items
 
 	# myList = [global,name,[global, type, name, in|out]]
 	def genFunction(self,myList):
@@ -352,47 +353,35 @@ class CodeGen:
 
 		print "\nGenCode for procedure: ", myList
 		scope = "%"
-		#; function
-		# writeList.append("declare void ")
-		# define i32 @main(i32 %argc, i8** %argv) { entry:
+
 		if myList[0] == "global":
 			scope = "@"
 			myList = myList[1:]
 
-		#self.sentence.append(scope)
 		writeList.append(scope)
 		funcName = myList[0]
 		myList = myList[1:]
 		writeList.append(funcName+"(")
-		#self.sentence.append(funcName+"(")
 
 		while len(myList) > 0:
-			print "\nparameter list",myList
+			print "\nParameter list",myList
 			if myList[0] == "global":
 				if len(myList) > 4: 					 # or var is array e|or has more than 1 var
 					if myList[3] not in ("in","out"):             # global and array
 
 						writeList.append("["+myList[3]+" x "+ self.getType(myList[1])+"] @"+myList[2])
-						#self.sentence.append("["+myList[3]+" x "+ self.getType(myList[1])+"] @"+myList[2]) 
+
 						if myList[4] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
 						myList = myList[5:]
-						print "list",myList
-						print "outList", outList
-						#self.sentence.append(", ")
 						writeList.append(", ")
-					else:										# global but not array
-						#self.sentence.append(self.getType(myList[1])+" @"+myList[2])    
+					else:										# global but not array  
 						writeList.append(self.getType(myList[1])+" @"+myList[2])
 						if myList[3] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
-						myList = myList[4:]
-						print "list",myList
-						print "outList", outList
-
-						#if len(myList) > 4:	
+						myList = myList[4:]	
 						self.sentence.append(", ")
 				else:  										# last parameter
 					self.sentence.append(self.getType(myList[1])+" @"+myList[2])
@@ -400,27 +389,19 @@ class CodeGen:
 						outList.append(myList[1]) # type
 						outList.append(myList[2]) # var
 					myList = myList[4:]
-					print "list",myList
-					print "outList", outList
 					
 			else:
 				if len(myList) > 3:   
 					print "type", myList[2]
 					if myList[2] not in ("in","out"):     # not global but array    
-					#if (myList[2] != "global" and self.getType(myList[2]) == False):  
-						#self.sentence.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])  
 						writeList.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])
+
 						if myList[3] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
 						myList = myList[4:]
-						print "list",myList
-						print "outList", outList
-						#if len(myList) > 1:
 						writeList.append(", ")
-						#self.sentence.append(", ")
 					else:									# not global, and not array
-						#self.sentence.append(self.getType(myList[0])+" %"+myList[1])  
 						writeList.append(self.getType(myList[0])+" %"+myList[1]) 
 						if myList[2] == "out":
 							outList.append(myList[0]) # type
@@ -428,38 +409,24 @@ class CodeGen:
 						myList = myList[3:]	
 						print "list", myList
 						print "outList", outList
-						#self.sentence.append(", ")
 						writeList.append(", ")
-
 				else:  								# last parameter
-					#self.sentence.append(self.getType(myList[0])+" %"+myList[1])
 					writeList.append(self.getType(myList[0])+" %"+myList[1])
 					if myList[2] == "out":
 						outList.append(myList[0]) # type
 						outList.append(myList[1]) # var
 					myList = myList[4:]
 
-		print "\nlist final", myList
-		print "outList final", outList
-
-		#self.sentence.append(") {")
 		writeList.append(") {\n")
-		#self.skipLine()
-		#self.writeToken()
-		#self.sentence.append("entry:")
 		writeList.append("entry:\n")
-		print "sentence",self.sentence
 		if len(outList) > 0:
 			returnType = self.getType(outList[0])
 		else:
 			returnType = "void"
+
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
-		print self.sentence
 		self.writeToken()
-		#self.skipLine()
-
-		print "FUNCTION:", self.sentence
 
 	def genUnBr(self, label):  # unconditional Branch
 		self.sentence.append("br ")

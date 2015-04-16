@@ -94,8 +94,21 @@ class Lexical_Analyzer:
 		else:
 			return False
 
+	def getFileName(self, filename):
+		i = 0
+		for i in range(len(filename)-1, 0, -1):
+			pos = i
+			if filename[i] in ("\'","/"):
+				break
+
+		return filename[i+1:]
+
+
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
+		
+		self.file.genModule("'"+self.getFileName(filename)+"") 
+
 		print "Tokens:"
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
@@ -415,6 +428,7 @@ class Lexical_Analyzer:
 			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
 
 			if ST:
+				print ST
 				if ST[3] == True or (self.isGlobal(token) and scope): #  GLOBAL  							# IF var has been initialized
 					
 					if self.isGlobal(token):
@@ -680,6 +694,7 @@ class Lexical_Analyzer:
 
 		size = 0
 		print "Variable_declaration Funtion:",token.getTokenValue()
+		print self.listGen
 		
 		if scope == "global":	
 			self.listGen.append("global")
@@ -848,6 +863,8 @@ class Lexical_Analyzer:
 					elif analyzer.current_token.getTokenValue() == ")":
 						token = self.scanToken()
 						print "Function w/o parameters"
+						self.file.genFunction(self.listGen)
+						self.listGen = []
 						return True
 
 					else: 
