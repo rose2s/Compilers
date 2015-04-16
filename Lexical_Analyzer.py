@@ -809,7 +809,7 @@ class Lexical_Analyzer:
 						self.reportError("array Size", token.getTokenValue(),token.line)
 						return False
 				else: 
-					self.reportError("';'",token.getTokenValue() , token.line-1)
+					self.reportError(";",token.getTokenValue() , token.line-1)
 					return False
 
 			else: 
@@ -1167,11 +1167,18 @@ class Lexical_Analyzer:
 				return False
 
 	# If proc_scope then procedure_call is within procedure
+	# myList = [[global], name, [type var]
 	def procedure_call(self,token, proc_scope = False):
 		print "\nProcedure Call Function"
 		exp_type = []
+		callList  = []  # store function name, and it is passed to genCall()
+
+		if not proc_scope:
+			callList.append("global")
 
 		if token.getTokenType() == "IDENTIFIER":
+			callList.append(token.getTokenValue())
+
 			STlist = self.lookatST(token, proc_scope)
 
 			if STlist:
@@ -1188,6 +1195,8 @@ class Lexical_Analyzer:
 
 							exp_type.append(self.arrayType("procedure_call"))
 
+							callList = callList + self.listGen
+							self.listGen = [] 
 
 							while analyzer.current_token.getTokenValue() == ",":
 								token = self.scanToken()	
@@ -1195,6 +1204,8 @@ class Lexical_Analyzer:
 									return False
 
 								exp_type.append(self.arrayType("procedure_call"))
+								callList = callList + self.listGen
+								self.listGen = [] 
 
 							# --- Type checking Block
 							print exp_type, " in ProcedureCall"
@@ -1213,7 +1224,12 @@ class Lexical_Analyzer:
 							token = self.scanToken()
 
 							if token.getTokenValue() == ";":
-									return True
+								#try:
+								self.file.genCall(callList)
+								#except:
+								#	print "\nIt couldn't generate Call Function instruction"
+
+								return True
 							else:
 								self.reportError(";", token.getTokenValue(), token.line-1)
 								self.errorFlag = True

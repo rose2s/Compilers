@@ -17,6 +17,7 @@ class CodeGen:
 		self.loopStack = Stack()
 		self.ifCount = 1
 		self.loopCount = 1
+		self.funcDic = {}
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -134,6 +135,50 @@ class CodeGen:
 		self.sentence.append(", align 4")
 		print "sentence",self.sentence
 
+		self.writeToken()
+
+	def genCall(self, myList):  # myList = [[global], name, [type var]
+		#%3 = call i32 @sum(i32 %2)
+		write = []
+		print "\nGenCode for Call: ", myList
+		scope = "%"
+
+		if myList[0] == "global":
+			scope = "@"
+			myList = myList[1:]
+
+		name = myList[0]
+		myList = myList[1:]
+
+		typee = self.funcDic[name]
+
+		write.append("%")
+		write.append(str(self.temp))
+		self.setTemp()
+		write.append(" = call ")
+		write.append(typee+" ")
+		write.append(scope)
+		write.append(name+"(")
+
+		print "myList",myList
+		for l in range(0,len(myList)-1,2):
+			print l
+
+			write.append(self.getType(myList[l])+" ")
+			if myList[l+1][0] in ("@","%"):  # if var
+				print "oi", myList[l], myList[l+1]
+				#self.genLoad([myList[l], myList[l+1]])
+				write.append("%"+str(self.getTemp(myList[l+1])))
+			else:
+				write.append(myList[l+1])
+
+			if l < len(myList)-2:
+				write.append(", ")
+
+		write.append(")")
+		print "sentence now", self.sentence
+		print write 
+		self.sentence = write
 		self.writeToken()
 
 	# myList = [type, '%a', '+', type, '%b']
@@ -426,6 +471,8 @@ class CodeGen:
 			returnType = self.getType(outList[0])
 		else:
 			returnType = "void"
+		self.funcDic[funcName] = returnType
+
 		self.sentence.append("; Function Attrs: nounwind\n")
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
