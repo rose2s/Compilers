@@ -44,11 +44,6 @@ class CodeGen:
 		else:
 			return False
 
-	def genModule(self, filename):
-		self.sentence.append("; ModuleID = "+filename+"\n")
-		self.writeToken()
-
-
 	# @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList):
 		print "CODE DECLARATION FUNCTION: ", myList
@@ -417,7 +412,7 @@ class CodeGen:
 
 		writeList.append(") #0 {\n")
 		writeList.append("entry:")
-		
+
 		if len(outList) > 0:
 			returnType = self.getType(outList[0])
 		else:

@@ -625,6 +625,7 @@ class Lexical_Analyzer:
 				self.file.genFunction(["global","main"])  # generate main function
 				for l in self.tupleList:				  # generate variable declarations
 					self.file.genDeclaration(l)
+				self.file.skipLine()
 				self.tupleList = []
 
 				if self.statement(analyzer.current_token):
