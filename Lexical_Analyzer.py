@@ -304,8 +304,11 @@ class Lexical_Analyzer:
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				print "\nCorrect Expression"
-				
-				self.file.genExpression(self.listGen)
+				try:
+					self.file.genExpression(self.listGen)
+				except:
+					print "It couldn't generate expression instruction"
+
 				return STlist
 			else: 
 				self.reportWarning("Missing )")
@@ -466,7 +469,11 @@ class Lexical_Analyzer:
 								self.listGen.append(ST[1].lower()) # type 
 								self.listGen.append(var) 
 								print "loadList", loadList
-								self.file.genLoad(loadList) 
+								try:
+									self.file.genLoad(loadList) 
+								except:
+									print "\nIt couldn't generate Load instruction"
+
 								return True 	
 
 						else:
@@ -484,7 +491,11 @@ class Lexical_Analyzer:
 							self.listGen.append(ST[1].lower()) # type 
 							self.listGen.append(var) 		 # var
 							print "loadList", loadList
-							self.file.genLoad(loadList) 
+							try:
+								self.file.genLoad(loadList) 
+							except:
+								print "\nIt couldn't generate Load instruction"
+
 							return True
 
 				else: # then it is a global variable
@@ -563,9 +574,11 @@ class Lexical_Analyzer:
 
 					if token.getTokenValue() == "program":
 						print "\nSuccess!"
-
-						self.file.writeToken("\n}\nattributes #0 = { nounwind }")  # generate end of file
-
+						try:
+							self.file.genEnd()
+						except:
+							print "\nIt couldn't generate End instruction"
+						
 						return True
 
 					else:
@@ -621,11 +634,15 @@ class Lexical_Analyzer:
 			if self.declaration(token):
 				self.file.skipLine()
 				print "\nStart Main Program!"
+				try:
+					self.file.genFunction(["global","main"])  # generate main function
+					for l in self.tupleList:				  # generate variable declarations
+						self.file.genDeclaration(l)
 
-				self.file.genFunction(["global","main"])  # generate main function
-				for l in self.tupleList:				  # generate variable declarations
-					self.file.genDeclaration(l)
-				self.file.skipLine()
+					self.file.skipLine()
+				except:
+					print "\nIt couldn't generate Variable Declaration instruction"
+
 				self.tupleList = []
 
 				if self.statement(analyzer.current_token):
@@ -869,7 +886,11 @@ class Lexical_Analyzer:
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 
-							self.file.genFunction(self.listGen)
+							try:
+								self.file.genFunction(self.listGen)
+							except:
+								print "\nIt couldn't generate Function instruction"
+							
 							self.listGen = []
 							return parList
 
@@ -880,8 +901,12 @@ class Lexical_Analyzer:
 						
 					elif analyzer.current_token.getTokenValue() == ")":
 						token = self.scanToken()
-						print "Function w/o parameters"
-						self.file.genFunction(self.listGen)
+						# print "Function w/o parameters"
+
+						try:
+							self.file.genFunction(self.listGen)
+						except:
+							print "\nIt couldn't generate Function instruction"
 						self.listGen = []
 						return True
 
@@ -1085,7 +1110,10 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
-							self.file.genStore(storeList, self.listGen)
+							try:
+								self.file.genStore(storeList, self.listGen)
+							except:
+								print "It couldn't generate store instruction"
 							self.listGen = []
 							return True
 						else:
@@ -1223,14 +1251,21 @@ class Lexical_Analyzer:
 				loop3 = ["integer","%"+str(token.getTokenValue())]
 
 				self.assignment_statement(token, proc_scope)
-				self.file.genLoop1()
 
+				try:
+					self.file.genLoop1()
+				except:
+					print "\nIt couldn't generate Loop instruction"
+							
 				if analyzer.current_token.getTokenValue() == ";":
 					token = self.scanToken()
 
 					if self.expression(token, ")", proc_scope):
 						self.listGen = []  # 
-						self.file.genLoop2()
+						try:
+							self.file.genLoop2()
+						except:
+							print "\nIt couldn't generate Loop instruction"
 
 						# ---- Type checking
 
@@ -1245,7 +1280,10 @@ class Lexical_Analyzer:
 						# ---- end type checking
 
 						if self.statement(token, False, proc_scope):
-							self.file.genLoop3(loop3)
+							try:
+								self.file.genLoop3(loop3)
+							except:
+								print "\nIt couldn't generate Loop instruction"
 
 							if analyzer.current_token.getTokenValue() == "end":
 								token = self.scanToken()
@@ -1306,7 +1344,10 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 					self.listGen = []  # after expression
 
-					self.file.genIf()
+					try:
+						self.file.genIf()
+					except:
+						print "\nIt couldn't generate IF instruction"
 
 					# ---- Type checking
 
@@ -1324,7 +1365,10 @@ class Lexical_Analyzer:
 
 						if self.statement(token, True, proc_scope):
 							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
-								self.file.genElse()
+								try:
+									self.file.genElse()
+								except:
+									print "\nIt couldn't generate if-else instruction"
 
 								if self.stack.peek() == "if":
 
@@ -1352,7 +1396,11 @@ class Lexical_Analyzer:
 									if token.getTokenValue() == ";":
 										if token.Next.getTokenValue() == "end":  # If last Else
 											self.IFlag = False
-										self.file.genThen()
+										try:
+											self.file.genThen()
+										except:
+											print "\nIt couldn't generate if-then instruction"
+
 										return True
 									else:
 										self.reportError(";", token.getTokenValue(), token.line-1)
