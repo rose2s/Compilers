@@ -661,7 +661,7 @@ class Lexical_Analyzer:
 
 	# Checks type mark
 	def type_mark(self,t):
-		if t in ("integer", "float", "bool", "string"):
+		if t in ("integer", "int", "float", "bool", "string"):
 			return True
 		else:
 			return False
@@ -752,7 +752,7 @@ class Lexical_Analyzer:
 				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
-					#self.file.genDeclaration(self.listGen)
+					
 					self.tupleList.append(tup)
 					self.listGen = []
 					return True
@@ -832,7 +832,6 @@ class Lexical_Analyzer:
 		self.listGen.append(new_scope)
 
 		parList = self.procedure_header(token)
-		
 		if parList:
 
 			#check redeclaration of procedures
@@ -874,11 +873,12 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 
 					if self.type_mark(token.getTokenValue()):
+
 						parList.append(token.getTokenValue())
 						self.variable_declaration(token, scope, True)
 					
 						while analyzer.current_token.getTokenValue() == ",":
-							token = self.scanToken()	
+							token = self.scanToken()
 							parList.append(token.getTokenValue())
 							self.variable_declaration(analyzer.current_token, scope, True)
 
@@ -1180,7 +1180,7 @@ class Lexical_Analyzer:
 			callList.append(token.getTokenValue())
 
 			STlist = self.lookatST(token, proc_scope)
-
+		
 			if STlist:
 				if STlist[1] == "proc":   # var type
 
@@ -1209,7 +1209,7 @@ class Lexical_Analyzer:
 
 							# --- Type checking Block
 							print exp_type, " in ProcedureCall"
-
+			
 							if exp_type == STlist[3]:  # parameter list
 								print "parameter ok in procedure_call"
 
@@ -1224,10 +1224,10 @@ class Lexical_Analyzer:
 							token = self.scanToken()
 
 							if token.getTokenValue() == ";":
-								#try:
-								self.file.genCall(callList)
-								#except:
-								#	print "\nIt couldn't generate Call Function instruction"
+								try:
+									self.file.genCall(callList)
+								except:
+									print "\nIt couldn't generate Call Function instruction"
 
 								return True
 							else:

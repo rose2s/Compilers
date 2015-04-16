@@ -166,8 +166,6 @@ class CodeGen:
 
 			write.append(self.getType(myList[l])+" ")
 			if myList[l+1][0] in ("@","%"):  # if var
-				print "oi", myList[l], myList[l+1]
-				#self.genLoad([myList[l], myList[l+1]])
 				write.append("%"+str(self.getTemp(myList[l+1])))
 			else:
 				write.append(myList[l+1])
