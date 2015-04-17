@@ -56,7 +56,7 @@ class CodeGen:
 		self.writeToken()
 
 	# generates alloca instruction --> format: @|%var = alloca type, align 4 ... myList=[type, name]
-	def genDeclaration(self, myList):
+	def genDeclaration(self, myList, parameter = False):
 		print "GenCode for Declaration (alloca): ", myList
 		
 		scope = "%"
@@ -70,8 +70,11 @@ class CodeGen:
 		self.sentence.append(scope)
 		self.sentence.append(name+" = alloca ")
 
-		if len(myList) > 2:  											# If array
-			self.sentence.append("["+myList[2]+" x "+varType+"], align 4")
+		if len(myList) > 2:  													# If array
+			if parameter:
+				self.sentence.append(varType+"*, align 4")  				    #  par = type *
+			else: 											
+				self.sentence.append("["+myList[2]+" x "+varType+"], align 4")  # no par = [size x type] 
 		else:
 			self.sentence.append(varType+", align 4")
 
@@ -430,9 +433,9 @@ class CodeGen:
 				if len(myList) > 4: 					 # or var is array e|or has more than 1 var
 					if myList[3] not in ("in","out"):             # global and array
 
-						writeList.append("["+myList[3]+" x "+ self.getType(myList[1])+"] @"+myList[2])
+						writeList.append(self.getType(myList[1])+"* @"+myList[2])
 
-						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
+						allocaList.append([myList[1], self.temp, myList[2], myList[3]]) # type, new Nemp, var, size
 						self.addTemp(myList[2])
 						
 						if myList[4] == "out":
@@ -464,18 +467,19 @@ class CodeGen:
 					
 			else:
 				if len(myList) > 3:   
-					print "type", myList[2]
 					if myList[2] not in ("in","out"):     # not global but array    
-						writeList.append("["+myList[2]+" x "+ self.getType(myList[0])+"] %"+myList[1])
+						writeList.append(self.getType(myList[0])+"* %"+myList[1])
 
-						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
+						allocaList.append([myList[0], self.temp, myList[1], myList[2]]) # type, new Nemp, var, size
 						self.addTemp(myList[1])
 						
 						if myList[3] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
 						myList = myList[4:]
-						writeList.append(", ")
+						
+						if len(myList) > 0:
+							writeList.append(", ")
 					else:									# not global, and not array
 						writeList.append(self.getType(myList[0])+" %"+myList[1]) 
 
@@ -516,9 +520,14 @@ class CodeGen:
 		self.sentence = self.sentence + writeList
 		self.writeToken()
 
+		print "ALLOCA", allocaList
 		# alloca all parameter list
 		for l in allocaList:
-			self.genDeclaration([l[0],l[1]])
+			if len(l) == 4:
+				self.genDeclaration([l[0],l[1],l[3]], True)  # array
+			else:
+				self.genDeclaration([l[0],l[1]], True)
+
 			self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])])
 		self.skipLine()
 	
