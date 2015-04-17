@@ -109,7 +109,6 @@ class CodeGen:
 		self.sentence.append(varType+"* ")
 
 		if isFunction:
-			print "oi", self.tempDic
 			name = str(self.getTemp(name))
 			self.sentence.append(scope+name)
 		else:
@@ -401,7 +400,7 @@ class CodeGen:
 		self.ifStack.pop()  # remove ifTrue
 
 	# myList = [global,name,[global, type, name, in|out]]
-	def genFunction(self,myList):
+	def genFunction(self, myList):
 		writeList = []
 		outList = []
 		allocaList = []
@@ -415,7 +414,12 @@ class CodeGen:
 
 		writeList.append(scope)
 		funcName = myList[0]
-		myList = myList[1:]
+	
+		if len(myList) == 1:
+			myList = []
+		else:
+			myList = myList[1:]
+
 		writeList.append(funcName+"(")
 
 		while len(myList) > 0:
@@ -495,12 +499,13 @@ class CodeGen:
 					myList = myList[4:]
 
 		writeList.append(") #0 {\n")
-		writeList.append("entry:")
+		writeList.append("entry:\n")
+
 		if len(outList) > 0:
 			returnType = self.getType(outList[0])
+			self.funcDic[funcName] = [returnType,outList[1]]
 		else:
 			returnType = "void"
-		self.funcDic[funcName] = returnType
 
 		self.sentence.append("; Function Attrs: nounwind\n")
 		self.sentence.append("declare "+returnType+" ")
@@ -511,6 +516,7 @@ class CodeGen:
 		for l in allocaList:
 			self.genDeclaration([l[0],l[1]])
 			self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])])
+		self.skipLine()
 	
 	def genUnBr(self, label):  # unconditional Branch
 		self.sentence.append("br ")
@@ -535,12 +541,13 @@ class CodeGen:
 		self.writeToken()
 
 	def genReturn(self, var):
-		typee = self.funcDic[var]
+		var = self.funcDic[var]
+		print var
 
-		self.sentence.append("ret ")
-		if typee:  # vooid
-			self.sentence.append(typee+" ")
-			self.sentence.append("%"+str(self.temp-1))  # fix this temp
+		self.sentence.append("\nret ")
+		if var:  # vooid
+			self.sentence.append(var[0]+" ")
+			self.sentence.append("%"+self.getTemp(var[1]))  # fix this temp
 		else:
 			self.sentence.append("void")
 
