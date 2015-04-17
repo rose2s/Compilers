@@ -1705,7 +1705,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/correct_program/exp.src"
 generatedFile = filename[0:-3]+"ll"
 
 

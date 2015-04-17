@@ -51,7 +51,7 @@ class CodeGen:
 
 	def genEnd(self):
 		self.sentence = []
-		self.sentence.append("\n}\n")
+		self.sentence.append("ret void\n}\n")
 		self.sentence.append("attributes #0 = { nounwind }")
 		self.writeToken()
 
