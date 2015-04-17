@@ -110,7 +110,7 @@ class Lexical_Analyzer:
 		
 		self.file.writeToken("; ModuleID = '"+self.getFileName(filename)+"'\n") 
 
-		print "Tokens:"
+		#print "Tokens:"
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
 
@@ -263,7 +263,7 @@ class Lexical_Analyzer:
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
 				
-			    print "<"+inp_program + "> is <" + token+">"
+			   # print "<"+inp_program + "> is <" + token+">"
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
 		else:									
@@ -444,7 +444,7 @@ class Lexical_Analyzer:
 					loadList = [vtype, var]
 					# Minus Type checking
 					if minus:
-						if ST[1].lower() not in ("integer, float"):
+						if ST[1].lower() not in ("integer", "int", "float"):
 							self.reportErrorMsg("Minus [-] is not allowed with '"+ST[1]+"' type", analyzer.current_token.line)
 							self.errorFlag = True
 							return False
@@ -633,7 +633,7 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			if self.declaration(token):
 				self.file.skipLine()
-				print "\nStart Main Program!"
+				print "\nStart Main Program!", self.tupleList
 				try:
 					self.file.genFunction(["global","main"])  # generate main function
 					for l in self.tupleList:				  # generate variable declarations
@@ -708,7 +708,7 @@ class Lexical_Analyzer:
 				return True
 
 			else: 
-				self.reportErrorMsg("SyntaxError: invalid syntax",token.line)
+				self.reportError("SyntaxError: Invalid Syntax in Declaration",token.line)
 				self.errorFlag = True
 				return False
 		else:
@@ -719,11 +719,12 @@ class Lexical_Analyzer:
 
 		size = 0
 		tup = []
+
 		print "Variable_declaration Funtion:",token.getTokenValue()
 
 		if scope == "global":	
 			self.listGen.append("global")
-			if not parameterList:
+			if scope == "main":
 				tup.append(scope)
 	
 		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
@@ -736,7 +737,7 @@ class Lexical_Analyzer:
 				self.listGen.append(Type)
 				self.listGen.append(name)
 
-				if not parameterList:
+				if scope == "main":
 					tup.append(Type)
 					tup.append(name)
 				
@@ -752,8 +753,10 @@ class Lexical_Analyzer:
 				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
-					
-					self.tupleList.append(tup)
+					if scope != "main":
+						self.file.genDeclaration(self.listGen)
+					elif len(tup):
+						self.tupleList.append(tup)
 					self.listGen = []
 					return True
 				
@@ -762,6 +765,7 @@ class Lexical_Analyzer:
 						self.listGen.append(token.getTokenValue())
 						token = self.scanToken()
 						self.addSymbolTable(scope, name, Type, size, True)
+						
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
@@ -771,11 +775,12 @@ class Lexical_Analyzer:
 				elif token.getTokenValue() == "[":
 					token = self.scanToken()
 
-					if token.getTokenType() in ("INTEGER, FLOAT"):
+					if token.getTokenType().lower() in ("int", "integer", "float"):
 						size = token.getTokenValue()
 						token = self.scanToken()
 						self.listGen.append(size)
-						tup.append(size)
+						if scope == "main":
+							tup.append(size)
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
@@ -783,8 +788,12 @@ class Lexical_Analyzer:
 							if token.getTokenValue() == ";" and not parameterList:   # var is array and NOT var parameter
 								token = self.scanToken()
 								self.addSymbolTable(scope, name, Type, size)
-								#self.file.genDeclaration(self.listGen)
-								self.tupleList.append(tup)
+								
+								if scope != "main":
+									self.file.genDeclaration(self.listGen)
+								elif len(tup) > 0:
+									self.tupleList.append(tup)
+
 								self.listGen = []
 								return True
 
@@ -794,7 +803,7 @@ class Lexical_Analyzer:
 									token = self.scanToken()
 
 									self.addSymbolTable(scope, name, Type, size, True)
-						
+									
 									return True
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
@@ -825,7 +834,7 @@ class Lexical_Analyzer:
 	def procedure_declaration(self, token, scope = "main"):
 		print "\nProcedure Declaration Function: ",token.getTokenValue()
 		
-		if scope == "global":
+		if scope in ("global", "main"):
 			self.listGen.append("global")
 
 		new_scope = token.Next.getTokenValue()  # Procedure Name
@@ -852,7 +861,6 @@ class Lexical_Analyzer:
 
 			if self.procedure_body(analyzer.current_token, new_scope):
 				self.file.genReturn(new_scope)
-				#self.file.writeToken("\n}")
 				return True
 			else:
 				return False
@@ -927,7 +935,7 @@ class Lexical_Analyzer:
 
 	def procedure_body(self,token, scope):
 		print "Procedure_Body Function:",token.getTokenValue()
-		print "scope",scope
+		#print "scope",scope
 		if not self.errorFlag:
 			if self.declaration(token, scope):
 				pass
@@ -968,13 +976,10 @@ class Lexical_Analyzer:
 	# If if_stat then "else is a sign for expressions"
 	# If proc_scope then it is a statement within procedure
 	def statement(self,token, if_stat = False, proc_scope = False): 
-		print "Statement Function:", token.getTokenValue()
-		#if token.getTokenValue() == ";":
-		#	token = self.scanToken()
-		#print "scope",proc_scope
 		prior = token
 		token = self.scanToken()
-		print "token :", token.getTokenValue()
+
+		print "Statement Function:", token.getTokenValue()
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
@@ -1021,8 +1026,7 @@ class Lexical_Analyzer:
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
 
 			if self.loop_statement(token, proc_scope):
-				print "after FOR loop", analyzer.current_token.getTokenValue()
-
+				
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
 				else:
@@ -1033,8 +1037,7 @@ class Lexical_Analyzer:
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
 
 			if self.if_statement(token, proc_scope):
-				print "after IF Statement", analyzer.current_token.getTokenValue()
-
+			
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
 				else:
@@ -1047,14 +1050,14 @@ class Lexical_Analyzer:
 			return False
 
 		else:
-			self.reportErrorMsg("SyntaxError: invalid syntax ",token.line)
+			self.reportErrorMsg("SyntaxError: Invalid syntax in Statement ",token.line)
 			return False
 
 	# If proc_scope then it is assigment within procedure
 	# listgGen = [[global], type, name, value]
 	def assignment_statement(self, token, proc_scope = False):
 		print "\nAssignment Statement Function"
-		print "scope",proc_scope
+		#print "scope",proc_scope
 
 		if token.getTokenType() == "IDENTIFIER":
 
@@ -1063,27 +1066,31 @@ class Lexical_Analyzer:
 
 			# --- Declaration Check ---#
 			STlist = self.lookatST(token, proc_scope)  					# Verify if var within ST
+		
 			if not STlist:												# Error: Undeclared var
 				return False
 			# ---------  ##  --------- #
-
 			if self.isGlobal(var_token):
 				self.listGen.append("global")
-			#self.listGen.append(STlist[1])  # type
-			#self.listGen.append(var_token.getTokenValue())  # name
-			storeList = [STlist[1], var_token.getTokenValue()]
+			
+			storeList = [STlist[1], var_token.getTokenValue()]         # type, var
 
 			# --- Array checking -----
 			if STlist[2] > 0 : 											# If var was declared as array
+				storeList.append(STlist[2]) 							# size of array
 				array_var = True
 
 			token = self.scanToken()
 
-			if token.getTokenValue() == "[":  								# If array
+			if token.getTokenValue() == "[":  							# If array
 				if array_var:
-					if not self.destination(token, proc_scope):		  		# True if integer
+					storeList.append(token.Next.getTokenValue())  		# position of array
+
+					if not self.destination(token, proc_scope):		  	# True if integer
 						self.errorFlag = True
 						return False
+					
+					self.listGen = []    								# clean sentence after verify expression of array
 					array_var = False 
 			 
 				else:
@@ -1113,7 +1120,7 @@ class Lexical_Analyzer:
 							self.set_value_ST(var_token, proc_scope, True)
 							try:
 								if proc_scope:
-									self.file.genStore(storeList, self.listGen, True)
+									self.file.genStore(storeList, self.listGen) # true
 								else:
 									self.file.genStore(storeList, self.listGen)
 							except:
@@ -1154,7 +1161,7 @@ class Lexical_Analyzer:
 				# --- Array Checking
 				arrayType = self.arrayType("destination")
 
-				if arrayType == "integer":
+				if arrayType in ("integer", "int"):
 
 					if analyzer.current_token.getTokenValue() == "]":
 						token = self.scanToken()
@@ -1261,7 +1268,7 @@ class Lexical_Analyzer:
 	# If proc_scope then loop is within procedure
 	def loop_statement(self,token, proc_scope = False):
 		print "\nLoop Statement Function"
-		print "scope",proc_scope
+		#print "scope",proc_scope
 		if token.getTokenValue() == "for":
 			token = self.scanToken()
 
@@ -1351,7 +1358,7 @@ class Lexical_Analyzer:
 	# If proc_scope then IF is within procedure
 	def if_statement(self,token, proc_scope = False):
 		print "\nIF Statement Function"
-		print "scope",proc_scope
+		#print "scope",proc_scope
 		if token.getTokenValue() == "if":
 			self.stack.push(token.getTokenValue())
 			self.IFlag = True   					# accept else after expressions
@@ -1639,7 +1646,7 @@ class Lexical_Analyzer:
 	# return list of var items if var in ST [name, type, size, value]
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
-		print "lookatST FUNCTION"
+		#print "lookatST FUNCTION"
 		STlist = []
 		if not scope:
 			scope = "main"
@@ -1675,11 +1682,11 @@ class Lexical_Analyzer:
 	# Assign True to the var if var in ST
 	# Return false if not declared
 	def set_value_ST(self, token, scope, value, declaration = False): 
-		print "set_value_ST FUNCTION"
+		#print "set_value_ST FUNCTION"
 		if not scope:
 			scope = "main"
 
-		print "scope", scope
+		#print "scope", scope
 
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
@@ -1705,7 +1712,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/correct_program/exp.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 generatedFile = filename[0:-3]+"ll"
 
 
@@ -1720,4 +1727,4 @@ analyzer.current_token = analyzer.tokenList.Next
 
 analyzer.program(analyzer.tokenList.Next)
 
-print "\n",analyzer.printST()
+#print "\n",analyzer.printST()
