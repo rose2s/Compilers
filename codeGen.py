@@ -14,6 +14,7 @@ class CodeGen:
 		self.loopCount = 1					# count for Loop statement generation
 		self.funcDic = {}					# save name of function, and its return type
 		self.function = {}					# save function name, and its parameters var
+		self.arrayTemp = {}					# allocate temp por array in functions
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -95,10 +96,18 @@ class CodeGen:
 
 		if len(result) > 2:  								# array
 			if not alloca:
+				if name in self.function[inFunction]:	 # if is parameter var
+					self.genLoad([result[0], "%"+str(self.getTemp(result[1]))], True)
+
 				self.sentence.append("%"+str(self.temp))
 				self.setTemp()
-			
-				self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"* %"+result[1]+"\n")
+				if name in self.function[inFunction]:	 # if is parameter var
+					#self.genLoad([result[0], result[1]])
+					self.sentence.append(" = getelementptr inbounds "+str(self.getType(result[0]))+"* %"+str(self.temp-2))
+					self.sentence.append(", "+self.getType(result[0])+" "+str(result[3])+"\n")
+				else:
+					self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"]* %"+result[1])
+					self.sentence.append(", "+self.getType(result[0])+" 0, "+self.getType(result[0])+" "+str(result[3])+"\n")
 
 		self.sentence.append("store ")
 		self.sentence.append(varType)
@@ -127,9 +136,8 @@ class CodeGen:
 			if alloca:
 				self.sentence.append(scope+name)												# should be temporary variable instead of variable
 
-			elif name in self.function[inFunction]:								
-				name = str(self.getTemp(name))
-				self.sentence.append(scope+name)
+			elif name in self.function[inFunction] or len(result) > 2:		# parameter var	ou array					
+				self.sentence.append("%"+str(self.temp-1))
 			else:
 				self.sentence.append(scope+name)		
 			
@@ -147,7 +155,7 @@ class CodeGen:
 		self.setTemp()
 
 	#  generates Load instruction --> myList = [vartype, var]
-	def genLoad(self, myList):
+	def genLoad(self, myList, isArray = False):
 		print "\nGenCode for Load: ", myList
 
 		varType = self.getType(myList[0])
@@ -159,7 +167,10 @@ class CodeGen:
 		self.sentence.append(str(self.getTemp(name)))
 		self.sentence.append(" = load ")
 		self.sentence.append(varType)
-		self.sentence.append("* ")
+		if isArray:
+			self.sentence.append("** ")
+		else:
+			self.sentence.append("* ")
 		self.sentence.append(name)
 		self.sentence.append(", align 4")
 
