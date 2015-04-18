@@ -13,6 +13,7 @@ class CodeGen:
 		self.ifCount = 1					# count for If statement generation
 		self.loopCount = 1					# count for Loop statement generation
 		self.funcDic = {}					# save name of function, and its return type
+		self.function = {}					# save function name, and its parameters var
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -81,8 +82,8 @@ class CodeGen:
 		self.writeToken()
 
 	# generates Store instruction --> result = [type, var,[size]], myList = [[global], vartype, name]
-	def genStore(self, result, myList, isFunction = False):
-		print "\nGenCode for Store: ", result, myList
+	def genStore(self, result, myList, inFunction = False, alloca = False):
+		print "\nGenCode for Store: ", result, myList, inFunction, alloca, self.function
 		scope = "%"
 
 		if result[0] == "global":
@@ -92,7 +93,7 @@ class CodeGen:
 		varType = self.getType(result[0])
 		name = result[1]
 
-		if len(result) > 2:  # array
+		if len(result) > 2:  								# array
 			self.sentence.append("%"+str(self.temp))
 			self.setTemp()
 			self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"* %"+result[1]+"\n")
@@ -113,9 +114,12 @@ class CodeGen:
 
 		self.sentence.append(varType+"* ")
 
-		if isFunction:													# should be temporary variable instead of variable
-			name = str(self.getTemp(name))
-			self.sentence.append(scope+name)
+		if inFunction:	
+			if name in self.function[inFunction]:								
+				name = str(self.getTemp(name))
+				self.sentence.append(scope+name)
+			else:
+				self.sentence.append(scope+name)				
 		else:
 			self.sentence.append(scope+name)
 
@@ -437,7 +441,12 @@ class CodeGen:
 
 						allocaList.append([myList[1], self.temp, myList[2], myList[3]]) # type, new Nemp, var, size
 						self.addTemp(myList[2])
-						
+
+						if self.function.has_key(funcName):  # add name of parameter
+							self.function[funcName].append(myList[2])
+						else:
+							self.function[funcName] = [myList[2]]
+
 						if myList[4] == "out":
 							outList.append(myList[1]) # type
 							outList.append(myList[2]) # var
@@ -448,6 +457,11 @@ class CodeGen:
 
 						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 						self.addTemp(myList[2])
+
+						if self.function.has_key(funcName):  # add name of parameter
+							self.function[funcName].append(myList[2])
+						else:
+							self.function[funcName] = [myList[2]]
 						
 						if myList[3] == "out":
 							outList.append(myList[1]) # type
@@ -459,6 +473,11 @@ class CodeGen:
 
 					allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 					self.addTemp(myList[2])
+
+					if self.function.has_key(funcName):  # add name of parameter
+							self.function[funcName].append(myList[2])
+					else:
+						self.function[funcName] = [myList[2]]
 					
 					if myList[3] == "out":
 						outList.append(myList[1]) # type
@@ -473,6 +492,11 @@ class CodeGen:
 						allocaList.append([myList[0], self.temp, myList[1], myList[2]]) # type, new Nemp, var, size
 						self.addTemp(myList[1])
 						
+						if self.function.has_key(funcName):  # add name of parameter
+							self.function[funcName].append(myList[1])
+						else:
+							self.function[funcName] = [myList[1]]
+
 						if myList[3] == "out":
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
@@ -485,6 +509,12 @@ class CodeGen:
 
 						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 						self.addTemp(myList[1])
+
+						if self.function.has_key(funcName):  # add name of parameter
+
+							self.function[funcName].append(myList[1])
+						else:
+							self.function[funcName] = [myList[1]]
 						
 						if myList[2] == "out":
 							outList.append(myList[0]) # type
@@ -498,6 +528,12 @@ class CodeGen:
 
 					allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 					self.addTemp(myList[1])
+
+					if not self.function.has_key(funcName):  # add name of parameter
+	
+						self.function[funcName] = [myList[1]]
+					else:
+						self.function[funcName].append(myList[1])
 					
 					if myList[2] == "out":
 						outList.append(myList[0]) # type
@@ -520,15 +556,15 @@ class CodeGen:
 		self.sentence = self.sentence + writeList
 		self.writeToken()
 
-		print "ALLOCA", allocaList
 		# alloca all parameter list
-		for l in allocaList:
+		for l in allocaList:								 # array
 			if len(l) == 4:
-				self.genDeclaration([l[0],l[1],l[3]], True)  # array
+				self.genDeclaration([l[0],l[1],l[3]], True) 
+				self.genStore([l[0],str(l[1]),l[3]], [l[0],"%"+str(l[2])], funcName, True)
 			else:
 				self.genDeclaration([l[0],l[1]], True)
+				self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])], funcName, True)
 
-			self.genStore([l[0],str(l[1])], [l[0],"%"+str(l[2])])
 		self.skipLine()
 	
 	def genUnBr(self, label):  # unconditional Branch

@@ -895,10 +895,10 @@ class Lexical_Analyzer:
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 
-							try:
-								self.file.genFunction(self.listGen)
-							except:
-								print "\nIt couldn't generate Function instruction"
+						#	try:
+							self.file.genFunction(self.listGen)
+						#	except:
+						#		print "\nIt couldn't generate Function instruction"
 							
 							self.listGen = []
 							return parList
@@ -1120,9 +1120,9 @@ class Lexical_Analyzer:
 							self.set_value_ST(var_token, proc_scope, True)
 							try:
 								if proc_scope:
-									self.file.genStore(storeList, self.listGen) # true
+									self.file.genStore(storeList, self.listGen, proc_scope, False) # true
 								else:
-									self.file.genStore(storeList, self.listGen)
+									self.file.genStore(storeList, self.listGen, False, False)
 							except:
 								print "It couldn't generate store instruction"
 							self.listGen = []
