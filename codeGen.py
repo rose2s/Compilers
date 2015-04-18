@@ -94,12 +94,16 @@ class CodeGen:
 		name = result[1]
 
 		if len(result) > 2:  								# array
-			self.sentence.append("%"+str(self.temp))
-			self.setTemp()
-			self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"* %"+result[1]+"\n")
+			if not alloca:
+				self.sentence.append("%"+str(self.temp))
+				self.setTemp()
+			
+				self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"* %"+result[1]+"\n")
 
 		self.sentence.append("store ")
 		self.sentence.append(varType)
+		if len(result) > 2 and alloca:  								# array
+			self.sentence.append("*")
 
 		if len(myList) == 2:   	 										# simple assignment [type, value]
 			value = myList[1]    										# value
@@ -112,14 +116,23 @@ class CodeGen:
 			value = myList[1]    										# value
 			self.sentence.append(" %"+str(self.temp-1)+", ")
 
-		self.sentence.append(varType+"* ")
+		self.sentence.append(varType)
+
+		if len(result) > 2 and alloca:  								# array
+			self.sentence.append("** ")
+		else:
+			self.sentence.append("* ")
 
 		if inFunction:	
-			if name in self.function[inFunction]:								
+			if alloca:
+				self.sentence.append(scope+name)												# should be temporary variable instead of variable
+
+			elif name in self.function[inFunction]:								
 				name = str(self.getTemp(name))
 				self.sentence.append(scope+name)
 			else:
-				self.sentence.append(scope+name)				
+				self.sentence.append(scope+name)		
+			
 		else:
 			self.sentence.append(scope+name)
 

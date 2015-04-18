@@ -895,10 +895,10 @@ class Lexical_Analyzer:
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 
-						#	try:
-							self.file.genFunction(self.listGen)
-						#	except:
-						#		print "\nIt couldn't generate Function instruction"
+							try:
+								self.file.genFunction(self.listGen)
+							except:
+								print "\nIt couldn't generate Function instruction"
 							
 							self.listGen = []
 							return parList
