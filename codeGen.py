@@ -14,7 +14,6 @@ class CodeGen:
 		self.loopCount = 1					# count for Loop statement generation
 		self.funcDic = {}					# save name of function, and its return type
 		self.function = {}					# save function name, and its parameters var
-		self.arrayTemp = {}					# allocate temp por array in functions
 
 	def createFile(self):
 		file = open(self.filename,'a')
@@ -96,15 +95,16 @@ class CodeGen:
 
 		if len(result) > 2:  								# array
 			if not alloca:
-				if name in self.function[inFunction]:	 # if is parameter var
-					self.genLoad([result[0], "%"+str(self.getTemp(result[1]))], True)
+				if self.function.has_key(inFunction):
+					if name in self.function[inFunction]:	 # if is parameter var
+						self.genLoad([result[0], "%"+str(self.getTemp(result[1]))], True)
 
 				self.sentence.append("%"+str(self.temp))
 				self.setTemp()
-				if name in self.function[inFunction]:	 # if is parameter var
-					#self.genLoad([result[0], result[1]])
-					self.sentence.append(" = getelementptr inbounds "+str(self.getType(result[0]))+"* %"+str(self.temp-2))
-					self.sentence.append(", "+self.getType(result[0])+" "+str(result[3])+"\n")
+				if self.function.has_key(inFunction):
+					if name in self.function[inFunction]:	 # if is parameter var
+						self.sentence.append(" = getelementptr inbounds "+str(self.getType(result[0]))+"* %"+str(self.temp-2))
+						self.sentence.append(", "+self.getType(result[0])+" "+str(result[3])+"\n")
 				else:
 					self.sentence.append(" = getelementptr inbounds ["+str(result[2])+" x "+str(self.getType(result[0]))+"]* %"+result[1])
 					self.sentence.append(", "+self.getType(result[0])+" 0, "+self.getType(result[0])+" "+str(result[3])+"\n")
@@ -141,7 +141,9 @@ class CodeGen:
 			else:
 				self.sentence.append(scope+name)		
 			
-		else:
+		elif len(result) > 2:  # not function, but array
+			self.sentence.append("%"+str(self.temp-1))
+		else: 
 			self.sentence.append(scope+name)
 
 		self.sentence.append(", align 4")

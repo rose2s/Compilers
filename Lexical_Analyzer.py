@@ -1118,13 +1118,13 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
-							try:
-								if proc_scope:
-									self.file.genStore(storeList, self.listGen, proc_scope, False) # true
-								else:
-									self.file.genStore(storeList, self.listGen, False, False)
-							except:
-								print "It couldn't generate store instruction"
+							#try:
+							if proc_scope:
+								self.file.genStore(storeList, self.listGen, proc_scope, False) # true
+							else:
+								self.file.genStore(storeList, self.listGen, False, False)
+							#except:
+							#	print "It couldn't generate store instruction"
 							self.listGen = []
 							return True
 						else:
