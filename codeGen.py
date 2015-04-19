@@ -85,7 +85,6 @@ class CodeGen:
 	def genStore(self, result, myList, inFunction = False, alloca = False):
 		print "\nGenCode for Store: ", result, myList, inFunction, alloca, self.function
 		scope = "%"
-		print "\nsentence before:", self.sentence
 		if result[0] == "global":
 			scope = "@"
 			result = result[1:]
@@ -115,14 +114,13 @@ class CodeGen:
 			self.sentence.append("*")
 
 		if len(myList) == 2:   	 										# simple assignment [type, value]
-			value = myList[1]    										# value
-
+			value = myList[1][1:]   									# value
+			print self.tempDic
 			if self.getTemp(value):         							# if var is loaded
 				self.sentence.append(" %"+str(self.getTemp(value))+", ")
 			else:														# is literal
 				self.sentence.append(" "+value+", ")					
-		else:
-			#value = myList[1]    										# value
+		else: 											
 			self.sentence.append(" %"+str(self.temp-1)+", ")
 
 		self.sentence.append(varType)
@@ -147,7 +145,6 @@ class CodeGen:
 			self.sentence.append(scope+name)
 
 		self.sentence.append(", align 4")
-		print "\nsentence", self.sentence
 		self.writeToken()
 
 	# add new temporary variable for a variable
@@ -158,31 +155,41 @@ class CodeGen:
 
 	#  generates Load instruction --> myList = [vartype, var]
 	def genLoad(self, myList, isArrayFunction = False):
-		print "\nGenCode for Load: ", myList 											# add temporary var that goes with "name"
+		print "\nGenCode for Load: ", myList, isArrayFunction										# add temporary var that goes with "name"
 
 		varType = self.getType(myList[0])
-		name = myList[1]
+		name = myList[1][1:]
 
-		if len(myList) == 4:  # array
-			self.sentence.append("%"+str(self.temp))
-			self.setTemp()
+		if len(myList) == 4:  # array in 
+			if not isArrayFunction:
+			#if not self.function.has_key(isArrayFunction):
+			#	if myList[1] in self.function[isArrayFunction]:
+				self.sentence.append("%"+str(self.temp))
+				self.setTemp()
 
-			self.sentence.append(" = getelementptr inbounds ["+str(myList[2])+" x "+varType+"]* "+name)
-			self.sentence.append(", "+varType+" 0, "+varType+" "+str(myList[3])+"\n")
+				self.sentence.append(" = getelementptr inbounds ["+str(myList[2])+" x "+varType+"]* %"+name)
+				self.sentence.append(", "+varType+" 0, "+varType+" "+str(myList[3])+"\n")
 
+		x = self.getTemp(name)  # previous temporary var for name
 		self.addTemp(name) 
 		self.sentence.append("%")
 		self.sentence.append(str(self.getTemp(name)))
 		self.sentence.append(" = load ")
 		self.sentence.append(varType)
+
 		if isArrayFunction:
 			self.sentence.append("** ")
+			if len(myList) == 4:  # array
+				self.sentence.append("%"+str(x))
+			else:
+				self.sentence.append(name)
 		else:
 			self.sentence.append("* ")
-		if len(myList) == 4:  # array
-			self.sentence.append("%"+str(self.temp-2))
-		else:
-			self.sentence.append(name)
+			if len(myList) == 4:  # array
+				self.sentence.append("%"+str(self.temp-2))
+			else:
+				self.sentence.append(name)
+
 		self.sentence.append(", align 4")
 
 		self.writeToken()

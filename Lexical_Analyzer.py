@@ -304,10 +304,10 @@ class Lexical_Analyzer:
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				print "\nCorrect Expression"
-				#try:
-				self.file.genExpression(self.listGen)
-				#except:
-				#	print "It couldn't generate expression instruction"
+				try:
+					self.file.genExpression(self.listGen)
+				except:
+					print "It couldn't generate expression instruction"
 
 				return STlist
 			else: 
@@ -409,7 +409,7 @@ class Lexical_Analyzer:
 			else:
 				return False
 
-	def F(self,token, sign, scope):
+	def F(self, token, sign, scope):
 
 		ST = []
 		minus = False        # Flag to minus sign
@@ -475,7 +475,10 @@ class Lexical_Analyzer:
 								loadList.append(token.Next.getTokenValue())  # pos
 								print "loadList", loadList
 								try:
-									self.file.genLoad(loadList) 
+									if scope != "main": 
+										self.file.genLoad(loadList, scope)  # function scope
+									else:
+										self.file.genLoad(loadList, False)  # main scope
 								except:
 									print "\nIt couldn't generate Load instruction"
 
@@ -1123,13 +1126,13 @@ class Lexical_Analyzer:
 							print "\nType checking okay"
 
 							self.set_value_ST(var_token, proc_scope, True)
-							#try:
-							if proc_scope:
-								self.file.genStore(storeList, self.listGen, proc_scope, False) # true
-							else:
-								self.file.genStore(storeList, self.listGen, False, False)
-							#except:
-							#	print "It couldn't generate store instruction"
+							try:
+								if proc_scope:
+									self.file.genStore(storeList, self.listGen, proc_scope, False) # true
+								else:
+									self.file.genStore(storeList, self.listGen, False, False)
+							except:
+								print "It couldn't generate store instruction"
 							self.listGen = []
 							return True
 						else:
