@@ -304,10 +304,10 @@ class Lexical_Analyzer:
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parenthesis op are pushed into Expression Stack
 				print "\nCorrect Expression"
-				try:
-					self.file.genExpression(self.listGen)
-				except:
-					print "It couldn't generate expression instruction"
+				#try:
+				self.file.genExpression(self.listGen)
+				#except:
+				#	print "It couldn't generate expression instruction"
 
 				return STlist
 			else: 
@@ -465,9 +465,14 @@ class Lexical_Analyzer:
 								self.errorFlag = True
 								return False
 							else:
-								self.checkExp.append(ST[1].lower())  		# var type
-								self.listGen.append(ST[1].lower()) # type 
-								self.listGen.append(var) 
+								self.listGen = self.listGen[2:]     # remove destination from listGen (type, var)
+	
+								self.checkExp.append(ST[1].lower())  		 # var type
+								self.listGen.append(ST[1].lower()) 			 # type 
+								self.listGen.append(var) 		   			 # var
+
+								loadList.append(ST[2])           		     # size
+								loadList.append(token.Next.getTokenValue())  # pos
 								print "loadList", loadList
 								try:
 									self.file.genLoad(loadList) 
