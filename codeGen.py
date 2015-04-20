@@ -119,12 +119,15 @@ class CodeGen:
 			if myList[1][0] == "%":
 				value = myList[1][1:] 
 
-			print self.tempDic
 			if self.getTemp(value):         							# if var is loaded
 				self.sentence.append(" %"+str(self.getTemp(value))+", ")
 			else:														# is literal
 				self.sentence.append(" "+value+", ")					
-		else: 											
+
+		elif len(result) > 2:  											# array
+			self.sentence.append(" %"+str(self.temp-2)+", ")
+
+		else:											
 			self.sentence.append(" %"+str(self.temp-1)+", ")
 
 		self.sentence.append(varType)
@@ -138,11 +141,17 @@ class CodeGen:
 			if alloca:
 				self.sentence.append(scope+name)												# should be temporary variable instead of variable
 
-			elif name in self.function[inFunction] or len(result) > 2:		# parameter var	ou array					
+			if self.function.has_key(inFunction):    # parameter var			
+				if name in self.function[inFunction]:						
+					self.sentence.append("%"+str(self.temp-1))
+				else:
+					self.sentence.append(scope+name)	
+			
+			elif len(result) > 2:  					# array
 				self.sentence.append("%"+str(self.temp-1))
 			else:
-				self.sentence.append(scope+name)		
-			
+				self.sentence.append(scope+name)
+
 		elif len(result) > 2:  # not function, but array
 			self.sentence.append("%"+str(self.temp-1))
 		else: 
@@ -195,7 +204,7 @@ class CodeGen:
 			if len(myList) == 4:  # array
 				self.sentence.append("%"+str(self.temp-2))
 			else:
-				self.sentence.append(name)
+				self.sentence.append("%"+name)
 
 		self.sentence.append(", align 4")
 
@@ -215,7 +224,7 @@ class CodeGen:
 		name = myList[0]
 		myList = myList[1:]
 
-		typee = self.funcDic[name]  									# Gets type of function return if it is not void
+		typee = self.getFuncDic(name)									# Gets type of function return if it is not void
 		if not typee:
 			typee = "void"
 
@@ -223,8 +232,8 @@ class CodeGen:
 		write.append(str(self.temp))
 		self.setTemp()
 		write.append(" = call ")
-		write.append(typee+" ")
-		write.append(scope)
+		write.append(typee[0])
+		write.append(" "+scope)
 		write.append(name+"(")
 
 		for l in range(0,len(myList)-1,2):  							# loop over all function parameters
@@ -281,7 +290,7 @@ class CodeGen:
 
 				# 2 operand
 				if self.getTemp(myList[4]):
-					y = str("%")+self.getTemp(myList[4])
+					y = "%"+str(self.getTemp(myList[4]))
 				else:
 					y = myList[4]
 				self.sentence.append(y)
@@ -600,7 +609,7 @@ class CodeGen:
 		else:
 			returnType = "void"
 
-		self.sentence.append("; Function Attrs: nounwind\n")
+		self.sentence.append("\n; Function Attrs: nounwind\n")
 		self.sentence.append("declare "+returnType+" ")
 		self.sentence = self.sentence + writeList
 		self.writeToken()
@@ -646,8 +655,7 @@ class CodeGen:
 
 	def genReturn(self, var):
 		print "GenCode for Return", var
-		var = self.getFuncDic(var)
-
+		var = self.getFuncDic(var) 
 		self.sentence.append("\nret ")
 		if var:  # void
 			self.sentence.append(var[0]+" ")

@@ -307,7 +307,7 @@ class Lexical_Analyzer:
 				try:
 					self.file.genExpression(self.listGen)
 				except:
-					print "It couldn't generate expression instruction"
+					print "\nIt couldn't generate expression instruction"
 
 				return STlist
 			else: 
@@ -435,10 +435,10 @@ class Lexical_Analyzer:
 				if ST[3] == True or (self.isGlobal(token) and scope): #  GLOBAL  							# IF var has been initialized
 					
 					if self.isGlobal(token):
-						var = "@"+token.getTokenValue()
+						var = token.getTokenValue()
 					else:
-						var = "%"+token.getTokenValue()
-						vtype = ST[1]
+						var = token.getTokenValue()
+					vtype = ST[1]
 					token = self.scanToken()
 					
 					loadList = [vtype, var]
@@ -766,7 +766,10 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 					self.addSymbolTable(scope, name, Type, size)
 					if scope != "main":
-						self.file.genDeclaration(self.listGen)
+						try:
+							self.file.genDeclaration(self.listGen)
+						except:
+							print "\nIt couldn't generate Variable Declaration instruction"
 					elif len(tup):
 						self.tupleList.append(tup)
 					self.listGen = []
@@ -802,7 +805,11 @@ class Lexical_Analyzer:
 								self.addSymbolTable(scope, name, Type, size)
 								
 								if scope != "main":
-									self.file.genDeclaration(self.listGen)
+									try:
+										self.file.genDeclaration(self.listGen)
+									except:
+										print "\nIt couldn't generate Variable Declaration instruction"
+					
 								elif len(tup) > 0:
 									self.tupleList.append(tup)
 
@@ -872,7 +879,10 @@ class Lexical_Analyzer:
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
-				self.file.genReturn(new_scope)
+				try:
+					self.file.genReturn(new_scope)
+				except:
+					print "\nIt could not generate Return instruction"
 				return True
 			else:
 				return False
@@ -1136,7 +1146,7 @@ class Lexical_Analyzer:
 								else:
 									self.file.genStore(storeList, self.listGen, False, False)
 							except:
-								print "It couldn't generate store instruction"
+								print "\nIt couldn't generate store instruction"
 							self.listGen = []
 							return True
 						else:
@@ -1152,7 +1162,7 @@ class Lexical_Analyzer:
 					self.errorFlag = True
 					return False
 			else:
-				self.reportError(":=", token.getTokenValue(), token.line)
+				self.reportError(":=", analyzer.current_token.getTokenValue(), token.line)
 				self.errorFlag = True
 				return False
 
@@ -1231,9 +1241,23 @@ class Lexical_Analyzer:
 								self.listGen = [] 
 
 							# --- Type checking Block
-							print exp_type, " in ProcedureCall"
-			
-							if exp_type == STlist[3]:  # parameter list
+							#print exp_type, " in ProcedureCall comparing with ",STlist[3]
+							
+							l1 = []
+							l2 = []
+							for p in exp_type:
+								if p == "int":
+									l1.append("integer")
+								else:
+									l1.append(p)
+
+							for p in STlist[3]:
+								if p == "int":
+									l2.append("integer")
+								else:
+									l2.append(p)				
+
+							if l1 == l2:  # parameter list
 								print "parameter ok in procedure_call"
 
 							else:
@@ -1724,7 +1748,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/testCases/incorrect/test1.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 generatedFile = filename[0:-3]+"ll"
 
 
