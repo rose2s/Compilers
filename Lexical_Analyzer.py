@@ -263,7 +263,7 @@ class Lexical_Analyzer:
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
 				
-			   # print "<"+inp_program + "> is <" + token+">"
+			    #print "<"+inp_program + "> is <" + token+">"
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
 		else:									
@@ -311,7 +311,7 @@ class Lexical_Analyzer:
 
 				return STlist
 			else: 
-				self.reportWarning("Missing )")
+				self.reportErrorMsg("Missing )")
 				self.errorFlag = True
 				return False 
 
@@ -669,7 +669,7 @@ class Lexical_Analyzer:
 
 	# Checks type mark
 	def type_mark(self,t):
-		if t in ("integer", "int", "float", "bool", "string"):
+		if t in ("integer", "float", "bool", "string"):
 			return True
 		else:
 			return False
@@ -715,8 +715,12 @@ class Lexical_Analyzer:
 			elif token.getTokenValue() == "begin":  # Stop condition
 				return True
 
+			elif token.getTokenValue() == "int":
+				self.reportError("integer", token.getTokenValue(), token.line)
+				self.errorFlag = True
+
 			else: 
-				self.reportError("SyntaxError: Invalid Syntax in Declaration",token.line)
+				self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration",token.line)
 				self.errorFlag = True
 				return False
 		else:
@@ -1720,7 +1724,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/testCases/incorrect/test1.src"
 generatedFile = filename[0:-3]+"ll"
 
 

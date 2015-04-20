@@ -61,7 +61,6 @@ class DFA:
         return;
     
     def transition_to_state_with_input(self, input_value):
-
         for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
             if self.current_state == tf2[0]:   
                 if input_value in tf2[1]:
@@ -89,9 +88,8 @@ class DFA:
     # processes each character individualy
     def run_with_input_list(self, input_list):
         self.go_to_initial_state()
-        #print "palavra: ", input_list
         for inp in input_list:
             self.transition_to_state_with_input(inp)
             continue
         return self.in_accept_state()
-    pass
+    

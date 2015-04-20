@@ -114,7 +114,11 @@ class CodeGen:
 			self.sentence.append("*")
 
 		if len(myList) == 2:   	 										# simple assignment [type, value]
-			value = myList[1][1:]   									# value
+			value = myList[1]  
+			
+			if myList[1][0] == "%":
+				value = myList[1][1:] 
+
 			print self.tempDic
 			if self.getTemp(value):         							# if var is loaded
 				self.sentence.append(" %"+str(self.getTemp(value))+", ")
@@ -158,7 +162,10 @@ class CodeGen:
 		print "\nGenCode for Load: ", myList, isArrayFunction										# add temporary var that goes with "name"
 
 		varType = self.getType(myList[0])
-		name = myList[1][1:]
+		name = myList[1]
+
+		if name[0] == "%":
+			name = name[1:] 
 
 		if len(myList) == 4:  # array in 
 			if not isArrayFunction:
