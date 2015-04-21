@@ -58,7 +58,7 @@ class CodeGen:
 
 	# generates alloca instruction --> format: @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList, parameter = False):
-		print "GenCode for Declaration (alloca): ", myList
+		# print "GenCode for Declaration (alloca): ", myList
 		
 		scope = "%"
 		if myList[0] == "global":
@@ -83,7 +83,7 @@ class CodeGen:
 
 	# generates Store instruction --> result = [type, var,[size]], myList = [[global], vartype, name]
 	def genStore(self, result, myList, inFunction = False, alloca = False):
-		print "\nGenCode for Store: ", result, myList, inFunction, alloca, self.function
+		# print "\nGenCode for Store: ", result, myList, inFunction, alloca, self.function
 		scope = "%"
 		if result[0] == "global":
 			scope = "@"
@@ -163,12 +163,12 @@ class CodeGen:
 	# add new temporary variable for a variable
 	def addTemp(self, name): 
 		self.tempDic[name] = str(self.temp)
-		print self.tempDic
+		# print self.tempDic
 		self.setTemp()
 
 	#  generates Load instruction --> myList = [vartype, var]
 	def genLoad(self, myList, isArrayFunction = False):
-		print "\nGenCode for Load: ", myList, isArrayFunction										# add temporary var that goes with "name"
+		# print "\nGenCode for Load: ", myList, isArrayFunction										# add temporary var that goes with "name"
 
 		varType = self.getType(myList[0])
 		name = myList[1]
@@ -212,7 +212,7 @@ class CodeGen:
 
 	# generates Call instruction --> myList = [[global], name, [type, var]
 	def genCall(self, myList):  													
-		print "\nGenCode for Call: ", myList
+		# print "\nGenCode for Call: ", myList
 		write = [] 														# sentence to be generated
 
 		scope = "%"
@@ -265,7 +265,7 @@ class CodeGen:
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
-		print "\nGenCode for Aritm Expression: ",myList
+		# print "\nGenCode for Aritm Expression: ",myList
 
 		if myList[0] == "global":
 			myList = myList[1:]	
@@ -337,7 +337,7 @@ class CodeGen:
 
 	# returns operator that goes with the "op"
 	def getOp(self, op, typeVar):
-		print "\ngetOp FUnction <op>, <type>: ", op, typeVar
+		# print "\ngetOp FUnction <op>, <type>: ", op, typeVar
 
 		if typeVar in ("int","integer"):
 			if op == '+':
@@ -472,7 +472,7 @@ class CodeGen:
 		outList = []
 		allocaList = []
 
-		print "\nGenCode for procedure: ", myList
+		# print "\nGenCode for procedure: ", myList
 		scope = "%"
 
 		if myList[0] == "global":
@@ -490,7 +490,7 @@ class CodeGen:
 		writeList.append(funcName+"(")
 
 		while len(myList) > 0:
-			print "\nParameter list",myList
+			# print "\nParameter list",myList
 			if myList[0] == "global":
 				if len(myList) > 4: 					 # or var is array e|or has more than 1 var
 					if myList[3] not in ("in","out"):             # global and array
@@ -578,8 +578,8 @@ class CodeGen:
 							outList.append(myList[0]) # type
 							outList.append(myList[1]) # var
 						myList = myList[3:]	
-						print "list", myList
-						print "outList", outList
+						# print "list", myList
+						# print "outList", outList
 						writeList.append(", ")
 				else:  								# last parameter
 					writeList.append(self.getType(myList[0])+" %"+myList[1])
@@ -654,7 +654,7 @@ class CodeGen:
 			return False
 
 	def genReturn(self, var):
-		print "GenCode for Return", var
+		# print "GenCode for Return", var
 		var = self.getFuncDic(var) 
 		self.sentence.append("\nret ")
 		if var:  # void

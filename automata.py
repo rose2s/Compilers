@@ -64,8 +64,6 @@ class DFA:
         for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
             if self.current_state == tf2[0]:   
                 if input_value in tf2[1]:
-                    print "current_state", self.current_state
-                    print "input_value", input_value
                     self.current_state = self.transition_function[tf2]
                     break
 

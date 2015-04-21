@@ -251,9 +251,7 @@ class Lexical_Analyzer:
 
 	# Runs automata and sets tokens
 	def run_automata(self,inp_program): 							# inp_program = word
-		print inp_program
 		dfa.run_with_input_list(inp_program)   						# Runs automata
-		print "?", dfa.current_state
 		if dfa.current_state in self.tokenType.keys():   			# If current_state in Accept States
 			
 			    token = self.tokenType[dfa.current_state]           # Sets token type
@@ -460,6 +458,7 @@ class Lexical_Analyzer:
 
 						# --- Array checking -----
 						if is_array:
+
 							if not self.destination(token, scope):
 								self.errorFlag = True
 								return False
@@ -1192,9 +1191,11 @@ class Lexical_Analyzer:
 		print "\nDestination Function"
 		if token.getTokenValue() == "[":
 			token = self.scanToken()
+			temp = self.checkExp
+			self.checkExp = []    
 
 			if self.expression(token,"]", scope):
-				
+
 				# --- Array Checking
 				arrayType = self.arrayType("destination")
 
@@ -1202,6 +1203,7 @@ class Lexical_Analyzer:
 
 					if analyzer.current_token.getTokenValue() == "]":
 						token = self.scanToken()
+						self.checkExp = temp
 						return True
 				else:
 					self.reportErrorMsg("Error: Invalid Array Size", token.line)
@@ -1769,7 +1771,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/testCases/correct/test_heap.src"
+filename = "/Users/roses/Downloads/Repository/tests/codegen_good.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
@@ -1782,6 +1784,6 @@ analyzer.current_token = analyzer.tokenList.Next
 
 analyzer.program(analyzer.tokenList.Next)
 
-print "\n",analyzer.printST()
+#print "\n",analyzer.printST()
 
 
