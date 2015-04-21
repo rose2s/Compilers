@@ -52,7 +52,7 @@ class DFA:
 
         # String transition
         tf[('s0',(" \" "))] = 's9'
-        tf[('s9', (' ','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y','_',
+        tf[('s9', (" ","",'',' ','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y','_',
             '0','1','2','3','4','5','6','7','8','9',',',';','\'',':','.',','))] = 's9'
         tf[('s9',(" \" "))] = 's18'
 
@@ -64,6 +64,8 @@ class DFA:
         for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
             if self.current_state == tf2[0]:   
                 if input_value in tf2[1]:
+                    print "current_state", self.current_state
+                    print "input_value", input_value
                     self.current_state = self.transition_function[tf2]
                     break
 

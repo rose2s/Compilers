@@ -119,7 +119,6 @@ class Lexical_Analyzer:
 			for l in lines:									   # Loop each line
 				self.lineCount += 1
 				for s in range(len(l)):						   # Loop each character
-
 					# Letter Buffer
 					if value == 'cha': 						
 						if self.isNumber(l[s]) or self.isLetter(l[s].lower()) or l[s] == '_': 
@@ -252,9 +251,9 @@ class Lexical_Analyzer:
 
 	# Runs automata and sets tokens
 	def run_automata(self,inp_program): 							# inp_program = word
-
+		print inp_program
 		dfa.run_with_input_list(inp_program)   						# Runs automata
-
+		print "?", dfa.current_state
 		if dfa.current_state in self.tokenType.keys():   			# If current_state in Accept States
 			
 			    token = self.tokenType[dfa.current_state]           # Sets token type
@@ -571,6 +570,12 @@ class Lexical_Analyzer:
 		self.errorFlag = False
 		while not self.stack.isEmpty():
 			self.stack.pop()
+
+	def getRunTimeFunction(self, name):
+		if name in ("getbool", "getintger", "getstring", "getfloat", "putbool", "putintger", "putstring", "putfloat"):
+			return True
+		else:
+			return False
 
 	# Starts to scan the program
 	def program(self,token):
@@ -1216,14 +1221,13 @@ class Lexical_Analyzer:
 		exp_type = []
 		callList  = []  # store function name, and it is passed to genCall()
 
-		if not proc_scope:
+		if not proc_scope or self.getRunTimeFunction(token.getTokenValue()):
 			callList.append("global")
 
 		if token.getTokenType() == "IDENTIFIER":
 			callList.append(token.getTokenValue())
 
 			STlist = self.lookatST(token, proc_scope)
-			print STlist
 			if STlist:
 				if STlist[1] == "proc":   # var type
 
@@ -1231,7 +1235,7 @@ class Lexical_Analyzer:
 					
 					if token.getTokenValue() == "(":
 						token = self.scanToken()
-						print token.getTokenValue()
+
 						if token.getTokenValue() != ")":
 							if not self.expression(token,[",",")"], proc_scope):
 								return False
