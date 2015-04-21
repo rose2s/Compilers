@@ -981,7 +981,7 @@ class Lexical_Analyzer:
 						return True
 					else:
 						print token.line
-						self.reportError(";", token.getTokenValue(), token.line-1)
+						self.reportError(";", token.getTokenValue(), token.Prior.line)
 						self.errorFlag = True
 						return False
 				else:
@@ -1154,7 +1154,7 @@ class Lexical_Analyzer:
 							self.errorFlag = True
 							return False
 					else:
-						self.reportError(";", token.getTokenValue(), token.line)
+						self.reportError(";", analyzer.current_token.getTokenValue(), analyzer.current_token.line)
 						self.errorFlag = True
 						return False
 				else:
@@ -1240,37 +1240,37 @@ class Lexical_Analyzer:
 								callList = callList + self.listGen
 								self.listGen = [] 
 
-							# --- Type checking Block
-							#print exp_type, " in ProcedureCall comparing with ",STlist[3]
-							
-							l1 = []
-							l2 = []
-							for p in exp_type:
-								if p == "int":
-									l1.append("integer")
-								else:
-									l1.append(p)
-
-							for p in STlist[3]:
-								if p == "int":
-									l2.append("integer")
-								else:
-									l2.append(p)				
-
-							if l1 == l2:  # parameter list
-								print "parameter ok in procedure_call"
-
-							else:
-								self.reportErrorMsg("Error: Invalid Procedure Call", token.line)
-								self.errorFlag = True
-								return False
-
-							# ---- end type checking
-
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 
 							if token.getTokenValue() == ";":
+
+							# --- Type checking Block		
+								l1 = []
+								l2 = []
+
+								for p in exp_type:
+									if p == "int":
+										l1.append("integer")
+									else:
+										l1.append(p)
+
+								for p in STlist[3]:
+									if p == "int":
+										l2.append("integer")
+									else:
+										l2.append(p)				
+
+								if l1 == l2:  # parameter list
+									print "parameter ok in procedure_call"
+
+								else:
+									self.reportErrorMsg("Error: Invalid Procedure Call", token.line)
+									self.errorFlag = True
+									return False
+
+							# ---- end type checking
+
 								try:
 									self.file.genCall(callList)
 								except:
@@ -1278,7 +1278,7 @@ class Lexical_Analyzer:
 
 								return True
 							else:
-								self.reportError(";", token.getTokenValue(), token.line-1)
+								self.reportError(";", token.getTokenValue(), token.Prior.line)
 								self.errorFlag = True
 								return False
 						else:
@@ -1358,7 +1358,7 @@ class Lexical_Analyzer:
 										return True
 									else:
 										print token.line
-										self.reportError(";", token.getTokenValue(), token.line-1)
+										self.reportError(";", token.getTokenValue(), token.Prior.line)
 										self.errorFlag = True
 										return False
 								else:
@@ -1378,7 +1378,7 @@ class Lexical_Analyzer:
 						self.errorFlag = True
 						return False
 				else:
-					self.reportError(";", token.getTokenValue(), token.line)
+					self.reportError(";", analyzer.current_token.getTokenValue(), analyzer.current_token.line)
 					self.errorFlag = True
 					return False
 			else:
@@ -1466,7 +1466,7 @@ class Lexical_Analyzer:
 
 										return True
 									else:
-										self.reportError(";", token.getTokenValue(), token.line-1)
+										self.reportError(";", token.getTokenValue(), token.Prior.line)
 										self.errorFlag = True
 										return False
 								else:
@@ -1506,7 +1506,7 @@ class Lexical_Analyzer:
 			if token.getTokenValue() == ";":
 				return True
 			else:
-				self.reportError(";", token.getTokenValue(), token.line-1)
+				self.reportError(";", token.getTokenValue(), token.Prior.line)
 				self.errorFlag = True
 				return False
 
@@ -1542,7 +1542,7 @@ class Lexical_Analyzer:
 	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
 		condList = []
-		print "arrayType Function: statement type", statement_type
+		print "arrayType Function: statement type", statement_type, self.checkExp
 
 		if len(self.checkExp) == 1:
 			if statement_type == "if":
@@ -1744,14 +1744,20 @@ class Lexical_Analyzer:
 			
 		return False
 
+	def usage(self):
+	    print "\nDescription:"
+	    print "\nUsage1: input.src -a <Float> -t <Float>"
+	    print "Usage2: filename.src -h"
+	    print "Usage3: filename.src -f <fileName>"
+	    print "-h = print this page"
+	    print "\nOutput: filename.ll"
 
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/testCases/correct/test_heap.src"
 generatedFile = filename[0:-3]+"ll"
-
-
+  	
 # If file already exists, then delete it
 if os.path.exists(generatedFile):
 	os.remove(generatedFile)
@@ -1760,7 +1766,13 @@ analyzer = Lexical_Analyzer(generatedFile)
 analyzer.getTokenFromFile(filename)
 analyzer.current_token = analyzer.tokenList.Next  
 
-
 analyzer.program(analyzer.tokenList.Next)
 
-#print "\n",analyzer.printST()
+print "\n",analyzer.printST()
+
+
+ 
+
+# ------------
+
+
