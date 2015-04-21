@@ -638,6 +638,16 @@ class Lexical_Analyzer:
 
 	def program_body(self,token):
 		print "\nPrgram_Body Function: ", token.getTokenValue()
+
+		self.addSymbolTable("global", "getbool", "proc", "bool", [])
+		self.addSymbolTable("global", "getintger", "proc", "integer", [])
+		self.addSymbolTable("global", "getstring", "proc", "string", [])
+		self.addSymbolTable("global", "getfloat", "proc", "float", [])
+		self.addSymbolTable("global", "putbool", "proc", "bool", ["bool"])
+		self.addSymbolTable("global", "putintger", "proc", "integer", ["integer"])
+		self.addSymbolTable("global", "putstring", "proc", "string", ["string"])
+		self.addSymbolTable("global", "putfloat", "proc", "float", ["float"])
+
 		if not self.errorFlag:
 			if self.declaration(token):
 				self.file.skipLine()
@@ -1201,7 +1211,7 @@ class Lexical_Analyzer:
 
 	# If proc_scope then procedure_call is within procedure
 	# myList = [[global], name, [type var]
-	def procedure_call(self,token, proc_scope = False):
+	def procedure_call(self, token, proc_scope = False):
 		print "\nProcedure Call Function"
 		exp_type = []
 		callList  = []  # store function name, and it is passed to genCall()
@@ -1213,7 +1223,7 @@ class Lexical_Analyzer:
 			callList.append(token.getTokenValue())
 
 			STlist = self.lookatST(token, proc_scope)
-		
+			print STlist
 			if STlist:
 				if STlist[1] == "proc":   # var type
 
@@ -1221,7 +1231,7 @@ class Lexical_Analyzer:
 					
 					if token.getTokenValue() == "(":
 						token = self.scanToken()
-
+						print token.getTokenValue()
 						if token.getTokenValue() != ")":
 							if not self.expression(token,[",",")"], proc_scope):
 								return False
@@ -1248,7 +1258,7 @@ class Lexical_Analyzer:
 							# --- Type checking Block		
 								l1 = []
 								l2 = []
-
+	
 								for p in exp_type:
 									if p == "int":
 										l1.append("integer")
@@ -1769,10 +1779,5 @@ analyzer.current_token = analyzer.tokenList.Next
 analyzer.program(analyzer.tokenList.Next)
 
 print "\n",analyzer.printST()
-
-
- 
-
-# ------------
 
 
