@@ -571,7 +571,7 @@ class Lexical_Analyzer:
 			self.stack.pop()
 
 	def getRunTimeFunction(self, name):
-		if name in ("getbool", "getintger", "getstring", "getfloat", "putbool", "putintger", "putstring", "putfloat"):
+		if name in ("getbool", "getinteger", "getstring", "getfloat", "putbool", "putinteger", "putstring", "putfloat"):
 			return True
 		else:
 			return False
@@ -643,14 +643,14 @@ class Lexical_Analyzer:
 	def program_body(self,token):
 		print "\nPrgram_Body Function: ", token.getTokenValue()
 
-		self.addSymbolTable("global", "getbool", "proc", "bool", [])
-		self.addSymbolTable("global", "getintger", "proc", "integer", [])
-		self.addSymbolTable("global", "getstring", "proc", "string", [])
-		self.addSymbolTable("global", "getfloat", "proc", "float", [])
-		self.addSymbolTable("global", "putbool", "proc", "bool", ["bool"])
-		self.addSymbolTable("global", "putintger", "proc", "integer", ["integer"])
-		self.addSymbolTable("global", "putstring", "proc", "string", ["string"])
-		self.addSymbolTable("global", "putfloat", "proc", "float", ["float"])
+		self.addSymbolTable("global", "getbool", "proc", "out", ["bool"])
+		self.addSymbolTable("global", "getinteger", "proc", "out", ["integer"])
+		self.addSymbolTable("global", "getstring", "proc", "out", ["string"])
+		self.addSymbolTable("global", "getfloat", "proc", "out", ["float"])
+		self.addSymbolTable("global", "putbool", "proc", "in", ["bool"])
+		self.addSymbolTable("global", "putinteger", "proc", "in", ["integer"])
+		self.addSymbolTable("global", "putstring", "proc", "in", ["string"])
+		self.addSymbolTable("global", "putfloat", "proc", "in", ["float"])
 
 		if not self.errorFlag:
 			if self.declaration(token):
@@ -885,7 +885,7 @@ class Lexical_Analyzer:
 			# ---
 
 			if parList == True:      			# If procedure has no parameter then value = 0
-				parList = 0
+				parList = []
 
 
 			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # add procedure and his scope into to ST
@@ -1264,7 +1264,7 @@ class Lexical_Analyzer:
 							# --- Type checking Block		
 								l1 = []
 								l2 = []
-	
+
 								for p in exp_type:
 									if p == "int":
 										l1.append("integer")
@@ -1771,7 +1771,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/tests/codegen_good.src"
+filename = "/Users/roses/Downloads/Repository/tests/simpleadd_good.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
@@ -1784,6 +1784,6 @@ analyzer.current_token = analyzer.tokenList.Next
 
 analyzer.program(analyzer.tokenList.Next)
 
-#print "\n",analyzer.printST()
+print "\n",analyzer.printST()
 
 
