@@ -80,7 +80,7 @@ class Lexical_Analyzer:
 		self.listGen = []
 		self.tupleList = []  								# List of tuples used for generate variable declarations
 		self.file = CodeGen(generatedFile)
-		self.sucess = True
+		self.errorFound = 0
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -355,7 +355,7 @@ class Lexical_Analyzer:
 		else:
 			return False
 
-	def T(self,token,sign, scope):
+	def T(self,token, sign, scope):
 		print "T: ",token.getTokenValue()
 
 		STlist = self.F(token,sign, scope)
@@ -576,6 +576,8 @@ class Lexical_Analyzer:
 			return True
 		else:
 			return False
+	def incrementErrorFound(self):
+		self.errorFound = self.errorFound + 1;
 
 	# Starts to scan the program
 	def program(self,token):
@@ -586,16 +588,22 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 
 					if token.getTokenValue() == "program":
-						if self.sucess:
-							print "\nSuccess!\n"
-						else:
-							print "\nError, but sucess\n"
-						try:
-							self.file.genEnd()
-						except:
-							print "\nIt couldn't generate End instruction"
+
+						if self.errorFound == 0:
+							print "\nSuccess! No error found\n"
+							try:
+								self.file.genEnd()
+							except:
+								print "\nIt couldn't generate End instruction"
 						
-						return True
+							return True
+
+						elif self.errorFound == 1:
+							print "\n"+str(self.errorFound)+" error was found"
+							self.file.deleteFile()
+						else:
+							print "\n"+str(self.errorFound)+" errors were found"
+							self.file.deleteFile()
 
 					else:
 						self.reportError("program", token.getTokenValue(), token.line)
@@ -659,7 +667,7 @@ class Lexical_Analyzer:
 		if not self.errorFlag:
 			if self.declaration(token):
 				self.file.skipLine()
-				print "\nStart Main Program!", self.tupleList
+				print "\nStart Main Program!"
 				try:
 					self.file.genFunction(["global","main"])  # generate main function
 					for l in self.tupleList:				  # generate variable declarations
@@ -694,77 +702,87 @@ class Lexical_Analyzer:
 
 	def declaration(self, token, scope = "main"):
 		global_scope = False
+		self.errorFlag = False
+		#if not self.errorFlag:
 
-		if not self.errorFlag:
-			print "Declaration Function:", token.getTokenValue() 
-			if token.getTokenValue() == "global":
-				global_scope = "global"
-				token = self.scanToken()
+		print "Declaration Function:", token.getTokenValue() 
+		if token.getTokenValue() == "global":
+			global_scope = "global"
+			token = self.scanToken()
 
-			if self.type_mark(token.getTokenValue()):
-				if global_scope:
-					var = self.variable_declaration(token, global_scope)
+		if self.type_mark(token.getTokenValue()):
+			if global_scope:
+				var = self.variable_declaration(token, global_scope)
+			else:
+				var = self.variable_declaration(token, scope)
+
+			if var:
+				if self.declaration(analyzer.current_token, scope):
+					return True
 				else:
-					var = self.variable_declaration(token, scope)
+					self.incrementErrorFound()
+					if self.resync_declaration_token(analyzer.current_token):
+						if self.declaration(analyzer.current_token): 
+							return True
+						else:
+							return False
+					else:
+						return False
 
-				if var:
-					if self.declaration(analyzer.current_token, scope):
+			else:
+				self.incrementErrorFound()
+				if self.resync_declaration_token(analyzer.current_token):
+					if self.declaration(analyzer.current_token): 
 						return True
 					else:
-						self.sucess = False
-						self.resync_declaration_token(analyzer.current_token)
-						self.declaration(analyzer.current_token)
-						#return True
-
-				else:
-					self.sucess = False
-					self.resync_declaration_token(analyzer.current_token)
-					self.declaration(analyzer.current_token)
-					#return True
-
-			elif token.getTokenValue() == "procedure":
-
-				if global_scope:
-					proc = self.procedure_declaration(token, global_scope)
-				else:
-					proc = self.procedure_declaration(token, scope)
-
-				if proc:
-					if self.declaration(analyzer.current_token, scope):
-						return True
-					else:
-						self.sucess = False
-						#self.resync_declaration_token(analyzer.current_token)
-						#self.declaration(analyzer.current_token)
 						return False
 				else:
-				#	self.sucess = False
-				#	self.resync_declaration_token(analyzer.current_token)
-				#	self.declaration(analyzer.current_token)
-				#	print "eei"
 					return False
 
-			elif token.getTokenValue() == "begin":  # Stop condition
-				return True
+		elif token.getTokenValue() == "procedure":
 
-			elif token.getTokenValue() == "int":
-				self.reportError("integer", token.getTokenValue(), token.line)
-				self.sucess = False
-				self.resync_declaration_token(analyzer.current_token)
-				self.declaration(analyzer.current_token)
-				#return True
-
-			else: 
-				self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration", token.line)
-				self.errorFlag = True
-				return False
-
-			if self.errorFlag:   # after recursion
-				return False
+			if global_scope:
+				proc = self.procedure_declaration(token, global_scope)
 			else:
-				return True
-		else:
-			return False
+				proc = self.procedure_declaration(token, scope)
+
+			if proc:
+				if self.declaration(analyzer.current_token, scope):
+					return True
+				else:
+					self.incrementErrorFound()  # don't recover procedure erros
+					return False
+			else:
+				self.incrementErrorFound()      # don't recover procedure erros
+				return False
+
+		elif token.getTokenValue() == "begin":  # Stop condition
+			return True
+
+		elif token.getTokenValue() == "int":
+			self.reportError("integer", token.getTokenValue(), token.line)
+			self.incrementErrorFound()
+			if self.resync_declaration_token(analyzer.current_token):
+				if self.declaration(analyzer.current_token): 
+					return True
+				else:
+					return False
+			else:
+				return False
+
+		else: 
+			self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration", token.line)
+			self.incrementErrorFound()
+			if self.resync_declaration_token(analyzer.current_token):
+				if self.declaration(analyzer.current_token): 
+					return True
+				else:
+					return False
+			else:
+				return False
+
+		#else:
+		#	return False
 
 	# If Parameter then it is parameter declaration
 	def variable_declaration(self, token, scope = "main", parameterList = False): 
@@ -1020,7 +1038,6 @@ class Lexical_Analyzer:
 						token = self.scanToken()
 						return True
 					else:
-						print token.line
 						self.reportError(";", token.getTokenValue(), token.Prior.line)
 						self.errorFlag = True
 						return False
@@ -1041,8 +1058,9 @@ class Lexical_Analyzer:
 		#print "statement Rose:", token.getTokenValue()
 		prior = token
 		token = self.scanToken()
+		self.errorFlag = False
 
-		print "Statement Function:", token.getTokenValue(), if_stat
+		print "Statement Function:", token.getTokenValue(), if_stat, self.IFlag
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
@@ -1054,6 +1072,7 @@ class Lexical_Analyzer:
 
 			if self.IFlag:
 				if token.getTokenValue() == "else" and self.stack.size() > 0:
+					
 					return True
 
 		if token.Next:
@@ -1064,13 +1083,12 @@ class Lexical_Analyzer:
 					else:
 						return False
 				else: 
-					return False
-				#	token = self.resync_statement_token(analyzer.current_token)
-				#	if self.statement(token, False, proc_scope):
-				#		return True
-				#	else:
-				#		print "\nBUUUUU"
-
+					self.incrementErrorFound()
+					self.resync_statement_token(analyzer.current_token, ";")
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+					else:
+						return False
 
 			elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 				if self.procedure_call(token, proc_scope):
@@ -1080,7 +1098,12 @@ class Lexical_Analyzer:
 					else:
 						return False
 				else:
-					return False
+					self.incrementErrorFound()
+					self.resync_statement_token(analyzer.current_token, ";")
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+					else:
+						return False
 
 		if token.getTokenValue() == "return":
 			if self.return_statement(token, proc_scope):
@@ -1090,7 +1113,12 @@ class Lexical_Analyzer:
 				else:
 					return False
 			else:
-				return False
+				self.incrementErrorFound()
+				self.resync_statement_token(analyzer.current_token, ";")
+				if self.statement(analyzer.current_token, False, proc_scope):
+					return True
+				else:
+					return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
 
@@ -1101,7 +1129,14 @@ class Lexical_Analyzer:
 				else:
 					return False
 			else:
-				return False
+				self.incrementErrorFound()
+				if self.resync_end_token(analyzer.current_token, "for"):
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+					else:
+						return False
+				else:
+					return False
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
 
@@ -1112,7 +1147,14 @@ class Lexical_Analyzer:
 				else:
 					return False
 			else:
-				return False
+				self.incrementErrorFound()
+				if self.resync_end_token(analyzer.current_token, "if"):
+					if self.statement(analyzer.current_token, False, proc_scope):
+						return True
+					else:
+						return False
+				else:
+					return False
 
 		elif if_stat:
 			self.reportErrorMsg("Error: IF must have at least one statement",token.line)
@@ -1535,7 +1577,7 @@ class Lexical_Analyzer:
 						self.errorFlag = True
 						return False
 				else:
-					self.reportErrorMsg("Missing ) of IF statement", token.line)
+					#self.reportErrorMsg("Missing ) of IF statement", token.line)
 					self.errorFlag = True
 					return False
 			else:
@@ -1795,18 +1837,36 @@ class Lexical_Analyzer:
 
 	# Moves the current token to next statement
 	def resync_declaration_token(self, token):
+		print "resync_declaration_token", token.getTokenValue()
 		while token.getTokenValue() not in (";", "begin") and token.Next != None:
 			token = self.scanToken()
 
 		if token.Next and token.getTokenValue() != "begin":
 			token = self.scanToken()
+		
+		if not token.Next:
+			return False
+
+		return True
 
 	# Moves the current token to next statement
-	def resync_statement_token(self, token):
-		while token.getTokenValue() != ";":
+	def resync_statement_token(self, token, signal):
+		print "resync_statement_token", signal
+		while token.getTokenValue() != signal:
 			token = self.scanToken()
 
-		return token
+	# Moves the current token to next statement
+	def resync_end_token(self, token, signal):
+		print "resync_end_token for", signal
+		while token.getTokenValue() != "end":
+			token = self.scanToken()
+		token = self.scanToken()  
+		if token.getTokenValue() == signal:
+			token = self.scanToken() # ;
+			print "token now", token.getTokenValue()
+			return token
+		else:
+			return False
 
 	def usage(self):
 	    print "\nDescription:"
@@ -1836,20 +1896,27 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/testCases/correct/test2.src"
+filename = "/Users/roses/Downloads/Repository/testCases/correct/test_program_minimal.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
 if os.path.exists(generatedFile):
 	os.remove(generatedFile)
 
-analyzer = Lexical_Analyzer(generatedFile)
-analyzer.getTokenFromFile(filename)
-analyzer.current_token = analyzer.tokenList.Next  
+try: 
+	with open(filename) as f:
+		pass
 
-analyzer.program(analyzer.tokenList.Next)
+	analyzer = Lexical_Analyzer(generatedFile)
+	analyzer.getTokenFromFile(filename)
+	analyzer.current_token = analyzer.tokenList.Next  
 
-#print "\n",analyzer.printST()
+	analyzer.program(analyzer.tokenList.Next)
 
+	#print "\n",analyzer.printST()
+
+except IOError as e:
+	print "I/O error({0}): {1}".format(e.errno, e.strerror), filename
+		
 
 
