@@ -694,7 +694,7 @@ class Lexical_Analyzer:
 
 	def declaration(self, token, scope = "main"):
 		global_scope = False
-		
+
 		if not self.errorFlag:
 			print "Declaration Function:", token.getTokenValue() 
 			if token.getTokenValue() == "global":
@@ -734,15 +734,15 @@ class Lexical_Analyzer:
 						return True
 					else:
 						self.sucess = False
-						self.resync_declaration_token(analyzer.current_token)
-						self.declaration(analyzer.current_token)
-						#return True
-
+						#self.resync_declaration_token(analyzer.current_token)
+						#self.declaration(analyzer.current_token)
+						return False
 				else:
-					self.sucess = False
-					self.resync_declaration_token(analyzer.current_token)
-					self.declaration(analyzer.current_token)
-					#return True
+				#	self.sucess = False
+				#	self.resync_declaration_token(analyzer.current_token)
+				#	self.declaration(analyzer.current_token)
+				#	print "eei"
+					return False
 
 			elif token.getTokenValue() == "begin":  # Stop condition
 				return True
@@ -1836,7 +1836,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/test.src"
+filename = "/Users/roses/Downloads/Repository/testCases/correct/test2.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
@@ -1850,7 +1850,6 @@ analyzer.current_token = analyzer.tokenList.Next
 analyzer.program(analyzer.tokenList.Next)
 
 #print "\n",analyzer.printST()
-
 
 
 
