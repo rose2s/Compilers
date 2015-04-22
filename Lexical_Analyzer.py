@@ -80,6 +80,7 @@ class Lexical_Analyzer:
 		self.listGen = []
 		self.tupleList = []  								# List of tuples used for generate variable declarations
 		self.file = CodeGen(generatedFile)
+		self.sucess = True
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -585,7 +586,10 @@ class Lexical_Analyzer:
 					token = self.scanToken()
 
 					if token.getTokenValue() == "program":
-						print "\nSuccess!"
+						if self.sucess:
+							print "\nSuccess!\n"
+						else:
+							print "\nError, but sucess\n"
 						try:
 							self.file.genEnd()
 						except:
@@ -690,7 +694,7 @@ class Lexical_Analyzer:
 
 	def declaration(self, token, scope = "main"):
 		global_scope = False
-
+		
 		if not self.errorFlag:
 			print "Declaration Function:", token.getTokenValue() 
 			if token.getTokenValue() == "global":
@@ -707,9 +711,16 @@ class Lexical_Analyzer:
 					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
-						return False
+						self.sucess = False
+						self.resync_declaration_token(analyzer.current_token)
+						self.declaration(analyzer.current_token)
+						#return True
+
 				else:
-					return False
+					self.sucess = False
+					self.resync_declaration_token(analyzer.current_token)
+					self.declaration(analyzer.current_token)
+					#return True
 
 			elif token.getTokenValue() == "procedure":
 
@@ -722,21 +733,36 @@ class Lexical_Analyzer:
 					if self.declaration(analyzer.current_token, scope):
 						return True
 					else:
-						return False
+						self.sucess = False
+						self.resync_declaration_token(analyzer.current_token)
+						self.declaration(analyzer.current_token)
+						#return True
+
 				else:
-					return False
-			
+					self.sucess = False
+					self.resync_declaration_token(analyzer.current_token)
+					self.declaration(analyzer.current_token)
+					#return True
+
 			elif token.getTokenValue() == "begin":  # Stop condition
 				return True
 
 			elif token.getTokenValue() == "int":
 				self.reportError("integer", token.getTokenValue(), token.line)
-				self.errorFlag = True
+				self.sucess = False
+				self.resync_declaration_token(analyzer.current_token)
+				self.declaration(analyzer.current_token)
+				#return True
 
 			else: 
-				self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration",token.line)
+				self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration", token.line)
 				self.errorFlag = True
 				return False
+
+			if self.errorFlag:   # after recursion
+				return False
+			else:
+				return True
 		else:
 			return False
 
@@ -1011,11 +1037,12 @@ class Lexical_Analyzer:
 
 	# If if_stat then "else is a sign for expressions"
 	# If proc_scope then it is a statement within procedure
-	def statement(self,token, if_stat = False, proc_scope = False): 
+	def statement(self, token, if_stat = False, proc_scope = False): 
+		#print "statement Rose:", token.getTokenValue()
 		prior = token
 		token = self.scanToken()
 
-		print "Statement Function:", token.getTokenValue()
+		print "Statement Function:", token.getTokenValue(), if_stat
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
@@ -1038,6 +1065,12 @@ class Lexical_Analyzer:
 						return False
 				else: 
 					return False
+				#	token = self.resync_statement_token(analyzer.current_token)
+				#	if self.statement(token, False, proc_scope):
+				#		return True
+				#	else:
+				#		print "\nBUUUUU"
+
 
 			elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
 				if self.procedure_call(token, proc_scope):
@@ -1760,6 +1793,21 @@ class Lexical_Analyzer:
 			
 		return False
 
+	# Moves the current token to next statement
+	def resync_declaration_token(self, token):
+		while token.getTokenValue() not in (";", "begin") and token.Next != None:
+			token = self.scanToken()
+
+		if token.Next and token.getTokenValue() != "begin":
+			token = self.scanToken()
+
+	# Moves the current token to next statement
+	def resync_statement_token(self, token):
+		while token.getTokenValue() != ";":
+			token = self.scanToken()
+
+		return token
+
 	def usage(self):
 	    print "\nDescription:"
 	    print "\nUsage1: input.src -a <Float> -t <Float>"
@@ -1768,10 +1816,27 @@ class Lexical_Analyzer:
 	    print "-h = print this page"
 	    print "\nOutput: filename.ll"
 
+	def parse_arguments():
+	    
+	    # Parse the command line arguments
+	    parser = argparse.ArgumentParser()
+	    parser.add_argument('-d', '--debug',
+	                        help='print comments in generated code',
+	                        action='store_true')
+	    parser.add_argument('source',
+	                        help='source file to compile')
+	    parser.add_argument('-o', '--out',
+	                        help='target path for the compiled code',
+	                        action='store',
+	                        default='a.out')
+	    args = parser.parse_args()
+
+	    return args
+
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/tests/simpleadd_good.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
@@ -1784,6 +1849,8 @@ analyzer.current_token = analyzer.tokenList.Next
 
 analyzer.program(analyzer.tokenList.Next)
 
-print "\n",analyzer.printST()
+#print "\n",analyzer.printST()
+
+
 
 
