@@ -420,7 +420,7 @@ class Compiler:
 								self.errorFlag = True
 								return False
 							else:
-								self.listGen = self.listGen[2:]     		# Remove (type, var) from listGen 
+								self.listGen = self.listGen[:-2]     		# Remove (type, var) from listGen 
 	
 								self.checkExp.append(ST[1].lower())  	    # Add var type to checking list
 								self.listGen.append(ST[1].lower()) 			# Add var type to generation list 
@@ -1534,7 +1534,7 @@ class Compiler:
 	 	self.file.deleteFile() 
 
 	def reportWarning(self, message):
-	 	print  "Scanner Error: "+message+ ", in line", self.lineCount,'\n'
+	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", in line ", line,'\n'
