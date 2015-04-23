@@ -82,8 +82,16 @@ class CodeGen:
 
 	# generates Store instruction --> result = [type, var,[size]], myList = [[global], vartype, name]
 	def genStore(self, result, myList, inFunction = False, alloca = False):
-		print "gen Store", result, myList, inFunction, alloca
-		print self.function
+
+		# --- Block: checking if cast is necessary
+		if myList[0] == "int":
+			myList[0] = "integer"
+		if result[0] == "int":
+			result[0] == "integer"
+		if result[0] != myList[0]:
+			self.genIntToFloat()
+		# ------------ end block -----------------
+
 		scope = "%"
 		if result[0] == "global":
 			scope = "@"
@@ -111,10 +119,10 @@ class CodeGen:
 		self.sentence.append("store ")
 		self.sentence.append(varType)
 
-		if len(result) > 2 and alloca:  					 			# array
+		if len(result) > 2 and alloca:  					 					# array
 			self.sentence.append("*")
 
-		if len(myList) == 2:   	 							 			# simple assignment [type, value]
+		if len(myList) == 2:   	 							 					# simple assignment [type, value]
 			value = myList[1]  
 			
 			if myList[1][0] == "%":
@@ -123,12 +131,15 @@ class CodeGen:
 			if alloca:
 				self.sentence.append(" %"+str(value)+", ")
 			else:
-				if self.getTemp(value):         							# if var is loaded
-					self.sentence.append(" %"+str(self.getTemp(value))+", ")
-				else:														# is literal
+				if self.getTemp(value):                       					# if var is loaded
+					if myList[0] != result[0]:									# tem holds the cast
+						self.sentence.append(" %"+str(self.temp-1)+", ")
+					else:       							
+						self.sentence.append(" %"+str(self.getTemp(value))+", ")
+				else:															# is literal
 					self.sentence.append(" "+value+", ")					
 
-		elif len(result) > 2:  											# array
+		elif len(result) > 2:  													# array
 			self.sentence.append(" %"+str(self.temp-2)+", ")
 
 		else:											
@@ -136,7 +147,7 @@ class CodeGen:
 
 		self.sentence.append(varType)
 
-		if len(result) > 2 and alloca:  								# array
+		if len(result) > 2 and alloca:  										# array
 			self.sentence.append("** ")
 		else:
 			self.sentence.append("* ")
@@ -255,7 +266,6 @@ class CodeGen:
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
-		#print "Gen Expression", myList
 
 		if myList[0] == "global":
 			myList = myList[1:]	
@@ -327,7 +337,6 @@ class CodeGen:
 
 	# returns operator that goes with the "op"
 	def getOp(self, op, typeVar):
-		# print "\ngetOp FUnction <op>, <type>: ", op, typeVar
 
 		if typeVar in ("int","integer"):
 			if op == '+':
@@ -378,6 +387,14 @@ class CodeGen:
 				return "fcmp ole"
 		else:
 			return False
+
+	def genIntToFloat(self):
+		self.sentence.append("%"+str(self.temp))
+		self.setTemp()
+		self.sentence.append(" = sitofp i32 ")
+		self.sentence.append("%"+str(self.temp-2))
+		self.sentence.append(" to float")
+		self.writeToken()
 
 	# increments if count
 	def setIfCount(self):

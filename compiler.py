@@ -74,7 +74,7 @@ class Compiler:
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
 		
-		self.file.writeToken("; ModuleID = '"+self.getFileName(filename)+"'\n")  # generates ModuleID												
+		self.file.writeToken("; ModuleID = '"+self.getFileName(filename))  # generates ModuleID												
 
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
@@ -264,14 +264,14 @@ class Compiler:
 		
 	# Validates Expression
 	# Return Expression Type (ExpType) if expression is correct
-	def expression(self, current_token, sign, scope):     			# Returns True if token == sign	
+	def expression(self, current_token, sign, scope, isDestination = False):     # Returns True if token == sign	
 		
 		STlist = self.E(current_token, sign, scope)
 		if STlist:								
-			if self.EXPstack.isEmpty():								# Parentheses op are pushed into Expression Stack
+			if self.EXPstack.isEmpty():											 # Parentheses op are pushed into Expression Stack
 				try:
-					#if self.errorFound == 0:
-					self.file.genExpression(self.listGen)
+					if self.errorFound == 0 and not isDestination:
+						self.file.genExpression(self.listGen)
 				except:
 					print "\nIt couldn't generate expression instruction"
 
@@ -393,6 +393,9 @@ class Compiler:
 					else:
 						var = token.getTokenValue()
 
+					if ST[1] == "integer" and ST[2] in (0,1):
+						ST[1] = "int"
+
 					vtype = ST[1] 									  # type
 					token = self.scanToken()						  # scan token
 					
@@ -435,7 +438,7 @@ class Compiler:
 								loadList.append(token.Next.getTokenValue()) # Add array position to load list
 
 								try:
-									#if self.errorFound == 0:
+									if self.errorFound == 0:
 										if scope != "main": 
 											self.file.genLoad(loadList, scope)  # Function scope
 										else:
@@ -462,7 +465,7 @@ class Compiler:
 							self.listGen.append(var) 		 				# Add var name to generation list
 
 							try:
-								#if self.errorFound == 0:
+								if self.errorFound == 0:
 									self.file.genLoad(loadList)              # Generate Load instruction <type, var, size, pos>
 							except:
 								print "\nIt couldn't generate Load instruction"
@@ -558,7 +561,8 @@ class Compiler:
 							print "\nSuccess!\n No error was found\n"
 							
 							try:
-								self.file.genEnd()    							# Generate end of output
+								if self.errorFound == 0:
+									self.file.genEnd()    						# Generate end of output
 							except:
 								print "\nIt couldn't generate End instruction"
 							return True
@@ -634,11 +638,12 @@ class Compiler:
 				self.file.skipLine()
 
 				try:
-					self.file.genFunction(["global","main"])  		# Generate Main function
-					for l in self.tupleList:				  		
-						self.file.genDeclaration(l)					# Generate all variable declarations
+					if self.errorFound == 0:
+						self.file.genFunction(["global","main"])  		# Generate Main function
+						for l in self.tupleList:				  		
+							self.file.genDeclaration(l)					# Generate all variable declarations
 
-					self.file.skipLine()                            # Generate skipLine
+						self.file.skipLine()                            # Generate skipLine
 				except:
 					print "\nIt couldn't generate Variable Declaration Instruction"
 
@@ -780,7 +785,8 @@ class Compiler:
 
 					if scope != "main":
 						try:
-							self.file.genDeclaration(self.listGen)      # Generate Declaration instruction
+							if self.errorFound == 0:
+								self.file.genDeclaration(self.listGen)   # Generate Declaration instruction
 						except:
 							print "\nIt couldn't generate Variable Declaration instruction"
 
@@ -820,7 +826,8 @@ class Compiler:
 								
 								if scope != "main":
 									try:
-										self.file.genDeclaration(self.listGen)     # Generate Declaration Instruction
+										if self.errorFound == 0:
+											self.file.genDeclaration(self.listGen)  # Generate Declaration Instruction
 									except:
 										print "\nIt couldn't generate Variable Declaration instruction"
 					
@@ -893,7 +900,8 @@ class Compiler:
 
 			if self.procedure_body(analyzer.current_token, new_scope):
 				try:
-					self.file.genReturn(new_scope)
+					if self.errorFound == 0:
+						self.file.genReturn(new_scope)
 				except:
 					print "\nIt could not generate Return instruction"
 				return True
@@ -929,7 +937,8 @@ class Compiler:
 							token = self.scanToken()
 
 							try:
-								self.file.genFunction(self.listGen)   # Generate Function
+								if self.errorFound == 0:
+									self.file.genFunction(self.listGen)   # Generate Function
 							except:
 								print "\nIt couldn't generate Function instruction"
 							
@@ -945,7 +954,8 @@ class Compiler:
 						token = self.scanToken()
 
 						try:
-							self.file.genFunction(self.listGen)      # Generate Function
+							if self.errorFound == 0:
+								self.file.genFunction(self.listGen)      # Generate Function
 						except:
 							print "\nIt couldn't generate Function instruction"
 						
@@ -1171,10 +1181,11 @@ class Compiler:
 							self.set_value_ST(var_token, proc_scope, True)  # Add value into st
 
 							try:
-								if proc_scope:
-									self.file.genStore(storeList, self.listGen, proc_scope, False) 
-								else:
-									self.file.genStore(storeList, self.listGen, False, False)
+								if self.errorFound == 0:
+									if proc_scope:
+										self.file.genStore(storeList, self.listGen, proc_scope, False) 
+									else:
+										self.file.genStore(storeList, self.listGen, False, False)
 							except:
 								print "\nIt couldn't generate store instruction"
 
@@ -1209,7 +1220,7 @@ class Compiler:
 			temp  = self.checkExp
 			self.checkExp = []    
 
-			if self.expression(token,"]", scope):
+			if self.expression(token,"]", scope, True):   			# It won't generate expression for destination
 
 				arrayType = self.arrayType("destination")
 
@@ -1309,7 +1320,8 @@ class Compiler:
 							# ---- end type checking -----------
 
 								try:
-									self.file.genCall(callList)
+									if self.errorFound == 0:
+										self.file.genCall(callList)
 								except:
 									print "\nIt couldn't generate Call Function instruction"
 
@@ -1351,7 +1363,8 @@ class Compiler:
 				self.assignment_statement(token, proc_scope)
 
 				try:
-					self.file.genLoop1()                        	 # Generate loop instruction part1
+					if self.errorFound == 0:
+						self.file.genLoop1()                          # Generate loop instruction part1
 				except:
 					print "\nIt couldn't generate Loop instruction"
 							
@@ -1361,7 +1374,8 @@ class Compiler:
 					if self.expression(token, ")", proc_scope):
 						self.listGen = []  
 						try:
-							self.file.genLoop2()   					# Generate loop instruction part2
+							if self.errorFound == 0:
+								self.file.genLoop2()   				   # Generate loop instruction part2
 						except:
 							print "\nIt couldn't generate Loop instruction"
 
@@ -1378,7 +1392,8 @@ class Compiler:
 
 						if self.statement(token, False, proc_scope):
 							try:
-								self.file.genLoop3(loop3)    		# Generate loop instruction part3
+								if self.errorFound == 0:
+									self.file.genLoop3(loop3)    		# Generate loop instruction part3
 							except:
 								print "\nIt couldn't generate Loop instruction"
 
@@ -1439,7 +1454,8 @@ class Compiler:
 					self.listGen = []  						# Clean list after expression
 
 					try:
-						self.file.genIf()                   # Generate If instruction 
+						if self.errorFound == 0:
+							self.file.genIf()                   # Generate If instruction 
 					except:
 						print "\nIt couldn't generate IF instruction"
 
@@ -1457,7 +1473,8 @@ class Compiler:
 						if self.statement(token, True, proc_scope):
 							if analyzer.current_token.getTokenValue() == "else": 	# IF with ELSE
 								try:
-									self.file.genElse()       						# Generate Else instruction instruction
+									if self.errorFound == 0:
+										self.file.genElse()       					# Generate Else instruction instruction
 								except:
 									print "\nIt couldn't generate if-else instruction"
 
@@ -1488,7 +1505,8 @@ class Compiler:
 										if token.Next.getTokenValue() == "end":  	# If it is last Else
 											self.IFlag = False
 										try:
-											self.file.genThen()                     # Generate IfFalse instruction
+											if self.errorFound == 0:
+												self.file.genThen()                   # Generate IfFalse instruction
 										except:
 											print "\nIt couldn't generate if-then instruction"
 
