@@ -82,6 +82,8 @@ class CodeGen:
 
 	# generates Store instruction --> result = [type, var,[size]], myList = [[global], vartype, name]
 	def genStore(self, result, myList, inFunction = False, alloca = False):
+		print "gen Store", result, myList, inFunction, alloca
+		print self.function
 		scope = "%"
 		if result[0] == "global":
 			scope = "@"
@@ -118,10 +120,13 @@ class CodeGen:
 			if myList[1][0] == "%":
 				value = myList[1][1:] 
 
-			if self.getTemp(value):         							# if var is loaded
-				self.sentence.append(" %"+str(self.getTemp(value))+", ")
-			else:														# is literal
-				self.sentence.append(" "+value+", ")					
+			if alloca:
+				self.sentence.append(" %"+str(value)+", ")
+			else:
+				if self.getTemp(value):         							# if var is loaded
+					self.sentence.append(" %"+str(self.getTemp(value))+", ")
+				else:														# is literal
+					self.sentence.append(" "+value+", ")					
 
 		elif len(result) > 2:  											# array
 			self.sentence.append(" %"+str(self.temp-2)+", ")
