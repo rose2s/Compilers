@@ -100,7 +100,7 @@ class Compiler:
 							if s+1 < len(l):					# If it is NOT last character of the line		
 				  				if l[s]+l[s+1] == '//':			# If Comments then skip line
 				  					break 						
-				  			if l[s] in (" ","\n","\t"):			# Skips whitespace, tab, newline
+				  			if l[s] in (" ","\n","\t", "\r"):	# Skips whitespace, tab, newline
 			  					continue
 							else:
 								self.run_automata(l[s].lower()) # Runs automata with the character
@@ -128,7 +128,7 @@ class Compiler:
 			  						else:
 			  							self.run_automata(l[s].lower())	
 
-			  				elif l[s] in (" ","\n","\t"):           # Skips whitespace, tab, newline
+			  				elif l[s] in (" ","\n","\t","\r"):      # Skips whitespace, tab, newline
 			  					continue	
 			  				else:
 			  					self.run_automata(l[s].lower())     # Runs automata with the character
@@ -151,7 +151,7 @@ class Compiler:
 								if s+1 < len(l):				    # If it is NOT last character of the line
 					  				if l[s]+l[s+1] == '//':    	    # If Comments then skip line
 					  					break 
-					  			if l[s] in (" ","\n","\t"):     	# Skips whitespace, tab, newline
+					  			if l[s] in (" ","\n","\t", "\r"):   # Skips whitespace, tab, newline
 				  					continue
 								else:
 									self.run_automata(l[s].lower()) # Runs automata with the character
@@ -176,7 +176,7 @@ class Compiler:
 				  		if s+1 < len(l):							# If it is NOT last character of the line
 				  			if l[s]+l[s+1] == '//':					# If Comments then skip line
 				  				break 								
-			  			if l[s] in (" ","\n","\t"):    				# Skips whitespace, tab, newline 
+			  			if l[s] in (" ","\n","\t", "\r"):    		# Skips whitespace, tab, newline 
 			  				continue	
 
 			  			elif self.isLetter(l[s].lower()):           # If letter then flag to letter buffer
@@ -1534,7 +1534,7 @@ class Compiler:
 	 	self.file.deleteFile() 
 
 	def reportWarning(self, message):
-	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
+	 	print  "Scanner Error: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", in line ", line,'\n'
