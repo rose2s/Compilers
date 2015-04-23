@@ -270,6 +270,7 @@ class Compiler:
 		if STlist:								
 			if self.EXPstack.isEmpty():								# Parentheses op are pushed into Expression Stack
 				try:
+					#if self.errorFound == 0:
 					self.file.genExpression(self.listGen)
 				except:
 					print "\nIt couldn't generate expression instruction"
@@ -434,10 +435,11 @@ class Compiler:
 								loadList.append(token.Next.getTokenValue()) # Add array position to load list
 
 								try:
-									if scope != "main": 
-										self.file.genLoad(loadList, scope)  # Function scope
-									else:
-										self.file.genLoad(loadList, False)  # Main scope
+									#if self.errorFound == 0:
+										if scope != "main": 
+											self.file.genLoad(loadList, scope)  # Function scope
+										else:
+											self.file.genLoad(loadList, False)  # Main scope
 								except:
 									print "\nIt couldn't generate Load instruction"
 
@@ -460,7 +462,8 @@ class Compiler:
 							self.listGen.append(var) 		 				# Add var name to generation list
 
 							try:
-								self.file.genLoad(loadList)                 # Generate Load instruction <type, var, size, pos>
+								#if self.errorFound == 0:
+									self.file.genLoad(loadList)              # Generate Load instruction <type, var, size, pos>
 							except:
 								print "\nIt couldn't generate Load instruction"
 
