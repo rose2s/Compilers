@@ -212,7 +212,7 @@ class CodeGen:
 
 	# generates Call instruction --> myList = [[global], name, [type, var]
 	def genCall(self, myList):  													
-		# print "\nGenCode for Call: ", myList
+		print "\nGenCode for Call: ", myList
 		write = [] 														# sentence to be generated
 
 		scope = "%"
@@ -224,15 +224,18 @@ class CodeGen:
 		name = myList[0]
 		myList = myList[1:]
 
-		typee = self.getFuncDic(name)									# Gets type of function return if it is not void
+		typee = self.getFuncDic(name)								# Gets type of function return if it is not void
+		print typee
 		if not typee:
-			typee = "void"
+			value = "void"
+		else:
+			value = typee[0]
 
 		write.append("%")
 		write.append(str(self.temp))
 		self.setTemp()
 		write.append(" = call ")
-		write.append(typee[0])
+		write.append(value)
 		write.append(" "+scope)
 		write.append(name+"(")
 

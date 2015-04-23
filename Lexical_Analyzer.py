@@ -309,7 +309,7 @@ class Lexical_Analyzer:
 
 				return STlist
 			else: 
-				self.reportErrorMsg("Missing )")
+				self.reportErrorMsg("Missing )", analyzer.current_token.line)
 				self.errorFlag = True
 				return False 
 
@@ -1363,6 +1363,7 @@ class Lexical_Analyzer:
 							# ---- end type checking
 
 								try:
+									print "genCall", callList
 									self.file.genCall(callList)
 								except:
 									print "\nIt couldn't generate Call Function instruction"
@@ -1896,7 +1897,7 @@ class Lexical_Analyzer:
 # ---- Main -----
 #filename = raw_input('Type Filename:') 
 dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/testCases/correct/test_program_minimal.src"
+filename = "/Users/roses/Downloads/Repository/test.src"
 generatedFile = filename[0:-3]+"ll"
   	
 # If file already exists, then delete it
