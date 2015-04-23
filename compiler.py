@@ -1579,6 +1579,7 @@ class Compiler:
 			print "\nScope:",k
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
+		print "\n"
 
 	# Call typeCheckingExp function, Return type of expression or return False if unmacthed type
 	def arrayType(self, statement_type):
@@ -1842,7 +1843,7 @@ if __name__ == '__main__':
 
 		if opt in ('-s', '--st'):
 			if filename:
-				print "\n", analyzer.printST()
+				analyzer.printST()
 			else:
 				print "Usage: compiler.py -i input.src -st"
 
