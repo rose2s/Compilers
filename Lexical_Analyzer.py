@@ -1317,9 +1317,16 @@ class Lexical_Analyzer:
 							if not self.expression(token,[",",")"], proc_scope):
 								return False
 
-							exp_type.append(self.arrayType("procedure_call"))
-
-							callList = callList + self.listGen
+							if len(self.checkExp) == 1 and self.isNumber(self.listGen[1]):
+								exp_type.append(self.arrayType("procedure_call"))
+								callList.append(exp_type[-1])               # type of literal
+								callList.append(self.listGen[1]) 				# literal
+							
+							else:
+								exp_type.append(self.arrayType("procedure_call"))
+								callList.append(exp_type[-1])               # type of expression
+								callList.append("%"+str(self.file.temp-1)) 	# temp that holds the expression
+							
 							self.listGen = [] 
 
 							while analyzer.current_token.getTokenValue() == ",":
@@ -1327,10 +1334,17 @@ class Lexical_Analyzer:
 								if not self.expression(token,[",",")"], proc_scope):
 									return False
 
-								exp_type.append(self.arrayType("procedure_call"))
-								callList = callList + self.listGen
-								self.listGen = [] 
-
+								if len(self.checkExp) == 1 and self.isNumber(self.listGen[1]):  # doesn't need a temp
+									exp_type.append(self.arrayType("procedure_call"))
+									callList.append(exp_type[-1])               				# type of literal
+									callList.append(self.listGen[1]) 								# literal
+								else:
+									exp_type.append(self.arrayType("procedure_call")) 			# needs a temp
+									callList.append(exp_type[-1])               				# type of expression
+									callList.append("%"+str(self.file.temp-1)) 					# temp that holds the expression
+								
+								self.listGen = []
+ 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 

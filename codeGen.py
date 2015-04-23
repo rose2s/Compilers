@@ -141,7 +141,7 @@ class CodeGen:
 			if alloca:
 				self.sentence.append(scope+name)												# should be temporary variable instead of variable
 
-			if self.function.has_key(inFunction):    # parameter var			
+			elif self.function.has_key(inFunction):    # parameter var			
 				if name in self.function[inFunction]:						
 					self.sentence.append("%"+str(self.temp-1))
 				else:
@@ -213,7 +213,7 @@ class CodeGen:
 	# generates Call instruction --> myList = [[global], name, [type, var]
 	def genCall(self, myList):  													
 		print "\nGenCode for Call: ", myList
-		write = [] 														# sentence to be generated
+		write = [] 													# sentence to be generated
 
 		scope = "%"
 
@@ -242,10 +242,10 @@ class CodeGen:
 		for l in range(0,len(myList)-1,2):  							# loop over all function parameters
 
 			write.append(self.getType(myList[l])+" ")
-			if myList[l+1][0] in ("@","%"):  							# if var
-				write.append("%"+str(self.getTemp(myList[l+1])))
-			else:
-				write.append(myList[l+1])
+			#if myList[l+1][0] in ("@","%"):  							# if var
+			#	write.append("%"+str(self.getTemp(myList[l+1])))
+			#else:
+			write.append(myList[l+1])
 
 			if l < len(myList)-2:
 				write.append(", ")
@@ -268,8 +268,8 @@ class CodeGen:
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
-		# print "\nGenCode for Aritm Expression: ",myList
-
+		print "\nGenCode for Aritm Expression: ", myList
+		
 		if myList[0] == "global":
 			myList = myList[1:]	
 
