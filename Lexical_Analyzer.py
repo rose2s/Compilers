@@ -1366,10 +1366,7 @@ class Lexical_Analyzer:
 									else:
 										l2.append(p)				
 
-								if l1 == l2:  # parameter list
-									print "parameter ok in procedure_call"
-
-								else:
+								if l1 != l2:  # parameter list
 									self.reportErrorMsg("Error: Invalid Procedure Call", token.line)
 									self.errorFlag = True
 									return False
@@ -1377,7 +1374,6 @@ class Lexical_Analyzer:
 							# ---- end type checking
 
 								try:
-									print "genCall", callList
 									self.file.genCall(callList)
 								except:
 									print "\nIt couldn't generate Call Function instruction"
@@ -1881,57 +1877,59 @@ class Lexical_Analyzer:
 			print "token now", token.getTokenValue()
 			return token
 		else:
-			return False
-
-	def usage(self):
-	    print "\nDescription:"
-	    print "\nUsage1: input.src -a <Float> -t <Float>"
-	    print "Usage2: filename.src -h"
-	    print "Usage3: filename.src -f <fileName>"
-	    print "-h = print this page"
-	    print "\nOutput: filename.ll"
-
-	def parse_arguments():
-	    
-	    # Parse the command line arguments
-	    parser = argparse.ArgumentParser()
-	    parser.add_argument('-d', '--debug',
-	                        help='print comments in generated code',
-	                        action='store_true')
-	    parser.add_argument('source',
-	                        help='source file to compile')
-	    parser.add_argument('-o', '--out',
-	                        help='target path for the compiled code',
-	                        action='store',
-	                        default='a.out')
-	    args = parser.parse_args()
-
-	    return args
+			return False 
 
 # ---- Main -----
-#filename = raw_input('Type Filename:') 
-dfa = DFA()
-filename = "/Users/roses/Downloads/Repository/test.src"
-generatedFile = filename[0:-3]+"ll"
-  	
-# If file already exists, then delete it
-if os.path.exists(generatedFile):
-	os.remove(generatedFile)
+if __name__ == '__main__':
+	#filename = raw_input('Type Filename:') 
+	filename = "/Users/roses/Downloads/Repository/testCases/correct/test2.src"
 
-try: 
-	with open(filename) as f:
-		pass
 
-	analyzer = Lexical_Analyzer(generatedFile)
-	analyzer.getTokenFromFile(filename)
-	analyzer.current_token = analyzer.tokenList.Next  
+	try:
+	    opts, args = getopt.getopt(sys.argv[1:],'i:hs', ['input=', 'help', 'st'])
+	except getopt.GetoptError as err:
+		print str(err)
+		sys.exit()
 
-	analyzer.program(analyzer.tokenList.Next)
+	filename = False
 
-	#print "\n",analyzer.printST()
+	# Saving values in variables
+	for opt, arg in opts:
+		if opt in ('-i', '--input'):
 
-except IOError as e:
-	print "I/O error({0}): {1}".format(e.errno, e.strerror), filename
+			dfa = DFA()
+			filename = arg
+			generatedFile = filename[0:-3]+"ll"
+	  	
+			# If file already exists, then delete it
+			if os.path.exists(generatedFile):
+				os.remove(generatedFile)
+
+			analyzer = Lexical_Analyzer(generatedFile)
+
+			try: 
+				with open(filename) as f:
+					pass
 		
+				analyzer.getTokenFromFile(filename)
+				analyzer.current_token = analyzer.tokenList.Next  
 
+				analyzer.program(analyzer.tokenList.Next)
 
+			except IOError as e:
+				print "I/O error({0}): {1}".format(e.errno, e.strerror), filename
+
+		elif opt in ('-h', '--help'):
+			print "\nDescription:"
+			print "\nUsage1: compiler.py < -i | --input > input.src "
+			print "Usage2: compiler.py < -h | --help >"
+			print "Usage3: compiler.py < -i | --input > input.src < -s | -- st >"
+			print "\nOutput: input.ll"
+			sys.exit()
+
+		if opt in ('-s', '--st'):
+			if filename:
+				print "\n", analyzer.printST()
+			else:
+				print "Usage: compiler.py -i input.src -st"
+	   
