@@ -1,0 +1,52 @@
+# # Name:      compiler.py
+# Purpose:     A single-pass, recursive decent LL(1) compiler written by hand for a made-up language. 
+# Author:      roses
+# Created:     24/01/2015
+# Copyright:   (c) roses 2014
+#-------------------------------------------------------------------------------
+# Version History:
+#
+# Ver      Author     Date        Notes
+# -----    ---------  ----------  ---------------------------------
+# 1.0.0    Rose       2015-01-24  Create function
+# 1.0.0    Rose       2015-01-25  Create DFA
+# 1.0.0    Rose		  2015-01-27  Fix Automata, getToken() function
+# 1.0.0    Rose	  	  2015-01-27  Fix Automata, getToken() function
+# 1.0.0    Rose		  2015-01-28  Divided Separator_Token, Fix	
+# 1.0.0    Rose       2015-02-01  Create Grammar LL(1)
+# 1.0.0    Rose		  2015-02-02  Create List
+# 1.0.0    Rose		  2015-02-05  Program_header function
+# 1.0.0    Rose		  2015-02-05  var_declaration function
+# 1.0.0    Rose		  2015-02-06  Var_declaration function
+# 1.0.0    Rose		  2015-02-07  Procedure function 
+# 1.0.0    Rose		  2015-02-08  Procedure_call function
+# 1.0.0    Rose		  2015-02-09  Loop stat.
+# 1.0.0    Rose		  2015-02-09  If stat.
+# 1.0.0    Rose		  2015-02-24  Else stat.
+# 1.0.0    Rose		  2015-02-26  Fix bug in Parser
+# 1.0.0    Rose		  2015-03-09  Simple table Management
+# 1.0.0    Rose		  2015-03-11  Simple table Management with scopes
+# 1.0.0    Rose		  2015-03-16  Type checking with operations
+# 1.0.0    Rose		  2015-03-19  Type checking with IF, LOOP statement
+# 1.0.0    Rose		  2015-03-20  Type checking with ProcedureCall statement
+# 1.0.0    Rose		  2015-03-23  Minus sign rule
+# 1.0.0    Rose		  2015-03-24  Type checking with Array variables
+# 1.0.0    Rose		  2015-03-31  Start Code Gneration
+# 1.0.0    Rose		  2015-04-04  Fix bug in Type checking Expressions
+# 1.0.0    Rose		  2015-04-06  Fix bugs in parser
+# 1.0.0    Rose		  2015-04-07  File management
+# 1.0.0    Rose		  2015-04-08  Code Generation
+# 1.0.0    Rose		  2015-04-09  Code Generation (exp)
+# 1.0.0    Rose		  2015-04-10  Code Generation of If statement
+# 1.0.0    Rose		  2015-04-11  Code Generation of Loop statement
+# 1.0.0    Rose		  2015-04-12  Fix  Generation of Store struction
+# 1.0.0    Rose		  2015-04-13  Fix  Generation of Load/Alloca struction
+# 1.0.0    Rose		  2015-04-14  Code Generation of Assignment stat.
+# 1.0.0    Rose		  2015-04-15  Code Generation of Assignment stat. with array
+# 1.0.0    Rose		  2015-04-16  Code Generation of return
+# 1.0.0    Rose		  2015-04-17  Fix code genetation of procedure call
+# 1.0.0    Rose		  2015-04-18  Add semicolon to statements
+# 1.0.0    Rose		  2015-04-19  Finish version 1
+# 2.0.0    Rose		  2015-04-20  Fix resync point bug
+# 2.0.0    Rose		  2015-04-21  Add arg from command line
+# 2.0.0    Rose		  2015-04-22  Remove prints
