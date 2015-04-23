@@ -2,4 +2,7 @@
 
 Scanner project:
   - automata.py
-  - scanner.py
+  - compiler.py
+  - stack.py
+  - List.py
+  - codeGen.py

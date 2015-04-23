@@ -18,7 +18,7 @@ class CodeGen:
 	def createFile(self):
 		file = open(self.filename,'a')
 
-	# returns temporary variable for "var" variable, or false if it doesn't exist
+	# returns temporary variable for "var" variable or false if it doesn't exist
 	def getTemp(self, var):
 		for k,v in self.tempDic.items():
 			if k in (var, "@"+var, "%"+var):
@@ -52,15 +52,14 @@ class CodeGen:
 	# generates end of file
 	def genEnd(self):
 		self.sentence = []
-		self.sentence.append("ret 0\n}\n")  # return for main function
+		self.sentence.append("ret 0\n}\n")  					# return for main function
 		self.sentence.append("attributes #0 = { nounwind }")
 		self.writeToken()
 
 	# generates alloca instruction --> format: @|%var = alloca type, align 4 ... myList=[type, name]
 	def genDeclaration(self, myList, parameter = False):
-		# print "GenCode for Declaration (alloca): ", myList
-		
 		scope = "%"
+
 		if myList[0] == "global":
 			scope  = "@"
 			myList = myList[1:]
@@ -83,7 +82,6 @@ class CodeGen:
 
 	# generates Store instruction --> result = [type, var,[size]], myList = [[global], vartype, name]
 	def genStore(self, result, myList, inFunction = False, alloca = False):
-		# print "\nGenCode for Store: ", result, myList, inFunction, alloca, self.function
 		scope = "%"
 		if result[0] == "global":
 			scope = "@"
@@ -92,7 +90,7 @@ class CodeGen:
 		varType = self.getType(result[0])
 		name = result[1]
 
-		if len(result) > 2:  								# array
+		if len(result) > 2:  								 # array
 			if not alloca:
 				if self.function.has_key(inFunction):
 					if name in self.function[inFunction]:	 # if is parameter var
@@ -110,10 +108,11 @@ class CodeGen:
 
 		self.sentence.append("store ")
 		self.sentence.append(varType)
-		if len(result) > 2 and alloca:  								# array
+
+		if len(result) > 2 and alloca:  					 			# array
 			self.sentence.append("*")
 
-		if len(myList) == 2:   	 										# simple assignment [type, value]
+		if len(myList) == 2:   	 							 			# simple assignment [type, value]
 			value = myList[1]  
 			
 			if myList[1][0] == "%":
@@ -139,20 +138,20 @@ class CodeGen:
 
 		if inFunction:	
 			if alloca:
-				self.sentence.append(scope+name)												# should be temporary variable instead of variable
+				self.sentence.append(scope+name)						# should be temporary variable instead of variable
 
-			elif self.function.has_key(inFunction):    # parameter var			
+			elif self.function.has_key(inFunction):    					# parameter var			
 				if name in self.function[inFunction]:						
 					self.sentence.append("%"+str(self.temp-1))
 				else:
 					self.sentence.append(scope+name)	
 			
-			elif len(result) > 2:  					# array
+			elif len(result) > 2:  										# array
 				self.sentence.append("%"+str(self.temp-1))
 			else:
 				self.sentence.append(scope+name)
 
-		elif len(result) > 2:  # not function, but array
+		elif len(result) > 2:  											# not function, but array
 			self.sentence.append("%"+str(self.temp-1))
 		else: 
 			self.sentence.append(scope+name)
@@ -163,12 +162,10 @@ class CodeGen:
 	# add new temporary variable for a variable
 	def addTemp(self, name): 
 		self.tempDic[name] = str(self.temp)
-		# print self.tempDic
 		self.setTemp()
 
 	#  generates Load instruction --> myList = [vartype, var]
 	def genLoad(self, myList, isArrayFunction = False):
-		# print "\nGenCode for Load: ", myList, isArrayFunction										# add temporary var that goes with "name"
 
 		varType = self.getType(myList[0])
 		name = myList[1]
@@ -176,17 +173,15 @@ class CodeGen:
 		if name[0] == "%":
 			name = name[1:] 
 
-		if len(myList) == 4:  # array in 
+		if len(myList) == 4:  			# array 
 			if not isArrayFunction:
-			#if not self.function.has_key(isArrayFunction):
-			#	if myList[1] in self.function[isArrayFunction]:
 				self.sentence.append("%"+str(self.temp))
 				self.setTemp()
 
 				self.sentence.append(" = getelementptr inbounds ["+str(myList[2])+" x "+varType+"]* %"+name)
 				self.sentence.append(", "+varType+" 0, "+varType+" "+str(myList[3])+"\n")
 
-		x = self.getTemp(name)  # previous temporary var for name
+		x = self.getTemp(name)  		# previous temporary var for name
 		self.addTemp(name) 
 		self.sentence.append("%")
 		self.sentence.append(str(self.getTemp(name)))
@@ -195,13 +190,13 @@ class CodeGen:
 
 		if isArrayFunction:
 			self.sentence.append("** ")
-			if len(myList) == 4:  # array
+			if len(myList) == 4:  		# array
 				self.sentence.append("%"+str(x))
 			else:
 				self.sentence.append(name)
 		else:
 			self.sentence.append("* ")
-			if len(myList) == 4:  # array
+			if len(myList) == 4:  		# array
 				self.sentence.append("%"+str(self.temp-2))
 			else:
 				self.sentence.append("%"+name)
@@ -211,10 +206,9 @@ class CodeGen:
 		self.writeToken()
 
 	# generates Call instruction --> myList = [[global], name, [type, var]
-	def genCall(self, myList):  													
-		#print "\nGenCode for Call: ", myList
-		write = [] 													# sentence to be generated
+	def genCall(self, myList):  
 
+		write = [] 													# sentence to be generated
 		scope = "%"
 
 		if myList[0] == "global":
@@ -252,19 +246,10 @@ class CodeGen:
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genExpression(self,myList):
-		#if self.getCompOp(myList[2],myList[3]):
-		#	self.genCompExp(myList)
-		#elif self.getOp(myList[2],myList[3]):
 		self.genAritmExpression(myList)
-
-	#def genCompExp(self, myList):
-	#	print "GenCode for Comp Exp", myList
-	#	myList = myList[5:]
-	#	print myList
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
-		#print "\nGenCode for Aritm Expression: ", myList
 		
 		if myList[0] == "global":
 			myList = myList[1:]	
@@ -399,43 +384,41 @@ class CodeGen:
 	# generates If statement
 	def genIf(self):
 		
-		ifTrue = "ifTrue"+str(self.ifCount)  									# creates label ifTrue
-		ifFalse = "ifFalse"+str(self.ifCount)									# creates label ifFalse
+		ifTrue = "ifTrue"+str(self.ifCount)  									# create label ifTrue
+		ifFalse = "ifFalse"+str(self.ifCount)									# create label ifFalse
 		self.setIfCount()
 		
 		self.ifStack.push(ifTrue)												# add label to ifStack
 		self.ifStack.push(ifFalse)												# add label to ifStack
 
-		self.genCoBr(str(self.temp-1), ifTrue, ifFalse)							# generates condicional branch
+		self.genCoBr(str(self.temp-1), ifTrue, ifFalse)							# generate condicional branch
 
 	# generates Else statement
 	def genElse(self):
-		elseVar = self.ifStack.peek() 											# gets ifFalse label from the top of ifStack
+		elseVar = self.ifStack.peek() 											# get ifFalse label from the top of ifStack
 
-		end = "end"+str(self.ifStack.peek()[-1])  								# creates last character of the top (current ifCount)
+		end = "end"+str(self.ifStack.peek()[-1])  								# create last character of the top (current ifCount)
 		self.ifStack.push(end)													# add label to ifStack
 
-		self.genUnBr(self.ifStack.peek())										# generates unconditional branch
+		self.genUnBr(self.ifStack.peek())										# generate unconditional branch
 
-		self.genLabel(elseVar)													# generates Else label
+		self.genLabel(elseVar)													# generate Else label
 
 	# generates ifFalse statement 
 	def genThen(self):		
-		self.genUnBr(self.ifStack.peek())										# gene
+		self.genUnBr(self.ifStack.peek())										# generate uncondicional branch
 
 		self.sentence.append(self.ifStack.peek()+": ")  
 		self.writeToken()
 
-		if (self.ifStack.peek()[0:3] == "end"):  #else+count
+		if (self.ifStack.peek()[0:3] == "end"):  								#else+count
 			self.ifStack.pop()
-		self.ifStack.pop()  # remove ifFalse
-		self.ifStack.pop()  # remove ifTrue
+		self.ifStack.pop()  													# remove ifFalse
+		self.ifStack.pop()  													# remove ifTrue
 
 	def genLoop1(self):
 		self.genUnBr("loop"+str(self.loopCount))
-
 		self.genLabel("loop"+str(self.loopCount))
-		#self.setTemp()
 
 	def genLoop2(self):
 		loopTrue = "loopTrue"+str(self.loopCount)
@@ -471,9 +454,7 @@ class CodeGen:
 		outList = []
 		allocaList = []
 
-		# print "\nGenCode for procedure: ", myList
 		scope = "%"
-
 		if myList[0] == "global":
 			scope = "@"
 			myList = myList[1:]
@@ -489,56 +470,55 @@ class CodeGen:
 		writeList.append(funcName+"(")
 
 		while len(myList) > 0:
-			# print "\nParameter list",myList
 			if myList[0] == "global":
-				if len(myList) > 4: 					 # or var is array e|or has more than 1 var
-					if myList[3] not in ("in","out"):             # global and array
+				if len(myList) > 4: 					 		  			# or var is array e|or has more than 1 var
+					if myList[3] not in ("in","out"):             			# global and array
 
 						writeList.append(self.getType(myList[1])+"* @"+myList[2])
 
 						allocaList.append([myList[1], self.temp, myList[2], myList[3]]) # type, new Nemp, var, size
 						self.addTemp(myList[2])
 
-						if self.function.has_key(funcName):  # add name of parameter
+						if self.function.has_key(funcName):  	  			# add name of parameter
 							self.function[funcName].append(myList[2])
 						else:
 							self.function[funcName] = [myList[2]]
 
 						if myList[4] == "out":
-							outList.append(myList[1]) # type
-							outList.append(myList[2]) # var
+							outList.append(myList[1]) 						# type
+							outList.append(myList[2]) 						# var
 						myList = myList[5:]
 						writeList.append(", ")
-					else:										# global but not array  
+					else:													# global but not array  
 						writeList.append(self.getType(myList[1])+" @"+myList[2])
 
 						allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
 						self.addTemp(myList[2])
 
-						if self.function.has_key(funcName):  # add name of parameter
+						if self.function.has_key(funcName):  				# add name of parameter
 							self.function[funcName].append(myList[2])
 						else:
 							self.function[funcName] = [myList[2]]
 						
 						if myList[3] == "out":
-							outList.append(myList[1]) # type
-							outList.append(myList[2]) # var
+							outList.append(myList[1]) 						# type
+							outList.append(myList[2]) 						# var
 						myList = myList[4:]	
 						self.sentence.append(", ")
-				else:  										# last parameter
+				else:  														# last parameter
 					self.sentence.append(self.getType(myList[1])+" @"+myList[2])
 
-					allocaList.append([myList[1], self.temp, myList[2]]) # type, new Nemp
+					allocaList.append([myList[1], self.temp, myList[2]]) 	# type, new Nemp
 					self.addTemp(myList[2])
 
-					if self.function.has_key(funcName):  # add name of parameter
+					if self.function.has_key(funcName):  					# add name of parameter
 							self.function[funcName].append(myList[2])
 					else:
 						self.function[funcName] = [myList[2]]
 					
 					if myList[3] == "out":
-						outList.append(myList[1]) # type
-						outList.append(myList[2]) # var
+						outList.append(myList[1]) 							# type
+						outList.append(myList[2]) 							# var
 					myList = myList[4:]
 					
 			else:
@@ -549,52 +529,51 @@ class CodeGen:
 						allocaList.append([myList[0], self.temp, myList[1], myList[2]]) # type, new Nemp, var, size
 						self.addTemp(myList[1])
 						
-						if self.function.has_key(funcName):  # add name of parameter
+						if self.function.has_key(funcName):  				# add name of parameter
 							self.function[funcName].append(myList[1])
 						else:
 							self.function[funcName] = [myList[1]]
 
 						if myList[3] == "out":
-							outList.append(myList[0]) # type
-							outList.append(myList[1]) # var
+							outList.append(myList[0]) 						# type
+							outList.append(myList[1]) 						# var
 						myList = myList[4:]
 						
 						if len(myList) > 0:
 							writeList.append(", ")
-					else:									# not global, and not array
+					else:													# not global, and not array
 						writeList.append(self.getType(myList[0])+" %"+myList[1]) 
 
 						allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
 						self.addTemp(myList[1])
 
-						if self.function.has_key(funcName):  # add name of parameter
+						if self.function.has_key(funcName):  				 # add name of parameter
 
 							self.function[funcName].append(myList[1])
 						else:
 							self.function[funcName] = [myList[1]]
 						
 						if myList[2] == "out":
-							outList.append(myList[0]) # type
-							outList.append(myList[1]) # var
+							outList.append(myList[0]) 						# type
+							outList.append(myList[1]) 						# var
 						myList = myList[3:]	
-						# print "list", myList
-						# print "outList", outList
+			
 						writeList.append(", ")
-				else:  								# last parameter
+				else:  														# last parameter
 					writeList.append(self.getType(myList[0])+" %"+myList[1])
 
-					allocaList.append([myList[0], self.temp, myList[1]]) # type, new Nemp
+					allocaList.append([myList[0], self.temp, myList[1]]) 	# type, new Nemp
 					self.addTemp(myList[1])
 
-					if not self.function.has_key(funcName):  # add name of parameter
+					if not self.function.has_key(funcName):  				# add name of parameter
 	
 						self.function[funcName] = [myList[1]]
 					else:
 						self.function[funcName].append(myList[1])
 					
 					if myList[2] == "out":
-						outList.append(myList[0]) # type
-						outList.append(myList[1]) # var
+						outList.append(myList[0]) 							# type
+						outList.append(myList[1]) 							# var
 					myList = myList[4:]
 
 		writeList.append(") #0 {\n")
@@ -624,7 +603,7 @@ class CodeGen:
 
 		self.skipLine()
 	
-	def genUnBr(self, label):  # unconditional Branch
+	def genUnBr(self, label):  					# unconditional Branch
 		self.sentence.append("br ")
 		self.sentence.append("label %"+str(label))
 		self.sentence.append("                                       ; Unconditional branch")	
@@ -649,11 +628,11 @@ class CodeGen:
 	def getFuncDic(self, var):
 		if self.funcDic.has_key(var):
 			return self.funcDic[var]
+
 		else:
 			return False
 
 	def genReturn(self, var):
-		# print "GenCode for Return", var
 		var = self.getFuncDic(var) 
 		self.sentence.append("\nret ")
 		if var:  # void
@@ -689,10 +668,5 @@ class CodeGen:
 	def deleteFile(self):
 		if os.path.exists(self.filename):
 			os.remove(self.filename)
-
-#filename = "/Users/roses/Downloads/Repository/Rose.ll"
-# = CodeGen(filename)
-#.createFile()
-#c.genDeclaration(["integer","X"])
 
 

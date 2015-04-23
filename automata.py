@@ -21,26 +21,28 @@ class DFA:
         tf[('s0', ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y'))] = 's1'
         tf[('s1', ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y','_'))] = 's1'
         tf[('s1', ('0','1','2','3','4','5','6','7','8','9'))] = 's1'
+        
         # int transition
         tf[('s0', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
         tf[('s2', ('0','1','2','3','4','5','6','7','8','9'))] = 's2'
+        
         # float transition 
         tf[('s0',('.'))] = 's4'
         tf[('s4', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
         tf[('s2',('.'))] = 's3'
         tf[('s3', ('0','1','2','3','4','5','6','7','8','9'))] = 's3'
 
-        # operator token
+        # operator transition
         tf[('s0',("!",':','='))] = 's5'
         tf[('s0',("<", ">", "|"))] = 's6'
         tf[('s5',("="))] = 's7'
         tf[('s6',("="))] = 's7'
-        tf[('s0',("|"))] = 's7'  # or operator
+        tf[('s0',("|"))] = 's7'                 # or operator
         tf[('s0',("&"))] = 's19'
-        tf[('s19',("&"))] = 's7' # and operator
+        tf[('s19',("&"))] = 's7'                # and operator
         tf[('s0',("+", "-", "*", "/"))] = 's8'
 
-        # separator token
+        # separator transition
         tf[('s0',("("))] = 's10'
         tf[('s0',(")"))] = 's11' 
         tf[('s0',("{"))] = 's12'
@@ -58,17 +60,6 @@ class DFA:
 
         self.transition_function = tf
 
-        return;
-    
-    def transition_to_state_with_input(self, input_value):
-        for tf2 in self.transition_function:  #d[tf2,(tf1)] = sx
-            if self.current_state == tf2[0]:   
-                if input_value in tf2[1]:
-                    self.current_state = self.transition_function[tf2]
-                    break
-
-        if self.current_state != self.transition_function[tf2]:
-            self.current_state = None
         return
     
     # Verifies whether current_state is final_state
@@ -92,4 +83,16 @@ class DFA:
             self.transition_to_state_with_input(inp)
             continue
         return self.in_accept_state()
+
+    def transition_to_state_with_input(self, input_value):
+        for tf2 in self.transition_function:                    #d[tf2,(tf1)] = sx
+            if self.current_state == tf2[0]:   
+                if input_value in tf2[1]:
+                    self.current_state = self.transition_function[tf2]
+                    break
+
+        if self.current_state != self.transition_function[tf2]:
+            self.current_state = None
+        return
+    
     
