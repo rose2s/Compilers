@@ -250,7 +250,8 @@ class CodeGen:
 
 	# generates exprpession --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
-		
+		#print "Gen Expression", myList
+
 		if myList[0] == "global":
 			myList = myList[1:]	
 

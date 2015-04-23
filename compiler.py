@@ -44,6 +44,7 @@ class Compiler:
 		self.tupleList = []  								# List of tuples used for generate variable declarations
 		self.file = CodeGen(generatedFile)					# Instance of Code Genetation Class
 		self.errorFound = 0									# Holds number of erros found
+		self.scannerError = 0
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -77,6 +78,7 @@ class Compiler:
 
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
+		print "\n"
 
 		with open(filename) as f:
 			lines = f.readlines() 							   # Reads until EOF and returns a list of lines. 	
@@ -212,6 +214,9 @@ class Compiler:
 			  			
 			  			if s == len(l)-1:    						# If it is last character of the line
 							self.run_automata(l[s]) 				# Runs character
+		
+		if self.scannerError >0:									# If found error in scanner phase
+			print "---------------------------------------------------\n"
 
 	# Runs automata and sets tokens
 	def run_automata(self,inp_program): 							# inp_program = word
@@ -226,8 +231,9 @@ class Compiler:
 				
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
-		else:									
-		    self.reportWarning(inp_program)   		# If current_state NOT in Accept States
+		else:		
+			self.scannerError = self.scannerError + 1				# Increment scanner error				
+			self.reportWarning(inp_program)   						# If current_state NOT in Accept States
 	
 
 	def first(self,X):
@@ -1528,11 +1534,11 @@ class Compiler:
 
 
 	def reportError(self, expected, received, line):
-	 	print  "\nSyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
+	 	print  "SyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
 	 	self.file.deleteFile() 
 
 	def reportWarning(self, message):
-	 	print  "\nScanner Error: "+message+ ", in line", self.lineCount,'\n'
+	 	print  "Scanner Error: "+message+ ", in line", self.lineCount,'\n'
 
 	def reportErrorMsg(self, message, line):
 	 	print message,", in line ", line,'\n'

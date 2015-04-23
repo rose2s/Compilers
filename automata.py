@@ -90,7 +90,6 @@ class DFA:
                 if input_value in tf2[1]:
                     self.current_state = self.transition_function[tf2]
                     break
-
         if self.current_state != self.transition_function[tf2]:
             self.current_state = None
         return
