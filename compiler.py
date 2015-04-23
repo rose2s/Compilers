@@ -1004,6 +1004,7 @@ class Compiler:
 		prior = token  											# hold previous line
 		token = self.scanToken()
 		self.errorFlag = False
+		self.checkExp = []
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
