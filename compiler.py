@@ -75,7 +75,6 @@ class Compiler:
 		
 		self.file.writeToken("; ModuleID = '"+self.getFileName(filename)+"'\n")  # generates ModuleID												
 
-		#print "Tokens:"
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
 
@@ -225,12 +224,11 @@ class Compiler:
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
 				
-			    #print "<"+inp_program + "> is <" + token+">"
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
 		else:									
 		    self.reportWarning(inp_program)   		# If current_state NOT in Accept States
-		     
+	
 
 	def first(self,X):
 		if X == 'E':
@@ -1775,7 +1773,7 @@ if __name__ == '__main__':
 	#filename = "/Users/roses/Downloads/Repository/testCases/correct/test2.src"
 
 	try:
-	    opts, args = getopt.getopt(sys.argv[1:],'i:hs', ['input=', 'help', 'st'])
+	    opts, args = getopt.getopt(sys.argv[1:],'i:hst', ['input=', 'help', 'st', 'token'])
 	except getopt.GetoptError as err:
 		print str(err)
 		sys.exit()
@@ -1819,4 +1817,11 @@ if __name__ == '__main__':
 				print "\n", analyzer.printST()
 			else:
 				print "Usage: compiler.py -i input.src -st"
+
+		elif opt in ('-t', '--token'):
+			if filename:
+				analyzer.tokenList.printList(analyzer.tokenList)
+			else:
+				print "Usage: compiler.py -i input.src -token"
+	   
 	   

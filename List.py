@@ -46,11 +46,12 @@ class List:
 
         return node
 
-    def printList(self,node):
+    def printList(self, node):
+        print "*********** TOKENS ***************"
         while (node.Next):
-            print node.getTokenValue()+ " is "+ node.getTokenType()
+            print "<<  {0:<10} is {1:>10}  >>".format(node.getTokenValue(), node.getTokenType())
             node = node.Next
-        print node.getTokenValue()+ " is "+ node.getTokenType()  # last one
+        print "<<  {0:10} is {1:>10}  >>\n".format(node.getTokenValue(), node.getTokenType())
 
     def addNode(self,node,Type,value, line):
         new = List(Type,value,line)
