@@ -68,8 +68,12 @@ There is a unique case in which the code generation doesn't work very well. I co
 
 ##7. References
 http://www.ece.uc.edu/~paw/classes/eecs6083/
+
 A. Aho, M. Lam, R. Sethi, and J. Ullman Compilers: Principles, Techniques, and Tools, Addison Wesley, 2007.
+
 Instructor: Philip A. Wilsey 
+
 http://www.llvm.org/docs/LangRef.html
+
 http://web.stanford.edu/class/cs143/
 
