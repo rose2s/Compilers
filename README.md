@@ -2,7 +2,8 @@ Roselane Santana Silva
 EECS 6083: Compiler Theory/Compiler Laboratory
 April 24, 2015
 Compiler - Page Report
-Description
+
+##Description
 
 A single-pass, recursive descent LL(1) compiler written by hand for a made-up language and generates intermediate LLVM representation. This compiler project was done individually for the Spring Term of 2015.
 Dependencies
@@ -10,7 +11,8 @@ This compiler was written entirely in Python 2.7.8 and Mac OSX yosemite version 
 Version Control
 In order to maintain previous versions of the project, and ensure security of the code, I have used Git version control since the beginning of project. Git is a public version control, so the project can be accessed by using this link: https://github.com/rose2s/Compilers
 Also, a log file was created, and reported description/dates for every single change in the source code.
-Usage
+
+##Usage
 There are some ways to execute the project from command line.
 Usage1: compiler.py < -h | --help >
 This command displays all possible commands to execute the project.
@@ -23,8 +25,8 @@ This command executes the program, and show the list of tokens
 
 If there is no error, a generated code <input.ll> is then outputted with the intermediate LLVM representation. 
 
-Implementation Details
-Programming Language
+##Implementation Details
+##Programming Language
 Python was chosen as the implementation language because it is easy to manipulate, has its hash table (use of dictionaries), this way was easy to build the symbol table. In addition, python powerful syntaxe making fast the construction of structures like list, stack used in the compiler.
 Structure
 The compiler project is structured in main 3 files (compiler.py, automata.py, and codeGeneration.py)  and two auxiliary files (list.py, stack.py).
@@ -33,7 +35,7 @@ The compiler project is structured in main 3 files (compiler.py, automata.py, an
 'codeGen.py' receives token information and generates LLVM representation. 
 'stack.py' and 'list.py' are source files containing the data structure list and stack which are used in the various components of the compiler.
 
-6. Phases
+##6. Phases
 Scanning
 The implementation of the scanner takes the input file and generates a list of tokens by splitting the source code into a list of distinct lines. At the start of each non-whitespace character, the automata is used to recognize the language by giving a type for each token or throwing a warning if it is not accepted. 
 
