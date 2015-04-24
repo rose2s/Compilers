@@ -1835,10 +1835,10 @@ if __name__ == '__main__':
 
 		elif opt in ('-h', '--help'):							# Options from command line
 			print "\nDescription:"
-			print "\nUsage1: compiler.py < -h | --help >"
-			print "Usage2: compiler.py < -i | --input > input.src "
-			print "Usage3: compiler.py < -i | --input > input.src < -s | -- st >"
-			print "Usage4: compiler.py < -i | --input > input.src < -t | -- token >"
+			print "\nUsage1: python compiler.py < -h | --help >"
+			print "Usage2: python compiler.py < -i | --input > input.src "
+			print "Usage3: python compiler.py < -i | --input > input.src < -s | -- st >"
+			print "Usage4: python compiler.py < -i | --input > input.src < -t | -- token >"
 			print "\nOutput: input.ll"
 			sys.exit()
 
