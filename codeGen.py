@@ -89,7 +89,13 @@ class CodeGen:
 		if result[0] == "int":
 			result[0] == "integer"
 		if result[0] != myList[0]:
-			self.genIntToFloat()
+			if result[0] == "float":
+				self.genIntToFloat()
+			elif result[0] == "integer":
+				self.genBoolToInt()
+			elif result[0] == "bool":
+				self.genIntToBool()
+
 		# ------------ end block -----------------
 
 		scope = "%"
@@ -260,11 +266,11 @@ class CodeGen:
 		self.sentence = write
 		self.writeToken()
 
-	# generates exprpession --> myList = [type, op1, signal, type, op2]
+	# generates expression --> myList = [type, op1, signal, type, op2]
 	def genExpression(self,myList):
 		self.genAritmExpression(myList)
 
-	# generates exprpession --> myList = [type, op1, signal, type, op2]
+	# generates expression --> myList = [type, op1, signal, type, op2]
 	def genAritmExpression(self, myList):
 
 		if myList[0] == "global":
@@ -394,6 +400,22 @@ class CodeGen:
 		self.sentence.append(" = sitofp i32 ")
 		self.sentence.append("%"+str(self.temp-2))
 		self.sentence.append(" to float")
+		self.writeToken()
+
+	def genBoolToInt(self):   
+		self.sentence.append("%"+str(self.temp))
+		self.setTemp()
+		self.sentence.append(" = zext i1 ")
+		self.sentence.append("%"+str(self.temp-2))
+		self.sentence.append(" to i32")
+		self.writeToken()
+
+	def genIntToBool(self):  
+		self.sentence.append("%"+str(self.temp))
+		self.setTemp()
+		self.sentence.append(" = trunc i32 ")
+		self.sentence.append("%"+str(self.temp-2))
+		self.sentence.append(" to i1")
 		self.writeToken()
 
 	# increments if count
