@@ -86,13 +86,17 @@ class CodeGen:
 		# --- Block: checking if cast is necessary
 		if myList[0] == "int":
 			myList[0] = "integer"
+
 		if result[0] == "int":
 			result[0] == "integer"
+
 		if result[0] != myList[0]:
 			if result[0] == "float":
 				self.genIntToFloat()
+
 			elif result[0] == "integer":
 				self.genBoolToInt()
+				
 			elif result[0] == "bool":
 				self.genIntToBool()
 

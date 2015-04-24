@@ -1,0 +1,51 @@
+program Simple is
+
+	integer dig[400];
+    global string word;
+    global string eu;
+    float test;
+    bool t;
+
+    procedure sum(bool a in, float b in)
+    	integer jake;
+    	integer d;
+    	string vc;
+
+		begin
+			eu := "eu";
+			if(eu == "eu") then
+				jake := 1;
+				vc := eu;
+			else
+				d := jake;
+			end if;
+		return;
+	end procedure
+
+	procedure for_proc(integer oi in, bool xau out)
+		bool verdadeiro;
+		integer s;
+		string rose;
+		begin
+			//for(oi := 0; xau)
+			s := 2 + 3;
+			//end for
+		end procedure;
+begin
+	// statement
+	test := 2;
+	word := "rose";
+	dig := 2;
+
+	if (t) then
+		word := "sss";
+		if (True) then
+			test := 2.9;
+		else
+			test := 0.;
+		end if;
+	else
+		t := true;
+	end if;
+
+end program

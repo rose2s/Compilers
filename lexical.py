@@ -1,17 +1,10 @@
-# Name:        scanner_Roselane.py
-# Purpose:     Scanner 
-# Author:      roses
-# Created:     24/01/2015
-# Copyright:   (c) roses 2014
-#-------------------------------------------------------------------------------
-
 import os,sys, getopt 
 from automata import DFA
 from List import List
 from stack import Stack
 from codeGen import CodeGen
 
-class Compiler:
+class Lexical:
 
 	# Token types used for automata
 	tokenType = {'s1': "IDENTIFIER",'s2': "INTEGER", 's3': "FLOAT",'s6': "COMP_OP",'s7': "COMP_OP_EQ",
@@ -32,19 +25,19 @@ class Compiler:
 	current_token = None
 
 	def __init__(self, generatedFile):
-		self.lineCount = 0    								# Show the line of error
+		self.lineCount = 0    								# Show the error
+		self.IDtokenNum = 0   								# ID for Symbol table
 		self.errorFlag = False                        		# Flag for errors     
 		self.IFlag = False      							# Flag for IF statement
 		self.tokenList = List("KEYWORD","program",0)		# Token List
 		self.tokenList.setFirst(self.tokenList)
 		self.EXPstack = Stack()								# Stack used for expressions
 		self.stack = Stack()								# Stack used for parser
-		self.checkExp = []									# List for Type checking expressions
-		self.listGen = []									# List passed to code genatation
+		self.checkExp = []									# List for Typing check expressions
+		self.listGen = []
 		self.tupleList = []  								# List of tuples used for generate variable declarations
-		self.file = CodeGen(generatedFile)					# Instance of Code Genetation Class
-		self.errorFound = 0									# Holds number of erros found
-		self.scannerError = 0
+		self.file = CodeGen(generatedFile)
+		self.errorFound = 0
 
 	# Verifies if a variable is Letter
 	def isLetter(self,var):
@@ -60,12 +53,11 @@ class Compiler:
 		else:
 			return False
 
-	# Gets path/filemane.src and return only filename
 	def getFileName(self, filename):
 		i = 0
 		for i in range(len(filename)-1, 0, -1):
 			pos = i
-			if filename[i] in ("\'","/"):  
+			if filename[i] in ("\'","/"):
 				break
 
 		return filename[i+1:]
@@ -74,17 +66,17 @@ class Compiler:
 	# Gets token and Runs automata
 	def getTokenFromFile(self,filename):
 		
-		self.file.writeToken("; ModuleID = '"+self.getFileName(filename))  # generates ModuleID												
+		self.file.writeToken("; ModuleID = '"+self.getFileName(filename)) 
 
+		#print "Tokens:"
 		word = ""
 		value = 0  											   # 0 = other, 1 = letter, 2 = number
-		print "\n"
 
 		with open(filename) as f:
 			lines = f.readlines() 							   # Reads until EOF and returns a list of lines. 	
 			for l in lines:									   # Loop each line
-				self.lineCount += 1							   
-				for s in range(len(l)):						   # Loop in each character
+				self.lineCount += 1
+				for s in range(len(l)):						   # Loop each character
 					# Letter Buffer
 					if value == 'cha': 						
 						if self.isNumber(l[s]) or self.isLetter(l[s].lower()) or l[s] == '_': 
@@ -101,7 +93,7 @@ class Compiler:
 							if s+1 < len(l):					# If it is NOT last character of the line		
 				  				if l[s]+l[s+1] == '//':			# If Comments then skip line
 				  					break 						
-				  			if l[s] in (" ","\n","\t", "\r"):	# Skips whitespace, tab, newline
+				  			if l[s] in (" ","\n","\t","\r"):			# Skips whitespace, tab, newline
 			  					continue
 							else:
 								self.run_automata(l[s].lower()) # Runs automata with the character
@@ -129,7 +121,7 @@ class Compiler:
 			  						else:
 			  							self.run_automata(l[s].lower())	
 
-			  				elif l[s] in (" ","\n","\t","\r"):      # Skips whitespace, tab, newline
+			  				elif l[s] in (" ","\n","\t", "\r"):           # Skips whitespace, tab, newline
 			  					continue	
 			  				else:
 			  					self.run_automata(l[s].lower())     # Runs automata with the character
@@ -152,7 +144,7 @@ class Compiler:
 								if s+1 < len(l):				    # If it is NOT last character of the line
 					  				if l[s]+l[s+1] == '//':    	    # If Comments then skip line
 					  					break 
-					  			if l[s] in (" ","\n","\t", "\r"):   # Skips whitespace, tab, newline
+					  			if l[s] in (" ","\n","\t", "\r"):     	# Skips whitespace, tab, newline
 				  					continue
 								else:
 									self.run_automata(l[s].lower()) # Runs automata with the character
@@ -177,7 +169,7 @@ class Compiler:
 				  		if s+1 < len(l):							# If it is NOT last character of the line
 				  			if l[s]+l[s+1] == '//':					# If Comments then skip line
 				  				break 								
-			  			if l[s] in (" ","\n","\t", "\r"):    		# Skips whitespace, tab, newline 
+			  			if l[s] in (" ","\n","\t", "\r"):    				# Skips whitespace, tab, newline 
 			  				continue	
 
 			  			elif self.isLetter(l[s].lower()):           # If letter then flag to letter buffer
@@ -214,9 +206,6 @@ class Compiler:
 			  			
 			  			if s == len(l)-1:    						# If it is last character of the line
 							self.run_automata(l[s]) 				# Runs character
-		
-		if self.scannerError >0:									# If found error in scanner phase
-			print "---------------------------------------------------\n"
 
 	# Runs automata and sets tokens
 	def run_automata(self,inp_program): 							# inp_program = word
@@ -229,12 +218,13 @@ class Compiler:
 			        if inp_program in self.keywords:
 			        	token = "KEYWORD"
 				
+			    #print "<"+inp_program + "> is <" + token+">"
 			    self.tokenList.addNode(self.tokenList,token,inp_program,self.lineCount) # add token into Token List
 
-		else:		
-			self.scannerError = self.scannerError + 1				# Increment scanner error				
-			self.reportWarning(inp_program)   						# If current_state NOT in Accept States
-	
+		else:	
+			print "error:", dfa.current_state								
+			self.reportWarning(inp_program)   		# If current_state NOT in Accept States
+		     
 
 	def first(self,X):
 		if X == 'E':
@@ -263,14 +253,15 @@ class Compiler:
 		return analyzer.current_token
 		
 	# Validates Expression
-	# Return Expression Type (ExpType) if expression is correct
-	def expression(self, current_token, sign, scope, isDestination = False):     # Returns True if token == sign	
-		
+	# Return ExpType if expression is correct
+	def expression(self, current_token, sign, scope, isDestination = False):    # Returns True if token == sign	
+		print "exp function: ", self.checkExp
 		STlist = self.E(current_token, sign, scope)
 		if STlist:								
-			if self.EXPstack.isEmpty():											 # Parentheses op are pushed into Expression Stack
+			if self.EXPstack.isEmpty():											# Parenthesis op are pushed into Expression Stack
+				print "\nCorrect Expression"
 				try:
-					if self.errorFound == 0 and not isDestination:
+					if not isDestination:
 						self.file.genExpression(self.listGen)
 				except:
 					print "\nIt couldn't generate expression instruction"
@@ -282,20 +273,21 @@ class Compiler:
 				return False 
 
 	def E(self, token, sign, scope):
-
+		print "E: ",token.getTokenValue()
 		STlist = self.T(token,sign, scope)
 
 		if self.E2(analyzer.current_token, sign, scope):
+			print "ST", self.checkExp
 			
 			if analyzer.current_token.getTokenValue() in ("&&","|"):
-				self.listGen.append(analyzer.current_token.getTokenValue())    # add into list to generate expression
-				self.checkExp.append(analyzer.current_token.getTokenValue())   # add into list to do type checking
+				self.listGen.append(analyzer.current_token.getTokenValue())  
+				self.checkExp.append(analyzer.current_token.getTokenValue())
 				token = self.scanToken()
-
 				if self.E(token, sign, scope):
 					return True
 				else: 
 					return False
+			
 			else:
 				return True
 
@@ -303,8 +295,8 @@ class Compiler:
 		if not self.errorFlag:
 
 			if (token.getTokenValue() in self.first('E2')) or (self.relation_op(token.getTokenValue())):
-				self.listGen.append(token.getTokenValue())  				# add (*|/) into list to generate expression
-				self.checkExp.append(token.getTokenValue())					# add into list to do type checking
+				self.listGen.append(token.getTokenValue())  # * or /
+				self.checkExp.append(token.getTokenValue())
 				token = self.scanToken()
 				self.T(token,sign, scope)
 
@@ -314,7 +306,7 @@ class Compiler:
 			elif token.getTokenValue() in ("&&","|"):
 				return True
 
-			elif token.getTokenValue() in sign:  				     # Stop Condition of Recursion
+			elif token.getTokenValue() in sign:  				     # Stop Condition of the Recursion
 				return True
 			else: 
 				self.reportError("aritm_op", token.getTokenValue(),token.line)
@@ -323,6 +315,8 @@ class Compiler:
 			return False
 
 	def T(self,token, sign, scope):
+		print "T: ",token.getTokenValue()
+
 		STlist = self.F(token,sign, scope)
 		
 		if STlist:
@@ -333,8 +327,11 @@ class Compiler:
 
 
 	def T2(self,token, sign, scope):
+		if token:
+			print "T': ",token.getTokenValue()
 
 		if token.getTokenValue() in sign and self.EXPstack.isEmpty():   # Stop Condition of the Recursion
+			print "sign:",sign
 			return True
 
 		elif token.getTokenValue() in ("&&","|"):
@@ -343,6 +340,7 @@ class Compiler:
 		while token.getTokenValue() == ")" and not self.EXPstack.isEmpty():
 			if not self.EXPstack.isEmpty():
 				self.EXPstack.pop()
+				print "stack", self.EXPstack.items
 				token = self.scanToken()
 			else:
 				self.reportError("(",")", token.line)
@@ -351,15 +349,16 @@ class Compiler:
 
 		if token.getTokenValue() in self.first('T2'):
 
-			# Check Division by zero
+			# Check division by zero
 			if token.getTokenValue() == "/" and token.Next.getTokenValue() == '0':
 				self.reportErrorMsg("Error: Division by Zero", token.line)
 				self.errorFlag = True
 				return False
 			# ---------------------
 
-			self.listGen.append(token.getTokenValue())  					# add into list to generate expression
-			self.checkExp.append(token.getTokenValue())						# add into list to do type checking
+			print token.getTokenValue()
+			self.listGen.append(token.getTokenValue())  # * or /
+			self.checkExp.append(token.getTokenValue())
 			token = self.scanToken()
 
 			if self.F(token, sign, scope):
@@ -370,23 +369,27 @@ class Compiler:
 	def F(self, token, sign, scope):
 
 		ST = []
-		minus = False        									   # Flag to minus sign
- 		is_array = False     									   # Flag that checks whether var is array or not
+		minus = False        # Flag to minus sign
+ 		is_array = False     # Flag that checks whether var is array or not
+		print "F: ",token.getTokenValue()
+		print token.getTokenType()
 
 		while token.getTokenValue() == "(":
-			self.EXPstack.push(token.getTokenValue())   		    # push Parenthesis to stack
+			self.EXPstack.push(token.getTokenValue())   		   # push Parenthesis
+			print "stack: ",self.EXPstack.items
 			token = self.scanToken()
+			#self.E(token,sign, scope)
 
-		if token.getTokenValue() == "-": 						    # If minus
+		if token.getTokenValue() == "-": 							# minus
 			token = self.scanToken()
 			minus = True
 										   							
 		if token.getTokenType() == ("IDENTIFIER"):
 
-			ST = self.lookatST(token, scope)  						  # STList = [name, type, size, value]
+			ST = self.lookatST(token, scope)  				# STList = [name, type, size, value]
 
 			if ST:
-				if ST[3] == True or (self.isGlobal(token) and scope): #  If var has been initialized or is global
+				if ST[3] == True or (self.isGlobal(token) and scope): #  GLOBAL  							# IF var has been initialized
 					
 					if self.isGlobal(token):
 						var = token.getTokenValue()
@@ -396,12 +399,11 @@ class Compiler:
 					if ST[1] == "integer" and ST[2] in (0,1):
 						ST[1] = "int"
 
-					vtype = ST[1] 									  # type
-					token = self.scanToken()						  # scan token
+					vtype = ST[1]
+					token = self.scanToken()
 					
-					loadList = [vtype, var]							  # Generate Load instruction <type, var>
-
-					# ------ Block: Minus Type checking  --------------
+					loadList = [vtype, var]
+					# Minus Type checking
 					if minus:
 						if ST[1].lower() not in ("integer", "int", "float"):
 							self.reportErrorMsg("Minus [-] is not allowed with '"+ST[1]+"' type", analyzer.current_token.line)
@@ -412,47 +414,43 @@ class Compiler:
 							self.reportErrorMsg("Minus [-] is not allowed with array", analyzer.current_token.line)
 							self.errorFlag = True
 							return False
-					# ----------- End Minus Block -----------------------
-
-					# ----------- Block: Array checking -----------------
-
-					if ST[2] > 0: 									    	# If var was declared as Array
+					# ---- 
+					if ST[2] > 0: 									    	# If var was declared as array
 						is_array = True
 
 					if token.getTokenValue() == "[":   						# If identifier is a ARRAY
 
-						
+						# --- Array checking -----
 						if is_array:
-
+							print "antes 1 destination: ", self.listGen
 							if not self.destination(token, scope):
 								self.errorFlag = True
 								return False
 							else:
-								self.listGen = self.listGen[:-2]     		# Remove (type, var) from listGen 
-	
-								self.checkExp.append(ST[1].lower())  	    # Add var type to checking list
-								self.listGen.append(ST[1].lower()) 			# Add var type to generation list 
-								self.listGen.append(var) 		   			# Add var name to generation list
+								print "antes destination: ", self.listGen
+								self.listGen = self.listGen[:-2]     		# remove destination from listGen last 2(type, var)
+								print "after destination: \n", self.listGen
+								self.checkExp.append(ST[1].lower())  		 # var type
+								self.listGen.append(ST[1].lower()) 			 # type 
+								self.listGen.append(var) 		   			 # var
 
-								loadList.append(ST[2])           		    # Add size to load List
-								loadList.append(token.Next.getTokenValue()) # Add array position to load list
-
+								loadList.append(ST[2])           		     # size
+								loadList.append(token.Next.getTokenValue())  # pos
+								print "loadList", loadList
 								try:
-									if self.errorFound == 0:
-										if scope != "main": 
-											self.file.genLoad(loadList, scope)  # Function scope
-										else:
-											self.file.genLoad(loadList, False)  # Main scope
+									if scope != "main": 
+										self.file.genLoad(loadList, scope)  # function scope
+									else:
+										self.file.genLoad(loadList, False)  # main scope
 								except:
 									print "\nIt couldn't generate Load instruction"
 
 								return True 	
-						
+
 						else:
 							self.reportErrorMsg("Error: Variable '"+ ST[0] +"' is not array type", analyzer.current_token.line)
 							self.errorFlag = True
 							return False
-					# -------------- End Array block ------------------
 
 					else:
 						if is_array: 
@@ -460,56 +458,57 @@ class Compiler:
 							self.errorFlag = True
 							return False
 						else:	
-							self.checkExp.append(ST[1].lower())  			# Add var type to checking list
-							self.listGen.append(ST[1].lower()) 				# Add var type to generation list 
-							self.listGen.append(var) 		 				# Add var name to generation list
-
+							self.checkExp.append(ST[1].lower())  				# var type
+							self.listGen.append(ST[1].lower()) # type 
+							self.listGen.append(var) 		 # var
+							print "loadList", loadList
 							try:
-								if self.errorFound == 0:
-									self.file.genLoad(loadList)              # Generate Load instruction <type, var, size, pos>
+								self.file.genLoad(loadList) 
 							except:
 								print "\nIt couldn't generate Load instruction"
 
 							return True
 
-				else: 
+				else: # then it is a global variable
 					self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
 					self.errorFlag = True
 					return False
 			else:
+				#self.reportErrorMsg("Error: Var '"+token.getTokenValue()+"' hasn't been initialized", analyzer.current_token.line)
 				self.errorFlag = True
 				return False
 
 		elif token.getTokenType() in ("INTEGER, FLOAT"):  
 			expType = token.getTokenType() 
+			print expType, " in F"
 
-			if token.getTokenValue() in ("0","1"):   					# Boolean type checking
-				self.checkExp.append("int")								# Add "int" to do type checking
-				self.listGen.append("int") 								# Add "int" to generation list
-				self.listGen.append(token.getTokenValue())  			# Add var to generation list
+			if token.getTokenValue() in ("0","1"):   # boolean checking
+				self.checkExp.append("int")
+				self.listGen.append("int") # type 
+				self.listGen.append(token.getTokenValue())  
 			else:
-				self.checkExp.append(expType.lower())					# Add type to do type checking
-				self.listGen.append(expType.lower()) 					# Add type to generation list
-				self.listGen.append(token.getTokenValue())  			# Add var to generation list
-
-			token = self.scanToken()									# Scan next token
+				self.checkExp.append(expType.lower())
+				self.listGen.append(expType.lower()) # type 
+				self.listGen.append(token.getTokenValue())  
+			token = self.scanToken()
 			return True
 
 		elif token.getTokenType() in ("STRING") and not minus:
 			expType = token.getTokenType() 
-
-			self.checkExp.append(expType.lower())						# Add type to do type checking
-			self.listGen.append(expType.lower()) 						# Add type to do generation list
-			self.listGen.append(token.getTokenValue())  				# Add var to generation list
-			token = self.scanToken()									# Scan next token
+			print expType, " in F"
+			self.checkExp.append(expType.lower())
+			self.listGen.append(expType.lower()) # type
+			self.listGen.append(token.getTokenValue())  
+			token = self.scanToken()
 			return True
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() in ("true","false") and not minus:
 			expType = "bool"
-			self.checkExp.append(expType.lower())    					# Add "bool" to do type checking
-			self.listGen.append(expType.lower()) 						# Add "bool" to do generation list
-			self.listGen.append(token.getTokenValue())  				# Add var to do generation list
-			token = self.scanToken()									# Scan next token
+			print expType, " in F"
+			self.checkExp.append(expType.lower())
+			self.listGen.append(expType.lower()) #type
+			self.listGen.append(token.getTokenValue())  
+			token = self.scanToken()
 			return True
 
 		else:
@@ -525,24 +524,22 @@ class Compiler:
 	 	if not relation:
 	 		return l
 	 	elif relation in l:
+	 		print "relational op: ",relation
 	 		return True
 	 	else:
 	 		return False
 
-	# Resets errorFlag, and Stack
+	# Resets errorFlag, stack
 	def reset(self):
 		self.errorFlag = False
 		while not self.stack.isEmpty():
 			self.stack.pop()
 
-	# If <name> is runTimeFUnction then return True otherwise return False
 	def getRunTimeFunction(self, name):
 		if name in ("getbool", "getinteger", "getstring", "getfloat", "putbool", "putinteger", "putstring", "putfloat"):
 			return True
 		else:
 			return False
-
-	# Increments number of errors found		
 	def incrementErrorFound(self):
 		self.errorFound = self.errorFound + 1;
 
@@ -550,7 +547,6 @@ class Compiler:
 	def program(self,token):
 		if self.program_header(token):
 			self.reset()
-
 			if self.program_body(analyzer.current_token):
 				if analyzer.current_token.getTokenValue() == "end":
 					token = self.scanToken()
@@ -558,21 +554,20 @@ class Compiler:
 					if token.getTokenValue() == "program":
 
 						if self.errorFound == 0:
-							print "\nSuccess!\n No error was found\n"
-							
+							print "\nSuccess! No error found\n"
 							try:
-								if self.errorFound == 0:
-									self.file.genEnd()    						# Generate end of output
+								self.file.genEnd()
 							except:
 								print "\nIt couldn't generate End instruction"
+						
 							return True
 
 						elif self.errorFound == 1:
 							print "\n"+str(self.errorFound)+" error was found"
-							self.file.deleteFile()       						# Delete output genereted
+							self.file.deleteFile()
 						else:
 							print "\n"+str(self.errorFound)+" errors were found"
-							self.file.deleteFile()                              # Delete output genereted
+							self.file.deleteFile()
 
 					else:
 						self.reportError("program", token.getTokenValue(), token.line)
@@ -586,10 +581,10 @@ class Compiler:
 	def program_header(self,token):
 		if not self.errorFlag:
 
-				if self.stack.isEmpty():                    
+				if self.stack.isEmpty():
 
 					if token.getTokenValue() == "program":
-						self.stack.push(token.getTokenValue())  					 # Push <program>
+						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
 					else:
 						self.reportError("program", token.getTokenValue(), token.line)
@@ -599,7 +594,7 @@ class Compiler:
 				if self.stack.peek() == "program":
 
 					if token.getTokenType() == "IDENTIFIER":	
-						self.stack.push(token.getTokenType())						 # Push program name
+						self.stack.push(token.getTokenType())
 						self.program_header(self.scanToken())
 					else:
 						self.reportError("IDENTIFIER", token.getTokenValue(), token.line)
@@ -609,22 +604,22 @@ class Compiler:
 				if self.stack.peek() ==  "IDENTIFIER":
 
 					if token.getTokenValue() == "is":
-						self.stack.push(token.getTokenValue())                        # Push <is>
+						self.stack.push(token.getTokenValue())
 						self.program_header(self.scanToken())
 					else:
 						self.reportError("is", token.getTokenValue(), token.line)
 						self.errorFlag = True
 						return False
 
-				if self.stack.peek() == "is":     									   # If top is <is>
+				if self.stack.peek() == "is":
 					return True
 		else:
 			return False
 
 	def program_body(self,token):
+		print "\nPrgram_Body Function: ", token.getTokenValue()
 
-		# Add all RunTimeFunctions to Symbol Table --> [scope, name, procedure, in|out, return type]
-		self.addSymbolTable("global", "getbool", "proc", "out", ["bool"])  
+		self.addSymbolTable("global", "getbool", "proc", "out", ["bool"])
 		self.addSymbolTable("global", "getinteger", "proc", "out", ["integer"])
 		self.addSymbolTable("global", "getstring", "proc", "out", ["string"])
 		self.addSymbolTable("global", "getfloat", "proc", "out", ["float"])
@@ -636,26 +631,29 @@ class Compiler:
 		if not self.errorFlag:
 			if self.declaration(token):
 				self.file.skipLine()
-
+				print "\nStart Main Program!"
 				try:
-					if self.errorFound == 0:
-						self.file.genFunction(["global","main"])  		# Generate Main function
-						for l in self.tupleList:				  		
-							self.file.genDeclaration(l)					# Generate all variable declarations
+					self.file.genFunction(["global","main"])  # generate main function
+					for l in self.tupleList:				  # generate variable declarations
+						self.file.genDeclaration(l)
 
-						self.file.skipLine()                            # Generate skipLine
+					self.file.skipLine()
 				except:
-					print "\nIt couldn't generate Variable Declaration Instruction"
+					print "\nIt couldn't generate Variable Declaration instruction"
 
 				self.tupleList = []
+
 				if self.statement(analyzer.current_token):
 					return True
+	
 				else:
 					self.errorFlag = True
 					return False
 			else: 
+				#self.reportErrorMsg("Wrong Declaration",analyzer.current_token.line)
 				self.errorFlag = True
 				return False
+
 		else:
 			return False
 
@@ -669,7 +667,9 @@ class Compiler:
 	def declaration(self, token, scope = "main"):
 		global_scope = False
 		self.errorFlag = False
+		#if not self.errorFlag:
 
+		print "Declaration Function:", token.getTokenValue() 
 		if token.getTokenValue() == "global":
 			global_scope = "global"
 			token = self.scanToken()
@@ -684,8 +684,8 @@ class Compiler:
 				if self.declaration(analyzer.current_token, scope):
 					return True
 				else:
-					self.incrementErrorFound()									# Increment error found
-					if self.resync_declaration_token(analyzer.current_token):   # Recover point to Declaration Function
+					self.incrementErrorFound()
+					if self.resync_declaration_token(analyzer.current_token):
 						if self.declaration(analyzer.current_token): 
 							return True
 						else:
@@ -694,8 +694,8 @@ class Compiler:
 						return False
 
 			else:
-				self.incrementErrorFound()										# Increment error found
-				if self.resync_declaration_token(analyzer.current_token):   	# Recover point to Declaration Function
+				self.incrementErrorFound()
+				if self.resync_declaration_token(analyzer.current_token):
 					if self.declaration(analyzer.current_token): 
 						return True
 					else:
@@ -714,19 +714,19 @@ class Compiler:
 				if self.declaration(analyzer.current_token, scope):
 					return True
 				else:
-					self.incrementErrorFound()  								# Doesn't recover point for procedure erros
+					self.incrementErrorFound()  # don't recover procedure erros
 					return False
 			else:
-				self.incrementErrorFound()      								# Doesn't recover point for procedure erros
+				self.incrementErrorFound()      # don't recover procedure erros
 				return False
 
-		elif token.getTokenValue() == "begin":  								# Stop condition
+		elif token.getTokenValue() == "begin":  # Stop condition
 			return True
 
 		elif token.getTokenValue() == "int":
 			self.reportError("integer", token.getTokenValue(), token.line)
-			self.incrementErrorFound()											# Increment error found
-			if self.resync_declaration_token(analyzer.current_token):    		# Recover point to Declaration Function
+			self.incrementErrorFound()
+			if self.resync_declaration_token(analyzer.current_token):
 				if self.declaration(analyzer.current_token): 
 					return True
 				else:
@@ -736,8 +736,8 @@ class Compiler:
 
 		else: 
 			self.reportErrorMsg("SyntaxError: Invalid Syntax in Declaration", token.line)
-			self.incrementErrorFound()											# Increment error found
-			if self.resync_declaration_token(analyzer.current_token):   		# Recover point to Declaration Function
+			self.incrementErrorFound()
+			if self.resync_declaration_token(analyzer.current_token):
 				if self.declaration(analyzer.current_token): 
 					return True
 				else:
@@ -745,89 +745,90 @@ class Compiler:
 			else:
 				return False
 
+		#else:
+		#	return False
+
 	# If Parameter then it is parameter declaration
 	def variable_declaration(self, token, scope = "main", parameterList = False): 
 
-		size = 0   														# Hold array size
-		tup = []   														# List of variable declaration
+		size = 0
+		tup = []
+
+		print "Variable_declaration Funtion:",token.getTokenValue()
 
 		if scope == "global":	
-			self.listGen.append("global")                               # Add scope to generation list
+			self.listGen.append("global")
 			if scope == "main":
-				tup.append(scope)										# If main scope then add to tup list
+				tup.append(scope)
 	
-		if self.type_mark(token.getTokenValue()):  						# If token in type_mark
-			Type = token.getTokenValue()								# Temp. var to symbol table
+		if self.type_mark(token.getTokenValue()):  						# if token in type_mark
+			Type = token.getTokenValue()								# temp var to symbol table
 			
-			token = self.scanToken()									# Scan next token
+			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
-				name = token.getTokenValue()							# Temp. var to symbol table
-				self.listGen.append(Type)								# Add type to generation list
-				self.listGen.append(name)								# Add name to generation list
+				name = token.getTokenValue()							 # temp var to symbol table
+				self.listGen.append(Type)
+				self.listGen.append(name)
 
-				if scope == "main":										# If main scope, add it to tup list
+				if scope == "main":
 					tup.append(Type)
 					tup.append(name)
 				
-				# ------- Block: Redeclaration checking --------
+				#check redeclaration of variables
 				STlist = self.lookatST(token, scope, True)
 				if STlist:
 					self.reportErrorMsg("Error: redeclaration of '" + name + "'" , token.line)
 					return False
-				# ------ End redeclaration block ---------------
+				# ---
 
-				token = self.scanToken()          						# Scan next token
+				token = self.scanToken()
 				
-				if token.getTokenValue() == ";" and not parameterList:	# Var is NOT array and NOT var parameter
+				if token.getTokenValue() == ";" and not parameterList:				# var is NOT array and NOT var parameter
 					token = self.scanToken()
-					self.addSymbolTable(scope, name, Type, size)		# Add var to symbol table
-
+					self.addSymbolTable(scope, name, Type, size)
 					if scope != "main":
 						try:
-							if self.errorFound == 0:
-								self.file.genDeclaration(self.listGen)   # Generate Declaration instruction
+							self.file.genDeclaration(self.listGen)
 						except:
 							print "\nIt couldn't generate Variable Declaration instruction"
-
-					elif len(tup) > 0:
+					elif len(tup):
 						self.tupleList.append(tup)
 					self.listGen = []
 					return True
 				
-				elif parameterList and token.getTokenValue() != "[": 		# Var is not array, but is var parameter
+				elif parameterList and token.getTokenValue() != "[": 			    # var is not array, but is var parameter
 					if token.getTokenValue() in ("in","out"):
-						self.listGen.append(token.getTokenValue())      	# Add in|out to generation list
+						self.listGen.append(token.getTokenValue())
 						token = self.scanToken()
-						self.addSymbolTable(scope, name, Type, size, True)  # Add var into symbol table
+						self.addSymbolTable(scope, name, Type, size, True)
 						
 						return True
 					else:
 						self.reportError("in/out", token.getTokenValue(),token.line)
 						return False
 
-				elif token.getTokenValue() == "[":                      	# Array Variables
+				# Array Variables
+				elif token.getTokenValue() == "[":
 					token = self.scanToken()
 
 					if token.getTokenType().lower() in ("int", "integer", "float"):
 						size = token.getTokenValue()
 						token = self.scanToken()
-
-						self.listGen.append(size)                     	 	# Add size into generation list
+						self.listGen.append(size)
 						if scope == "main":
-							tup.append(size)						   		# If main scope then add size to tup 
+							tup.append(size)
 
 						if token.getTokenValue() == "]":
 							token = self.scanToken()
  
-							if token.getTokenValue() == ";" and not parameterList: # var is array and NOT var parameter
+							if token.getTokenValue() == ";" and not parameterList:   # var is array and NOT var parameter
 								token = self.scanToken()
-								self.addSymbolTable(scope, name, Type, size)       # Add var into symbol table
+								self.addSymbolTable(scope, name, Type, size)
 								
 								if scope != "main":
 									try:
-										if self.errorFound == 0:
-											self.file.genDeclaration(self.listGen)  # Generate Declaration Instruction
+										self.file.genDeclaration(self.listGen)
 									except:
 										print "\nIt couldn't generate Variable Declaration instruction"
 					
@@ -837,14 +838,14 @@ class Compiler:
 								self.listGen = []
 								return True
 
-							elif parameterList: 										# Var is array and is var parameter
+							elif parameterList: 									 # var is array and is var parameter
 								if token.getTokenValue() in ("in","out"):
-									self.listGen.append(token.getTokenValue())      	# Add in|out to generation list
+									self.listGen.append(token.getTokenValue())
 									token = self.scanToken()
 
-									self.addSymbolTable(scope, name, Type, size, True)  # Add array var into symbol table
+									self.addSymbolTable(scope, name, Type, size, True)
+									
 									return True
-
 								else:
 									self.reportError("in/out", token.getTokenValue(),token.line)
 									return False
@@ -858,7 +859,7 @@ class Compiler:
 						self.reportError("array Size", token.getTokenValue(),token.line)
 						return False
 				else: 
-					self.reportError(";",token.getTokenValue(), token.Prior.line)
+					self.reportError(";",token.getTokenValue() , token.line-1)
 					return False
 
 			else: 
@@ -872,36 +873,36 @@ class Compiler:
 
 	# myList = [global,name,[global, type, name in|out]]
 	def procedure_declaration(self, token, scope = "main"):
+		print "\nProcedure Declaration Function: ",token.getTokenValue()
 		
 		if scope in ("global", "main"):
 			self.listGen.append("global")
 
-		new_scope = token.Next.getTokenValue()  					# Procedure Name
-		self.listGen.append(new_scope)								# Add procedure name to gen. list
+		new_scope = token.Next.getTokenValue()  # Procedure Name
+		self.listGen.append(new_scope)
 
 		parList = self.procedure_header(token)
 		if parList:
 
-			#----- Block: Redeclaration of procedures checking
+			#check redeclaration of procedures
 			STlist = self.lookatST(token.Next, scope, True)
 			if STlist:
 				self.reportErrorMsg("Error: redeclaration of Procedure '" + token.Next.getTokenValue() + "'" , token.line)
 				self.errorFlag = True
 				return False
-			# ---- End block ---------------------------------
+			# ---
 
-			if parList == True:      								# If procedure has no parameter then value = []
+			if parList == True:      			# If procedure has no parameter then value = 0
 				parList = []
 
 
-			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # Add procedure and his scope into to ST
+			self.addSymbolTable(scope, token.Next.getTokenValue(), "proc", 0, parList)  # add procedure and his scope into to ST
 
 			self.addSymbolTable(token.Next.getTokenValue(), token.Next.getTokenValue(), "proc", 0, parList)  # add procedure in itself to allow recursion
 
 			if self.procedure_body(analyzer.current_token, new_scope):
 				try:
-					if self.errorFound == 0:
-						self.file.genReturn(new_scope)
+					self.file.genReturn(new_scope)
 				except:
 					print "\nIt could not generate Return instruction"
 				return True
@@ -911,13 +912,14 @@ class Compiler:
 			return False
 
 	def procedure_header(self,token):
-		parList = []                                   				# parameter list
+		print "Procedure_header Function: ",token.getTokenValue()
+		parList = [] 
 
 		if token.getTokenValue() == "procedure":
 			token = self.scanToken()
 
 			if token.getTokenType() == "IDENTIFIER":
-				scope = token.getTokenValue()  			 
+				scope = token.getTokenValue()  			# 
 				token = self.scanToken()	
 
 				if token.getTokenValue() == "(":
@@ -925,20 +927,20 @@ class Compiler:
 
 					if self.type_mark(token.getTokenValue()):
 
-						parList.append(token.getTokenValue()) 		# Add type to parameter list
+						parList.append(token.getTokenValue())
 						self.variable_declaration(token, scope, True)
 					
 						while analyzer.current_token.getTokenValue() == ",":
 							token = self.scanToken()
-							parList.append(token.getTokenValue())  # Add type to parameter list
+							parList.append(token.getTokenValue())
 							self.variable_declaration(analyzer.current_token, scope, True)
+
 
 						if analyzer.current_token.getTokenValue() == ")":
 							token = self.scanToken()
 
 							try:
-								if self.errorFound == 0:
-									self.file.genFunction(self.listGen)   # Generate Function
+								self.file.genFunction(self.listGen)
 							except:
 								print "\nIt couldn't generate Function instruction"
 							
@@ -952,13 +954,12 @@ class Compiler:
 						
 					elif analyzer.current_token.getTokenValue() == ")":
 						token = self.scanToken()
+						# print "Function w/o parameters"
 
 						try:
-							if self.errorFound == 0:
-								self.file.genFunction(self.listGen)      # Generate Function
+							self.file.genFunction(self.listGen)
 						except:
 							print "\nIt couldn't generate Function instruction"
-						
 						self.listGen = []
 						return True
 
@@ -977,8 +978,12 @@ class Compiler:
 				return False
 
 	def procedure_body(self,token, scope):
+		print "Procedure_Body Function:",token.getTokenValue()
+		#print "scope",scope
 		if not self.errorFlag:
-			if not self.declaration(token, scope):
+			if self.declaration(token, scope):
+				pass
+			else:
 				self.errorFlag = True
 				return False
 		else:
@@ -993,9 +998,9 @@ class Compiler:
 					token = self.scanToken()
 
 					if token.getTokenValue() == ";":
+						print "end procedure"
 						token = self.scanToken()
 						return True
-
 					else:
 						self.reportError(";", token.getTokenValue(), token.Prior.line)
 						self.errorFlag = True
@@ -1014,24 +1019,28 @@ class Compiler:
 	# If if_stat then "else is a sign for expressions"
 	# If proc_scope then it is a statement within procedure
 	def statement(self, token, if_stat = False, proc_scope = False): 
-		prior = token  											# hold previous line
+		#print "statement Rose:", token.getTokenValue()
+		prior = token
 		token = self.scanToken()
 		self.errorFlag = False
 		self.checkExp = []
+
+		print "Statement Function:", token.getTokenValue()
 
 		if not token:
 			self.reportErrorMsg("SyntaxError: Missing 'end program'",prior.line+1)
 			return False
 
-		if not if_stat:  										# if_stat: then should execute at least one statement
+		if not if_stat:  # if_stat: then should execute at least one statement
 			if token.getTokenValue() == "end":
 				return True
 
-			if self.IFlag:										
-				if token.getTokenValue() == "else" and self.stack.size() > 0:		
+			if self.IFlag:
+				if token.getTokenValue() == "else" and self.stack.size() > 0:
+					
 					return True
 
-		if token.Next:										  				# Go to assignment statement
+		if token.Next:
 			if token.Next.getTokenValue() in (":=","["):
 				if self.assignment_statement(token, proc_scope):
 					if self.statement(analyzer.current_token, False, proc_scope):
@@ -1040,14 +1049,14 @@ class Compiler:
 						return False
 				else: 
 					self.incrementErrorFound()
-					self.resync_statement_token(analyzer.current_token, ";") # Recover point to statement
+					self.resync_statement_token(analyzer.current_token, ";")
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
 					else:
 						return False
 
 			elif token.getTokenType() == "IDENTIFIER" and token.Next.getTokenValue() == "(":
-				if self.procedure_call(token, proc_scope):      			# Go to procedure Call statement
+				if self.procedure_call(token, proc_scope):
 
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
@@ -1055,14 +1064,14 @@ class Compiler:
 						return False
 				else:
 					self.incrementErrorFound()
-					self.resync_statement_token(analyzer.current_token, ";") # Recover point to statement
+					self.resync_statement_token(analyzer.current_token, ";")
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
 					else:
 						return False
 
 		if token.getTokenValue() == "return":
-			if self.return_statement(token, proc_scope):  					# Go ro return statement
+			if self.return_statement(token, proc_scope):
 
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
@@ -1070,7 +1079,7 @@ class Compiler:
 					return False
 			else:
 				self.incrementErrorFound()
-				self.resync_statement_token(analyzer.current_token, ";")  	# Recover point to statement
+				self.resync_statement_token(analyzer.current_token, ";")
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
 				else:
@@ -1078,7 +1087,7 @@ class Compiler:
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "for":
 
-			if self.loop_statement(token, proc_scope):						# Go to Loop statement
+			if self.loop_statement(token, proc_scope):
 				
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
@@ -1086,7 +1095,7 @@ class Compiler:
 					return False
 			else:
 				self.incrementErrorFound()
-				if self.resync_end_token(analyzer.current_token, "for"):  	# Recover point to statement
+				if self.resync_end_token(analyzer.current_token, "for"):
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
 					else:
@@ -1096,7 +1105,7 @@ class Compiler:
 
 		elif token.getTokenType() == "KEYWORD" and token.getTokenValue() == "if":
 
-			if self.if_statement(token, proc_scope):						# Go to If statement
+			if self.if_statement(token, proc_scope):
 			
 				if self.statement(analyzer.current_token, False, proc_scope):
 					return True
@@ -1104,7 +1113,7 @@ class Compiler:
 					return False
 			else:
 				self.incrementErrorFound()
-				if self.resync_end_token(analyzer.current_token, "if"):  # Recover point to statement
+				if self.resync_end_token(analyzer.current_token, "if"):
 					if self.statement(analyzer.current_token, False, proc_scope):
 						return True
 					else:
@@ -1113,7 +1122,7 @@ class Compiler:
 					return False
 
 		elif if_stat:
-			self.reportErrorMsg("Error: IF must have at least one statement", token.line)
+			self.reportErrorMsg("Error: IF must have at least one statement",token.line)
 			return False
 
 		else:
@@ -1123,39 +1132,41 @@ class Compiler:
 	# If proc_scope then it is assigment within procedure
 	# listgGen = [[global], type, name, value]
 	def assignment_statement(self, token, proc_scope = False):
+		print "\nAssignment Statement Function"
+		#print "scope",proc_scope
+
 		if token.getTokenType() == "IDENTIFIER":
 
-			var_token = token  										    # Temp procedure name
-			array_var = False  											# Flag that checks whether var is array or not
+			var_token = token  # Temp procedure name
+			array_var = False  # Flag that checks whether var is array or not
 
-			# --- Block: Declaration Check ------
+			# --- Declaration Check ---#
 			STlist = self.lookatST(token, proc_scope)  					# Verify if var within ST
 		
 			if not STlist:												# Error: Undeclared var
 				return False
-			# --------- end block  --------------
-
+			# ---------  ##  --------- #
 			if self.isGlobal(var_token):
 				self.listGen.append("global")
 			
 			storeList = [STlist[1], var_token.getTokenValue()]         # type, var
 
-			# --- Block: Array checking ---------
+			# --- Array checking -----
 			if STlist[2] > 0 : 											# If var was declared as array
-				storeList.append(STlist[2]) 							# Save size of array
+				storeList.append(STlist[2]) 							# size of array
 				array_var = True
 
 			token = self.scanToken()
 
 			if token.getTokenValue() == "[":  							# If array
 				if array_var:
-					storeList.append(token.Next.getTokenValue())  		# Save position of array
+					storeList.append(token.Next.getTokenValue())  		# position of array
 
-					if not self.destination(token, proc_scope):		  	# True if size is integer type
+					if not self.destination(token, proc_scope):		  	# True if integer
 						self.errorFlag = True
 						return False
 					
-					self.listGen = []    								# Clean sentence after verify expression of array
+					self.listGen = []    								# clean sentence after verify expression of array
 					array_var = False 
 			 
 				else:
@@ -1168,31 +1179,32 @@ class Compiler:
 					self.reportErrorMsg("Error: Variable '"+ var_token.getTokenValue() +"' is array type", var_token.line)
 					self.errorFlag = True
 					return False
-			# -------- end array block -----------
+			# ---------
 
 				token = self.scanToken()
 
 				if self.expression(token,";", proc_scope):
 
-					expType = self.arrayType("assigment")                	# return type of expression
+					expType = self.arrayType("assigment")
+					print expType, " in assignment_statement"
 
 					if analyzer.current_token.getTokenValue() == ";":
-						if self.assignTypeChecking(STlist[1], expType):  	# Assignment type checking
-							self.set_value_ST(var_token, proc_scope, True)  # Add value into st
+						if self.assignTypeChecking(STlist[1], expType): # check type checking
+		
+							print "\nType checking okay"
 
+							self.set_value_ST(var_token, proc_scope, True)
 							try:
-								if self.errorFound == 0:
-									if proc_scope:
-										self.file.genStore(storeList, self.listGen, proc_scope, False) 
-									else:
-										self.file.genStore(storeList, self.listGen, False, False)
+								if proc_scope:
+									self.file.genStore(storeList, self.listGen, proc_scope, False) # true
+								else:
+									self.file.genStore(storeList, self.listGen, False, False)
 							except:
 								print "\nIt couldn't generate store instruction"
-
 							self.listGen = []
 							return True
 						else:
-							self.reportErrorMsg("TypeError: Unmatched Types!", token.line)
+							self.reportErrorMsg("Error: Unmatched Types!", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1200,6 +1212,7 @@ class Compiler:
 						self.errorFlag = True
 						return False
 				else:
+					#self.reportErrorMsg("Wrong Expression in assignment_statement", token.line)
 					self.errorFlag = True
 					return False
 			else:
@@ -1213,15 +1226,17 @@ class Compiler:
 			return False
 
 	# Verify array variables
-	# Return True if size is int otherwise return False
+	# Return True if size is int; Else return False
 	def destination(self,token, scope): 
+		print "\nDestination Function"
 		if token.getTokenValue() == "[":
 			token = self.scanToken()
-			temp  = self.checkExp
+			temp = self.checkExp
 			self.checkExp = []    
 
-			if self.expression(token,"]", scope, True):   			# It won't generate expression for destination
+			if self.expression(token,"]", scope, True):    			# It won't generate expression for destination
 
+				# --- Array Checking
 				arrayType = self.arrayType("destination")
 
 				if arrayType in ("integer", "int"):
@@ -1234,6 +1249,8 @@ class Compiler:
 					self.reportErrorMsg("Error: Invalid Array Size", token.line)
 					self.errorFlag = True
 					return False
+				# -------
+
 			else:
 				self.reportErrorMsg("Invalid Expression", token.line)
 				self.errorFlag = True
@@ -1242,18 +1259,20 @@ class Compiler:
 	# If proc_scope then procedure_call is within procedure
 	# myList = [[global], name, [type var]
 	def procedure_call(self, token, proc_scope = False):
-		exp_type = []										# 
-		callList  = []  									# store function name, and it is passed to genCall()
+		print "\nProcedure Call Function"
+		exp_type = []
+		callList  = []  # store function name, and it is passed to genCall()
 
 		if not proc_scope or self.getRunTimeFunction(token.getTokenValue()):
 			callList.append("global")
 
 		if token.getTokenType() == "IDENTIFIER":
-			callList.append(token.getTokenValue()) 			# Add function name to call list
+			callList.append(token.getTokenValue())
 
-			STlist = self.lookatST(token, proc_scope)		# Info about var from ST
+			STlist = self.lookatST(token, proc_scope)
 			if STlist:
-				if STlist[1] == "proc":   					# var type == proc then it is a procedure call
+				if STlist[1] == "proc":   # var type
+
 					token = self.scanToken()
 					
 					if token.getTokenValue() == "(":
@@ -1263,15 +1282,15 @@ class Compiler:
 							if not self.expression(token,[",",")"], proc_scope):
 								return False
 
-							if len(self.checkExp) == 1 and self.isNumber(self.listGen[1]):  # literal
+							if len(self.checkExp) == 1 and self.isNumber(self.listGen[1]):
 								exp_type.append(self.arrayType("procedure_call"))
-								callList.append(exp_type[-1])               				# type of literal
-								callList.append(self.listGen[1]) 							# literal
+								callList.append(exp_type[-1])               # type of literal
+								callList.append(self.listGen[1]) 				# literal
 							
-							else:															# var
+							else:
 								exp_type.append(self.arrayType("procedure_call"))
-								callList.append(exp_type[-1])               				# type of expression
-								callList.append("%"+str(self.file.temp-1)) 					# temp that holds the expression
+								callList.append(exp_type[-1])               # type of expression
+								callList.append("%"+str(self.file.temp-1)) 	# temp that holds the expression
 							
 							self.listGen = [] 
 
@@ -1283,7 +1302,7 @@ class Compiler:
 								if len(self.checkExp) == 1 and self.isNumber(self.listGen[1]):  # doesn't need a temp
 									exp_type.append(self.arrayType("procedure_call"))
 									callList.append(exp_type[-1])               				# type of literal
-									callList.append(self.listGen[1]) 							# literal
+									callList.append(self.listGen[1]) 								# literal
 								else:
 									exp_type.append(self.arrayType("procedure_call")) 			# needs a temp
 									callList.append(exp_type[-1])               				# type of expression
@@ -1296,7 +1315,7 @@ class Compiler:
 
 							if token.getTokenValue() == ";":
 
-							# --- Block: Type checking ---------	
+							# --- Type checking Block		
 								l1 = []
 								l2 = []
 
@@ -1312,16 +1331,15 @@ class Compiler:
 									else:
 										l2.append(p)				
 
-								if l1 != l2:  												# parameter list
+								if l1 != l2:  # parameter list
 									self.reportErrorMsg("Error: Invalid Procedure Call", token.line)
 									self.errorFlag = True
 									return False
 
-							# ---- end type checking -----------
+							# ---- end type checking
 
 								try:
-									if self.errorFound == 0:
-										self.file.genCall(callList)
+									self.file.genCall(callList)
 								except:
 									print "\nIt couldn't generate Call Function instruction"
 
@@ -1352,19 +1370,20 @@ class Compiler:
 
 	# If proc_scope then loop is within procedure
 	def loop_statement(self,token, proc_scope = False):
+		print "\nLoop Statement Function"
+		#print "scope",proc_scope
 		if token.getTokenValue() == "for":
 			token = self.scanToken()
 
 			if token.getTokenValue() == "(":
 				token = self.scanToken()
 				
-				loop3 = ["integer","%"+str(token.getTokenValue())]   # Generate loop instruction
+				loop3 = ["integer","%"+str(token.getTokenValue())]
 
 				self.assignment_statement(token, proc_scope)
 
 				try:
-					if self.errorFound == 0:
-						self.file.genLoop1()                          # Generate loop instruction part1
+					self.file.genLoop1()
 				except:
 					print "\nIt couldn't generate Loop instruction"
 							
@@ -1372,16 +1391,16 @@ class Compiler:
 					token = self.scanToken()
 
 					if self.expression(token, ")", proc_scope):
-						self.listGen = []  
+						self.listGen = []  # 
 						try:
-							if self.errorFound == 0:
-								self.file.genLoop2()   				   # Generate loop instruction part2
+							self.file.genLoop2()
 						except:
 							print "\nIt couldn't generate Loop instruction"
 
-						# ---- Block: Type checking -----------------
+						# ---- Type checking
 
 						expType = self.arrayType("loop")
+						print expType, " in loop_statement"
 
 						if expType != "bool":
 							self.reportErrorMsg("Wrong Expression in loop statement", token.line)
@@ -1392,8 +1411,7 @@ class Compiler:
 
 						if self.statement(token, False, proc_scope):
 							try:
-								if self.errorFound == 0:
-									self.file.genLoop3(loop3)    		# Generate loop instruction part3
+								self.file.genLoop3(loop3)
 							except:
 								print "\nIt couldn't generate Loop instruction"
 
@@ -1419,6 +1437,7 @@ class Compiler:
 								self.errorFlag = True
 								return False
 						else:
+							#self.reportErrorMsg("Wrong Statement ", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1441,9 +1460,11 @@ class Compiler:
 
 	# If proc_scope then IF is within procedure
 	def if_statement(self,token, proc_scope = False):
+		print "\nIF Statement Function"
+		#print "scope",proc_scope
 		if token.getTokenValue() == "if":
 			self.stack.push(token.getTokenValue())
-			self.IFlag = True   							# accept else after expressions
+			self.IFlag = True   					# accept else after expressions
 			token = self.scanToken()
 
 			if token.getTokenValue() == "(":
@@ -1451,36 +1472,37 @@ class Compiler:
 
 				if self.expression(token, ")", proc_scope):
 					token = self.scanToken()
-					self.listGen = []  						# Clean list after expression
+					self.listGen = []  # after expression
 
 					try:
-						if self.errorFound == 0:
-							self.file.genIf()                   # Generate If instruction 
+						self.file.genIf()
 					except:
 						print "\nIt couldn't generate IF instruction"
 
-					# ---- Block: Type checking --------
+					# ---- Type checking
+
 					expType = self.arrayType("if")
+					print expType, " in if_statement"
+
 					if expType != "bool":
 
 						self.reportErrorMsg("Wrong Expression in IF statement", token.line)
 						self.errorFlag = True
 						return False		
-					# ---- end type checking ---------
+					# ---- end type checking
 
 					if token.getTokenValue() == "then":
 
 						if self.statement(token, True, proc_scope):
-							if analyzer.current_token.getTokenValue() == "else": 	# IF with ELSE
+							if analyzer.current_token.getTokenValue() == "else": # IF with ELSE
 								try:
-									if self.errorFound == 0:
-										self.file.genElse()       					# Generate Else instruction instruction
+									self.file.genElse()
 								except:
 									print "\nIt couldn't generate if-else instruction"
 
 								if self.stack.peek() == "if":
 
-									if not self.statement(token, True, proc_scope):  # Execute at least once
+									if not self.statement(token, True, proc_scope):  # execute at least once
 										self.errorFlag = True
 										return False
 
@@ -1494,7 +1516,7 @@ class Compiler:
 								self.errorFlag = True
 								return False
 
-							if analyzer.current_token.getTokenValue() == "end": 	# IF without ELSE
+							if analyzer.current_token.getTokenValue() == "end": # IF without ELSE
 								token = self.scanToken()
 
 								if token.getTokenValue() == "if":
@@ -1502,11 +1524,10 @@ class Compiler:
 									token = self.scanToken()
 
 									if token.getTokenValue() == ";":
-										if token.Next.getTokenValue() == "end":  	# If it is last Else
+										if token.Next.getTokenValue() == "end":  # If last Else
 											self.IFlag = False
 										try:
-											if self.errorFound == 0:
-												self.file.genThen()                   # Generate IfFalse instruction
+											self.file.genThen()
 										except:
 											print "\nIt couldn't generate if-then instruction"
 
@@ -1524,6 +1545,7 @@ class Compiler:
 								self.errorFlag = True
 								return False
 						else:
+							#self.reportErrorMsg("Wrong Statement", token.line)
 							self.errorFlag = True
 							return False
 					else:
@@ -1531,6 +1553,7 @@ class Compiler:
 						self.errorFlag = True
 						return False
 				else:
+					#self.reportErrorMsg("Missing ) of IF statement", token.line)
 					self.errorFlag = True
 					return False
 			else:
@@ -1557,7 +1580,7 @@ class Compiler:
 
 	def reportError(self, expected, received, line):
 	 	print  "SyntaxError: '"+expected+"' Expected"+", '"+received+"' Received, in line ", line,'\n'
-	 	self.file.deleteFile() 
+	 	self.file.deleteFile()
 
 	def reportWarning(self, message):
 	 	print  "Scanner Error: "+message+ ", in line", self.lineCount,'\n'
@@ -1570,20 +1593,23 @@ class Compiler:
 		
 		if not self.symbolTable.has_key(scope):
 			self.symbolTable[scope] = [[name,Type, size, Value]]
-		else: 														# var already exists
+		else: # already exists
 			self.symbolTable[scope].append([name,Type, size, Value])
 
 	def printST(self):
-		print "***** Simbol Table ******"
+		print "Simbol Table"
 		for k in self.symbolTable.keys():
 			print "\nScope:",k
 			for i in range(len(self.symbolTable[k])):
 				print i, self.symbolTable[k][i]
-		print "\n"
 
-	# Call typeCheckingExp function, Return type of expression or return False if unmacthed type
+
+	# Call typeCheckingExp
+	# Return type of expression
+	# Return False if find unmacthed type
 	def arrayType(self, statement_type):
 		condList = []
+		print "arrayType Function: statement type", statement_type, self.checkExp
 
 		if len(self.checkExp) == 1:
 			if statement_type == "if":
@@ -1595,7 +1621,7 @@ class Compiler:
 					return False
 
 			elif statement_type == "loop":
-				print "TypeError: Loop can't not be single expression"
+				print "loop can't not be single exp"
 				self.checkExp = []
 				return False
 		
@@ -1607,7 +1633,7 @@ class Compiler:
 		for i in range(0, len(self.checkExp)-1, 2):
 			signal = self.checkExp[i+1]
 
-			if self.relation_op(signal) or signal in ("&&","|"): 		 		# if signal is relacional signal
+			if self.relation_op(signal) or signal in ("&&","|"): 		 # if signal is relacional signal
 				condList.append(varType)
 				condList.append(signal)
 				varType = self.checkExp[i+2]
@@ -1616,6 +1642,7 @@ class Compiler:
 
 		if len(condList) > 0:
 			condList.append(varType)
+			print "cond List", condList
 			varType = condList[0]
 			for i in range(0, len(condList)-1, 2):
 				varType = self.typeChecking(varType, condList[i+1], condList[i+2]) # [type1, signal ,type2]
@@ -1624,6 +1651,8 @@ class Compiler:
 		return varType
 
 	def assignTypeChecking(self, type1, type2):
+
+		print "Assignment Type Checking of", type1,type2
 
 		if type1 in ("integer", "int") and type2 in ("integer", "int"):  
 			return "integer"
@@ -1647,10 +1676,15 @@ class Compiler:
 			if type2 in ("string", "identifier"):
 				return "string"
 		else:
+			#print "Unmacthed types"
 			return False
 
 	def typeChecking(self, type1, signal, type2):
-		if self.relation_op(signal):  						# If it is a relational signal
+		
+		print "\nType_checking of",type1,", and ",type2
+		print "signal", signal
+
+		if self.relation_op(signal):  					# If it is a relational signal
 
 			if type1 in ("integer", "int") and type2 in ("integer", "int"):  
 				return "bool"
@@ -1663,6 +1697,7 @@ class Compiler:
 				if type1 in ("float","integer", "int"):
 					return "bool"
 			else:
+				#print "Unmacthed types"
 				return False
 
 		elif signal in ("+","-","*","/"): 					# If it is a relational signal
@@ -1678,6 +1713,7 @@ class Compiler:
 				if type1 in ("float","integer", "int"):
 					return "float"
 			else:
+				#print "Unmacthed types"
 				return False
 
 		elif signal in ("&&", "|", "not"): 		
@@ -1689,15 +1725,17 @@ class Compiler:
 				return "bool"
 
 			else:
+				#print "Unmacthed types"
 				return False
 
 		elif type1.lower() in ("string", "identifier"):
 			if type2 in ("string", "identifier"):
 				return "string"
 		else:
+			#print "Unmacthed types"
 			return False
 
-	# return True is Global var
+	# return True is var is Global
 	def isGlobal(self, token): 
 
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
@@ -1711,9 +1749,12 @@ class Compiler:
 	# return list of var items if var in ST [name, type, size, value]
 	# return False if undeclared var
 	def lookatST(self, token, scope, declaration = False): 
+		#print "lookatST FUNCTION"
 		STlist = []
 		if not scope:
 			scope = "main"
+
+		#print "scope", scope
 
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
@@ -1727,13 +1768,13 @@ class Compiler:
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
 			for v in self.symbolTable["global"]:
-				if v[0] == token.getTokenValue(): 		# var name
-					STlist.append(v[0])  				# name
-					STlist.append(v[1])  				# type
-					STlist.append(v[2])			    	# size (if array)
-					STlist.append(v[3])  				# value (if procedure)
-					STlist.append("global scope")   	# if global var
-					return STlist		 				# return 
+				if v[0] == token.getTokenValue(): 	# var name
+					STlist.append(v[0])  			# name
+					STlist.append(v[1])  			# type
+					STlist.append(v[2])			    # size (if array)
+					STlist.append(v[3])  			# value (if procedure)
+					STlist.append("global scope")   # if global var
+					return STlist		 # return 
 		
 		if not declaration:
 			# Return False if not found var name
@@ -1744,20 +1785,23 @@ class Compiler:
 	# Assign True to the var if var in ST
 	# Return false if not declared
 	def set_value_ST(self, token, scope, value, declaration = False): 
+		#print "set_value_ST FUNCTION"
 		if not scope:
 			scope = "main"
+
+		#print "scope", scope
 
 		if self.symbolTable.has_key(scope):    			# If ST has this scope
 			for v in self.symbolTable[scope]:
 				if v[0] == token.getTokenValue():   	# var name
-					v[3] = value 						# new value
+					v[3] = value
 					return True
 		
 		# Search in global scope
 		if self.symbolTable.has_key("global"): 			# If ST has this Global scope
 			for v in self.symbolTable["global"]:
 				if v[0] == token.getTokenValue(): 		# var name
-					v[3] = value 						# new value
+					v[3] = value
 					return True				    		# return 
 		
 		if not declaration:
@@ -1767,91 +1811,62 @@ class Compiler:
 			
 		return False
 
-	# Moves the current token to next declaration
+	# Moves the current token to next statement
 	def resync_declaration_token(self, token):
+		print "resync_declaration_token", token.getTokenValue()
 		while token.getTokenValue() not in (";", "begin") and token.Next != None:
 			token = self.scanToken()
 
 		if token.Next and token.getTokenValue() != "begin":
 			token = self.scanToken()
 		
-		if not token.Next:   					# if last token
+		if not token.Next:
 			return False
 
 		return True
 
 	# Moves the current token to next statement
 	def resync_statement_token(self, token, signal):
+		print "resync_statement_token", signal
 		while token.getTokenValue() != signal:
 			token = self.scanToken()
 
-	# Moves the current token to next if/for statement
+	# Moves the current token to next statement
 	def resync_end_token(self, token, signal):
+		print "resync_end_token for", signal
 		while token.getTokenValue() != "end":
 			token = self.scanToken()
-
 		token = self.scanToken()  
 		if token.getTokenValue() == signal:
 			token = self.scanToken() # ;
+			print "token now", token.getTokenValue()
 			return token
 		else:
 			return False 
 
-# -------------------------------- Main Block ------------------------------------
+# ---- Main -----
 if __name__ == '__main__':
-	#filename = "/Users/roses/Downloads/Repository/testCases/correct/test2.src"
+	#filename = raw_input('Type Filename:') 
+	filename = "/Users/roses/Downloads/Repository/test.src"
 
-	try:
-	    opts, args = getopt.getopt(sys.argv[1:],'i:hst', ['input=', 'help', 'st', 'token'])
-	except getopt.GetoptError as err:
-		print str(err)
-		sys.exit()
+	dfa = DFA()
+	generatedFile = filename[0:-3]+"ll"
+	
+	# If file already exists, then delete it
+	if os.path.exists(generatedFile):
+		os.remove(generatedFile)
 
-	filename = False
+	analyzer = Lexical(generatedFile)
 
-	for opt, arg in opts:  								  		# Save values in variables
-		if opt in ('-i', '--input'):
+	try: 
+		with open(filename) as f:
+			pass
 
-			dfa = DFA()									 		# new instance of automata
-			filename = arg
-			generatedFile = filename[0:-3]+"ll"		  	  		# output file.ll
-	  	
-			if os.path.exists(generatedFile):  			  		# If file already exists, then delete it
-				os.remove(generatedFile)
+		analyzer.getTokenFromFile(filename)
+		analyzer.current_token = analyzer.tokenList.Next  
 
-			analyzer = Compiler(generatedFile)     		  		# new instance of compiler class
+		analyzer.program(analyzer.tokenList.Next)
 
-			try: 
-				with open(filename) as f:
-					pass
-		
-				analyzer.getTokenFromFile(filename) 	  		# Execute scanner phase
-				analyzer.current_token = analyzer.tokenList.Next  
+	except IOError as e:
+		print "I/O error({0}): {1}".format(e.errno, e.strerror), filename
 
-				analyzer.program(analyzer.tokenList.Next) 		# Execute parser phase
-
-			except IOError as e:						  		# Didn't find the file
-				print "I/O error({0}): {1}".format(e.errno, e.strerror), filename 
-
-		elif opt in ('-h', '--help'):							# Options from command line
-			print "\nDescription:"
-			print "\nUsage1: compiler.py < -h | --help >"
-			print "Usage2: compiler.py < -i | --input > input.src "
-			print "Usage3: compiler.py < -i | --input > input.src < -s | -- st >"
-			print "Usage4: compiler.py < -i | --input > input.src < -t | -- token >"
-			print "\nOutput: input.ll"
-			sys.exit()
-
-		if opt in ('-s', '--st'):
-			if filename:
-				analyzer.printST()
-			else:
-				print "Usage: compiler.py -i input.src -st"
-
-		elif opt in ('-t', '--token'):
-			if filename:
-				analyzer.tokenList.printList(analyzer.tokenList)
-			else:
-				print "Usage: compiler.py -i input.src -token"
-	   
-	   

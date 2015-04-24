@@ -1,0 +1,11 @@
+program test_program is
+
+integer n;
+bool b;
+begin
+n := 1;
+b := n;
+
+
+
+end program
