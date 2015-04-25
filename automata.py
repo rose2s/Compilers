@@ -4,17 +4,17 @@ class DFA:
 
     def __init__(self):
 
-        self.states = {'s0', 's1', 's2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19'}
+        self.states = ['s0', 's1', 's2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19']
 
-        self.alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
+        self.alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','x','z','w','y',
                     '0','1','2','3','4','5','6','7','8','9',
-                    ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", ">", "!", "=", "{", "}","[", "]"}
+                    ":", ";", ",", "+", "-", "*", "/", "(", ")", "<", ">", "!", "=", "{", "}","[", "]"]
 
         self.start_state = 's0'
 
         # id = s1, int = s2, float=s4, comp=s6,s7, aritm_op=s8, s10 = left_par, s11= right_par, 
         #s12= left_bra, s13= right_bra, s14= comma, s15= semi-colon, s16= left_col, s17= right_col, s18= string
-        self.accept_states = {'s1','s2','s3','s6', 's7','s8','s10','s11','s12','s13','s14','s15','s16','s17','s18'}
+        self.accept_states = ['s1','s2','s3','s6', 's7','s8','s10','s11','s12','s13','s14','s15','s16','s17','s18']
 
         tf = {}
         # identifier transition

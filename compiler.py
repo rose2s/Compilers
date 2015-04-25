@@ -237,25 +237,12 @@ class Compiler:
 	
 
 	def first(self,X):
-		if X == 'E':
-			return {self.getID(),'('}
-
-		elif X == 'E2':
-			return {'+','-'," "}
+		if X == 'E2':
+			return ['+','-'," "]
 
 		elif X == 'T2':
-			return {'*','/'," "}
+			return ['*','/'," "]
 
-	def follow(self, X):
-
-		if X in ('E','E2'):
-			return {')'," "}
-
-		elif X in ('T','T2'):
-			return {'+','-',')'}
-
-		elif X == 'F':
-			return {'+','-','*','/',')'}
 
 	# Scans next token
 	def scanToken(self):
