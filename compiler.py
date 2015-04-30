@@ -237,6 +237,7 @@ class Compiler:
 	
 
 	def first(self,X):
+
 		if X == 'E2':
 			return ['+','-'," "]
 
